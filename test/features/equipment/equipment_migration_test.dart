@@ -13,7 +13,7 @@ import 'package:astromanager/features/equipment/data/repositories/drift_equipmen
 import 'package:astromanager/features/equipment/domain/models/equipment_models.dart';
 
 void main() {
-  test('migration v2 to v3 preserves existing data', () async {
+  test('migration v2 to v4 preserves existing data', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_equipment_migration_',
     );
@@ -23,7 +23,6 @@ void main() {
     );
 
     try {
-      // Prepare data using the current schema.
       final originalDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -45,7 +44,12 @@ void main() {
           ),
         );
 
-        // Simulate a v2 database with its original tables.
+        // Construct a simulated v2 database.
+        // Only temporary test data is affected.
+        await originalDatabase.customStatement(
+          'DROP TABLE celestial_catalog_entries',
+        );
+
         await originalDatabase.customStatement('DROP TABLE optical_profiles');
 
         await originalDatabase.customStatement('DROP TABLE equipment_items');
@@ -55,7 +59,6 @@ void main() {
         await originalDatabase.close();
       }
 
-      // Reopen with schema v3 and trigger the migration.
       final migratedDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -73,7 +76,6 @@ void main() {
         expect(savedLocations.first.name, 'Existing Observatory');
         expect(savedLocations.first.isDefault, isTrue);
 
-        // Equipment tables must now be available.
         expect((await equipment.load()).items, isEmpty);
 
         await equipment.saveItem(
@@ -94,7 +96,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 3);
+        expect(version.read<int>('user_version'), 4);
       } finally {
         await migratedDatabase.close();
       }

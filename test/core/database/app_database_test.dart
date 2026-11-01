@@ -48,14 +48,14 @@ void main() {
       expect(await repository.get('missing.key'), isNull);
     });
 
-    test('uses schema version 3', () async {
+    test('uses schema version 4', () async {
       await repository.put('schema.test', 'ok');
 
       final result = await database
           .customSelect('PRAGMA user_version')
           .getSingle();
 
-      expect(result.read<int>('user_version'), 3);
+      expect(result.read<int>('user_version'), 4);
     });
   });
 
@@ -93,7 +93,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(result.read<int>('user_version'), 3);
+        expect(result.read<int>('user_version'), 4);
       } finally {
         await reopenedDatabase.close();
       }

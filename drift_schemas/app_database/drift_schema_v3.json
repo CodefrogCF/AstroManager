@@ -1,10 +1,461 @@
 {
-  "_meta": {
-    "description": "This file contains a serialized version of schema entities for drift.",
-    "version": "1.3.0"
-  },
-  "options": {
-    "store_date_time_values_as_text": false
-  },
-  "entities": []
+    "_meta":  {
+                  "description":  "This file contains a serialized version of schema entities for drift.",
+                  "version":  "1.3.0"
+              },
+    "options":  {
+                    "store_date_time_values_as_text":  false
+                },
+    "entities":  [
+                     {
+                         "id":  0,
+                         "references":  [
+
+                                        ],
+                         "type":  "table",
+                         "data":  {
+                                      "name":  "app_settings",
+                                      "was_declared_in_moor":  false,
+                                      "columns":  [
+                                                      {
+                                                          "name":  "key",
+                                                          "getter_name":  "key",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "allowed-lengths":  {
+                                                                                                           "min":  1,
+                                                                                                           "max":  128
+                                                                                                       }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "value",
+                                                          "getter_name":  "value",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      }
+                                                  ],
+                                      "is_virtual":  false,
+                                      "without_rowid":  false,
+                                      "constraints":  [
+
+                                                      ],
+                                      "explicit_pk":  [
+                                                          "key"
+                                                      ]
+                                  }
+                     },
+                     {
+                         "id":  1,
+                         "references":  [
+
+                                        ],
+                         "type":  "table",
+                         "data":  {
+                                      "name":  "observing_locations",
+                                      "was_declared_in_moor":  false,
+                                      "columns":  [
+                                                      {
+                                                          "name":  "id",
+                                                          "getter_name":  "id",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "name",
+                                                          "getter_name":  "name",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "allowed-lengths":  {
+                                                                                                           "min":  1,
+                                                                                                           "max":  100
+                                                                                                       }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "latitude",
+                                                          "getter_name":  "latitude",
+                                                          "moor_type":  "double",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "longitude",
+                                                          "getter_name":  "longitude",
+                                                          "moor_type":  "double",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "elevation_meters",
+                                                          "getter_name":  "elevationMeters",
+                                                          "moor_type":  "double",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "time_zone",
+                                                          "getter_name":  "timeZone",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "is_default",
+                                                          "getter_name":  "isDefault",
+                                                          "moor_type":  "bool",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "defaultConstraints":  "CHECK (\"is_default\" IN (0, 1))",
+                                                          "dialectAwareDefaultConstraints":  {
+                                                                                                 "sqlite":  "CHECK (\"is_default\" IN (0, 1))"
+                                                                                             },
+                                                          "default_dart":  "const CustomExpression(\u00270\u0027)",
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      }
+                                                  ],
+                                      "is_virtual":  false,
+                                      "without_rowid":  false,
+                                      "constraints":  [
+
+                                                      ],
+                                      "explicit_pk":  [
+                                                          "id"
+                                                      ]
+                                  }
+                     },
+                     {
+                         "id":  2,
+                         "references":  [
+
+                                        ],
+                         "type":  "table",
+                         "data":  {
+                                      "name":  "equipment_items",
+                                      "was_declared_in_moor":  false,
+                                      "columns":  [
+                                                      {
+                                                          "name":  "id",
+                                                          "getter_name":  "id",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "name",
+                                                          "getter_name":  "name",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "allowed-lengths":  {
+                                                                                                           "min":  1,
+                                                                                                           "max":  120
+                                                                                                       }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "kind",
+                                                          "getter_name":  "kind",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "sensor_width_mm",
+                                                          "getter_name":  "sensorWidthMm",
+                                                          "moor_type":  "double",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "sensor_height_mm",
+                                                          "getter_name":  "sensorHeightMm",
+                                                          "moor_type":  "double",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "resolution_x",
+                                                          "getter_name":  "resolutionX",
+                                                          "moor_type":  "int",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "resolution_y",
+                                                          "getter_name":  "resolutionY",
+                                                          "moor_type":  "int",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "focal_length_mm",
+                                                          "getter_name":  "focalLengthMm",
+                                                          "moor_type":  "double",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "aperture_mm",
+                                                          "getter_name":  "apertureMm",
+                                                          "moor_type":  "double",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "payload_capacity_kg",
+                                                          "getter_name":  "payloadCapacityKg",
+                                                          "moor_type":  "double",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      }
+                                                  ],
+                                      "is_virtual":  false,
+                                      "without_rowid":  false,
+                                      "constraints":  [
+
+                                                      ],
+                                      "explicit_pk":  [
+                                                          "id"
+                                                      ]
+                                  }
+                     },
+                     {
+                         "id":  3,
+                         "references":  [
+                                            2
+                                        ],
+                         "type":  "table",
+                         "data":  {
+                                      "name":  "optical_profiles",
+                                      "was_declared_in_moor":  false,
+                                      "columns":  [
+                                                      {
+                                                          "name":  "id",
+                                                          "getter_name":  "id",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "name",
+                                                          "getter_name":  "name",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "allowed-lengths":  {
+                                                                                                           "min":  1,
+                                                                                                           "max":  120
+                                                                                                       }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "camera_id",
+                                                          "getter_name":  "cameraId",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "defaultConstraints":  "REFERENCES equipment_items (id) ON DELETE RESTRICT",
+                                                          "dialectAwareDefaultConstraints":  {
+                                                                                                 "sqlite":  "REFERENCES equipment_items (id) ON DELETE RESTRICT"
+                                                                                             },
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "foreign_key":  {
+                                                                                                       "to":  {
+                                                                                                                  "table":  "equipment_items",
+                                                                                                                  "column":  "id"
+                                                                                                              },
+                                                                                                       "initially_deferred":  false,
+                                                                                                       "on_update":  null,
+                                                                                                       "on_delete":  "restrict"
+                                                                                                   }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "optic_id",
+                                                          "getter_name":  "opticId",
+                                                          "moor_type":  "string",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "defaultConstraints":  "REFERENCES equipment_items (id) ON DELETE RESTRICT",
+                                                          "dialectAwareDefaultConstraints":  {
+                                                                                                 "sqlite":  "REFERENCES equipment_items (id) ON DELETE RESTRICT"
+                                                                                             },
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "foreign_key":  {
+                                                                                                       "to":  {
+                                                                                                                  "table":  "equipment_items",
+                                                                                                                  "column":  "id"
+                                                                                                              },
+                                                                                                       "initially_deferred":  false,
+                                                                                                       "on_update":  null,
+                                                                                                       "on_delete":  "restrict"
+                                                                                                   }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "mount_id",
+                                                          "getter_name":  "mountId",
+                                                          "moor_type":  "string",
+                                                          "nullable":  true,
+                                                          "customConstraints":  null,
+                                                          "defaultConstraints":  "REFERENCES equipment_items (id) ON DELETE RESTRICT",
+                                                          "dialectAwareDefaultConstraints":  {
+                                                                                                 "sqlite":  "REFERENCES equipment_items (id) ON DELETE RESTRICT"
+                                                                                             },
+                                                          "default_dart":  null,
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+                                                                               {
+                                                                                   "foreign_key":  {
+                                                                                                       "to":  {
+                                                                                                                  "table":  "equipment_items",
+                                                                                                                  "column":  "id"
+                                                                                                              },
+                                                                                                       "initially_deferred":  false,
+                                                                                                       "on_update":  null,
+                                                                                                       "on_delete":  "restrict"
+                                                                                                   }
+                                                                               }
+                                                                           ]
+                                                      },
+                                                      {
+                                                          "name":  "focal_multiplier",
+                                                          "getter_name":  "focalMultiplier",
+                                                          "moor_type":  "double",
+                                                          "nullable":  false,
+                                                          "customConstraints":  null,
+                                                          "default_dart":  "const CustomExpression(\u00271.0\u0027)",
+                                                          "default_client_dart":  null,
+                                                          "dsl_features":  [
+
+                                                                           ]
+                                                      }
+                                                  ],
+                                      "is_virtual":  false,
+                                      "without_rowid":  false,
+                                      "constraints":  [
+
+                                                      ],
+                                      "explicit_pk":  [
+                                                          "id"
+                                                      ]
+                                  }
+                     }
+                 ]
 }

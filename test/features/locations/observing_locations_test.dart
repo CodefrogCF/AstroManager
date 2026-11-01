@@ -47,7 +47,10 @@ class FakeObservingLocationRepository implements ObservingLocationRepository {
       (entry) => entry.id == location.id,
     );
 
-    final shouldBeDefault = locations.isEmpty || location.isDefault;
+    final shouldBeDefault =
+        locations.isEmpty ||
+        location.isDefault ||
+        (existingIndex >= 0 && locations[existingIndex].isDefault);
 
     if (shouldBeDefault) {
       for (var i = 0; i < locations.length; i++) {
@@ -101,7 +104,15 @@ class FakeObservingLocationRepository implements ObservingLocationRepository {
 
   @override
   Future<void> delete(String id) async {
+    final wasDefault = locations.any(
+      (entry) => entry.id == id && entry.isDefault,
+    );
+
     locations.removeWhere((entry) => entry.id == id);
+
+    if (wasDefault && locations.isNotEmpty) {
+      await setDefault(locations.first.id);
+    }
   }
 }
 
@@ -269,7 +280,7 @@ void main() {
     });
   });
 
-  test('migration v1 to v3 preserves settings', () async {
+  test('migration v1 to v4 preserves settings', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_migration_',
     );
@@ -279,14 +290,16 @@ void main() {
     );
 
     try {
-      // Construct a temporary database with the current schema.
-      // Remove the later tables to simulate the v1 structure.
       final oldDatabase = AppDatabase(NativeDatabase(file));
 
       try {
         final oldSettings = AppSettingsRepository(oldDatabase);
 
         await oldSettings.put('migration.test', 'preserved-value');
+
+        await oldDatabase.customStatement(
+          'DROP TABLE celestial_catalog_entries',
+        );
 
         await oldDatabase.customStatement('DROP TABLE optical_profiles');
 
@@ -299,7 +312,6 @@ void main() {
         await oldDatabase.close();
       }
 
-      // Opening the database upgrades v1 directly to v3.
       final migratedDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -317,7 +329,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 3);
+        expect(version.read<int>('user_version'), 4);
       } finally {
         await migratedDatabase.close();
       }
@@ -362,7 +374,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.locations, hasLength(1));
+
     expect(repository.locations.first.name, 'Test Observatory');
+
     expect(repository.locations.first.isDefault, isTrue);
   });
 }

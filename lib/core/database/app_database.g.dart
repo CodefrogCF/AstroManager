@@ -1774,6 +1774,812 @@ class OpticalProfilesCompanion extends UpdateCompanion<OpticalProfileRow> {
   }
 }
 
+class $CelestialCatalogEntriesTable extends CelestialCatalogEntries
+    with TableInfo<$CelestialCatalogEntriesTable, CelestialCatalogEntryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CelestialCatalogEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _designationMeta = const VerificationMeta(
+    'designation',
+  );
+  @override
+  late final GeneratedColumn<String> designation = GeneratedColumn<String>(
+    'designation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta(
+    'sourceType',
+  );
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _raDegreesMeta = const VerificationMeta(
+    'raDegrees',
+  );
+  @override
+  late final GeneratedColumn<double> raDegrees = GeneratedColumn<double>(
+    'ra_degrees',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _decDegreesMeta = const VerificationMeta(
+    'decDegrees',
+  );
+  @override
+  late final GeneratedColumn<double> decDegrees = GeneratedColumn<double>(
+    'dec_degrees',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _constellationMeta = const VerificationMeta(
+    'constellation',
+  );
+  @override
+  late final GeneratedColumn<String> constellation = GeneratedColumn<String>(
+    'constellation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _visualMagnitudeMeta = const VerificationMeta(
+    'visualMagnitude',
+  );
+  @override
+  late final GeneratedColumn<double> visualMagnitude = GeneratedColumn<double>(
+    'visual_magnitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _majorAxisArcminMeta = const VerificationMeta(
+    'majorAxisArcmin',
+  );
+  @override
+  late final GeneratedColumn<double> majorAxisArcmin = GeneratedColumn<double>(
+    'major_axis_arcmin',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _minorAxisArcminMeta = const VerificationMeta(
+    'minorAxisArcmin',
+  );
+  @override
+  late final GeneratedColumn<double> minorAxisArcmin = GeneratedColumn<double>(
+    'minor_axis_arcmin',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _messierNumberMeta = const VerificationMeta(
+    'messierNumber',
+  );
+  @override
+  late final GeneratedColumn<int> messierNumber = GeneratedColumn<int>(
+    'messier_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _commonNamesMeta = const VerificationMeta(
+    'commonNames',
+  );
+  @override
+  late final GeneratedColumn<String> commonNames = GeneratedColumn<String>(
+    'common_names',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _aliasesMeta = const VerificationMeta(
+    'aliases',
+  );
+  @override
+  late final GeneratedColumn<String> aliases = GeneratedColumn<String>(
+    'aliases',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    designation,
+    category,
+    sourceType,
+    raDegrees,
+    decDegrees,
+    constellation,
+    visualMagnitude,
+    majorAxisArcmin,
+    minorAxisArcmin,
+    messierNumber,
+    commonNames,
+    aliases,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'celestial_catalog_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CelestialCatalogEntryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('designation')) {
+      context.handle(
+        _designationMeta,
+        designation.isAcceptableOrUnknown(
+          data['designation']!,
+          _designationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_designationMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(
+        _sourceTypeMeta,
+        sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('ra_degrees')) {
+      context.handle(
+        _raDegreesMeta,
+        raDegrees.isAcceptableOrUnknown(data['ra_degrees']!, _raDegreesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_raDegreesMeta);
+    }
+    if (data.containsKey('dec_degrees')) {
+      context.handle(
+        _decDegreesMeta,
+        decDegrees.isAcceptableOrUnknown(data['dec_degrees']!, _decDegreesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_decDegreesMeta);
+    }
+    if (data.containsKey('constellation')) {
+      context.handle(
+        _constellationMeta,
+        constellation.isAcceptableOrUnknown(
+          data['constellation']!,
+          _constellationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_constellationMeta);
+    }
+    if (data.containsKey('visual_magnitude')) {
+      context.handle(
+        _visualMagnitudeMeta,
+        visualMagnitude.isAcceptableOrUnknown(
+          data['visual_magnitude']!,
+          _visualMagnitudeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('major_axis_arcmin')) {
+      context.handle(
+        _majorAxisArcminMeta,
+        majorAxisArcmin.isAcceptableOrUnknown(
+          data['major_axis_arcmin']!,
+          _majorAxisArcminMeta,
+        ),
+      );
+    }
+    if (data.containsKey('minor_axis_arcmin')) {
+      context.handle(
+        _minorAxisArcminMeta,
+        minorAxisArcmin.isAcceptableOrUnknown(
+          data['minor_axis_arcmin']!,
+          _minorAxisArcminMeta,
+        ),
+      );
+    }
+    if (data.containsKey('messier_number')) {
+      context.handle(
+        _messierNumberMeta,
+        messierNumber.isAcceptableOrUnknown(
+          data['messier_number']!,
+          _messierNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('common_names')) {
+      context.handle(
+        _commonNamesMeta,
+        commonNames.isAcceptableOrUnknown(
+          data['common_names']!,
+          _commonNamesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('aliases')) {
+      context.handle(
+        _aliasesMeta,
+        aliases.isAcceptableOrUnknown(data['aliases']!, _aliasesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CelestialCatalogEntryRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CelestialCatalogEntryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      designation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}designation'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      sourceType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_type'],
+      )!,
+      raDegrees: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ra_degrees'],
+      )!,
+      decDegrees: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}dec_degrees'],
+      )!,
+      constellation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}constellation'],
+      )!,
+      visualMagnitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}visual_magnitude'],
+      ),
+      majorAxisArcmin: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}major_axis_arcmin'],
+      ),
+      minorAxisArcmin: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minor_axis_arcmin'],
+      ),
+      messierNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}messier_number'],
+      ),
+      commonNames: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}common_names'],
+      )!,
+      aliases: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}aliases'],
+      )!,
+    );
+  }
+
+  @override
+  $CelestialCatalogEntriesTable createAlias(String alias) {
+    return $CelestialCatalogEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class CelestialCatalogEntryRow extends DataClass
+    implements Insertable<CelestialCatalogEntryRow> {
+  final String id;
+  final String designation;
+  final String category;
+  final String sourceType;
+  final double raDegrees;
+  final double decDegrees;
+  final String constellation;
+  final double? visualMagnitude;
+  final double? majorAxisArcmin;
+  final double? minorAxisArcmin;
+  final int? messierNumber;
+  final String commonNames;
+  final String aliases;
+  const CelestialCatalogEntryRow({
+    required this.id,
+    required this.designation,
+    required this.category,
+    required this.sourceType,
+    required this.raDegrees,
+    required this.decDegrees,
+    required this.constellation,
+    this.visualMagnitude,
+    this.majorAxisArcmin,
+    this.minorAxisArcmin,
+    this.messierNumber,
+    required this.commonNames,
+    required this.aliases,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['designation'] = Variable<String>(designation);
+    map['category'] = Variable<String>(category);
+    map['source_type'] = Variable<String>(sourceType);
+    map['ra_degrees'] = Variable<double>(raDegrees);
+    map['dec_degrees'] = Variable<double>(decDegrees);
+    map['constellation'] = Variable<String>(constellation);
+    if (!nullToAbsent || visualMagnitude != null) {
+      map['visual_magnitude'] = Variable<double>(visualMagnitude);
+    }
+    if (!nullToAbsent || majorAxisArcmin != null) {
+      map['major_axis_arcmin'] = Variable<double>(majorAxisArcmin);
+    }
+    if (!nullToAbsent || minorAxisArcmin != null) {
+      map['minor_axis_arcmin'] = Variable<double>(minorAxisArcmin);
+    }
+    if (!nullToAbsent || messierNumber != null) {
+      map['messier_number'] = Variable<int>(messierNumber);
+    }
+    map['common_names'] = Variable<String>(commonNames);
+    map['aliases'] = Variable<String>(aliases);
+    return map;
+  }
+
+  CelestialCatalogEntriesCompanion toCompanion(bool nullToAbsent) {
+    return CelestialCatalogEntriesCompanion(
+      id: Value(id),
+      designation: Value(designation),
+      category: Value(category),
+      sourceType: Value(sourceType),
+      raDegrees: Value(raDegrees),
+      decDegrees: Value(decDegrees),
+      constellation: Value(constellation),
+      visualMagnitude: visualMagnitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(visualMagnitude),
+      majorAxisArcmin: majorAxisArcmin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(majorAxisArcmin),
+      minorAxisArcmin: minorAxisArcmin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minorAxisArcmin),
+      messierNumber: messierNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(messierNumber),
+      commonNames: Value(commonNames),
+      aliases: Value(aliases),
+    );
+  }
+
+  factory CelestialCatalogEntryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CelestialCatalogEntryRow(
+      id: serializer.fromJson<String>(json['id']),
+      designation: serializer.fromJson<String>(json['designation']),
+      category: serializer.fromJson<String>(json['category']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      raDegrees: serializer.fromJson<double>(json['raDegrees']),
+      decDegrees: serializer.fromJson<double>(json['decDegrees']),
+      constellation: serializer.fromJson<String>(json['constellation']),
+      visualMagnitude: serializer.fromJson<double?>(json['visualMagnitude']),
+      majorAxisArcmin: serializer.fromJson<double?>(json['majorAxisArcmin']),
+      minorAxisArcmin: serializer.fromJson<double?>(json['minorAxisArcmin']),
+      messierNumber: serializer.fromJson<int?>(json['messierNumber']),
+      commonNames: serializer.fromJson<String>(json['commonNames']),
+      aliases: serializer.fromJson<String>(json['aliases']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'designation': serializer.toJson<String>(designation),
+      'category': serializer.toJson<String>(category),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'raDegrees': serializer.toJson<double>(raDegrees),
+      'decDegrees': serializer.toJson<double>(decDegrees),
+      'constellation': serializer.toJson<String>(constellation),
+      'visualMagnitude': serializer.toJson<double?>(visualMagnitude),
+      'majorAxisArcmin': serializer.toJson<double?>(majorAxisArcmin),
+      'minorAxisArcmin': serializer.toJson<double?>(minorAxisArcmin),
+      'messierNumber': serializer.toJson<int?>(messierNumber),
+      'commonNames': serializer.toJson<String>(commonNames),
+      'aliases': serializer.toJson<String>(aliases),
+    };
+  }
+
+  CelestialCatalogEntryRow copyWith({
+    String? id,
+    String? designation,
+    String? category,
+    String? sourceType,
+    double? raDegrees,
+    double? decDegrees,
+    String? constellation,
+    Value<double?> visualMagnitude = const Value.absent(),
+    Value<double?> majorAxisArcmin = const Value.absent(),
+    Value<double?> minorAxisArcmin = const Value.absent(),
+    Value<int?> messierNumber = const Value.absent(),
+    String? commonNames,
+    String? aliases,
+  }) => CelestialCatalogEntryRow(
+    id: id ?? this.id,
+    designation: designation ?? this.designation,
+    category: category ?? this.category,
+    sourceType: sourceType ?? this.sourceType,
+    raDegrees: raDegrees ?? this.raDegrees,
+    decDegrees: decDegrees ?? this.decDegrees,
+    constellation: constellation ?? this.constellation,
+    visualMagnitude: visualMagnitude.present
+        ? visualMagnitude.value
+        : this.visualMagnitude,
+    majorAxisArcmin: majorAxisArcmin.present
+        ? majorAxisArcmin.value
+        : this.majorAxisArcmin,
+    minorAxisArcmin: minorAxisArcmin.present
+        ? minorAxisArcmin.value
+        : this.minorAxisArcmin,
+    messierNumber: messierNumber.present
+        ? messierNumber.value
+        : this.messierNumber,
+    commonNames: commonNames ?? this.commonNames,
+    aliases: aliases ?? this.aliases,
+  );
+  CelestialCatalogEntryRow copyWithCompanion(
+    CelestialCatalogEntriesCompanion data,
+  ) {
+    return CelestialCatalogEntryRow(
+      id: data.id.present ? data.id.value : this.id,
+      designation: data.designation.present
+          ? data.designation.value
+          : this.designation,
+      category: data.category.present ? data.category.value : this.category,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      raDegrees: data.raDegrees.present ? data.raDegrees.value : this.raDegrees,
+      decDegrees: data.decDegrees.present
+          ? data.decDegrees.value
+          : this.decDegrees,
+      constellation: data.constellation.present
+          ? data.constellation.value
+          : this.constellation,
+      visualMagnitude: data.visualMagnitude.present
+          ? data.visualMagnitude.value
+          : this.visualMagnitude,
+      majorAxisArcmin: data.majorAxisArcmin.present
+          ? data.majorAxisArcmin.value
+          : this.majorAxisArcmin,
+      minorAxisArcmin: data.minorAxisArcmin.present
+          ? data.minorAxisArcmin.value
+          : this.minorAxisArcmin,
+      messierNumber: data.messierNumber.present
+          ? data.messierNumber.value
+          : this.messierNumber,
+      commonNames: data.commonNames.present
+          ? data.commonNames.value
+          : this.commonNames,
+      aliases: data.aliases.present ? data.aliases.value : this.aliases,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CelestialCatalogEntryRow(')
+          ..write('id: $id, ')
+          ..write('designation: $designation, ')
+          ..write('category: $category, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('raDegrees: $raDegrees, ')
+          ..write('decDegrees: $decDegrees, ')
+          ..write('constellation: $constellation, ')
+          ..write('visualMagnitude: $visualMagnitude, ')
+          ..write('majorAxisArcmin: $majorAxisArcmin, ')
+          ..write('minorAxisArcmin: $minorAxisArcmin, ')
+          ..write('messierNumber: $messierNumber, ')
+          ..write('commonNames: $commonNames, ')
+          ..write('aliases: $aliases')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    designation,
+    category,
+    sourceType,
+    raDegrees,
+    decDegrees,
+    constellation,
+    visualMagnitude,
+    majorAxisArcmin,
+    minorAxisArcmin,
+    messierNumber,
+    commonNames,
+    aliases,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CelestialCatalogEntryRow &&
+          other.id == this.id &&
+          other.designation == this.designation &&
+          other.category == this.category &&
+          other.sourceType == this.sourceType &&
+          other.raDegrees == this.raDegrees &&
+          other.decDegrees == this.decDegrees &&
+          other.constellation == this.constellation &&
+          other.visualMagnitude == this.visualMagnitude &&
+          other.majorAxisArcmin == this.majorAxisArcmin &&
+          other.minorAxisArcmin == this.minorAxisArcmin &&
+          other.messierNumber == this.messierNumber &&
+          other.commonNames == this.commonNames &&
+          other.aliases == this.aliases);
+}
+
+class CelestialCatalogEntriesCompanion
+    extends UpdateCompanion<CelestialCatalogEntryRow> {
+  final Value<String> id;
+  final Value<String> designation;
+  final Value<String> category;
+  final Value<String> sourceType;
+  final Value<double> raDegrees;
+  final Value<double> decDegrees;
+  final Value<String> constellation;
+  final Value<double?> visualMagnitude;
+  final Value<double?> majorAxisArcmin;
+  final Value<double?> minorAxisArcmin;
+  final Value<int?> messierNumber;
+  final Value<String> commonNames;
+  final Value<String> aliases;
+  final Value<int> rowid;
+  const CelestialCatalogEntriesCompanion({
+    this.id = const Value.absent(),
+    this.designation = const Value.absent(),
+    this.category = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.raDegrees = const Value.absent(),
+    this.decDegrees = const Value.absent(),
+    this.constellation = const Value.absent(),
+    this.visualMagnitude = const Value.absent(),
+    this.majorAxisArcmin = const Value.absent(),
+    this.minorAxisArcmin = const Value.absent(),
+    this.messierNumber = const Value.absent(),
+    this.commonNames = const Value.absent(),
+    this.aliases = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CelestialCatalogEntriesCompanion.insert({
+    required String id,
+    required String designation,
+    required String category,
+    required String sourceType,
+    required double raDegrees,
+    required double decDegrees,
+    required String constellation,
+    this.visualMagnitude = const Value.absent(),
+    this.majorAxisArcmin = const Value.absent(),
+    this.minorAxisArcmin = const Value.absent(),
+    this.messierNumber = const Value.absent(),
+    this.commonNames = const Value.absent(),
+    this.aliases = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       designation = Value(designation),
+       category = Value(category),
+       sourceType = Value(sourceType),
+       raDegrees = Value(raDegrees),
+       decDegrees = Value(decDegrees),
+       constellation = Value(constellation);
+  static Insertable<CelestialCatalogEntryRow> custom({
+    Expression<String>? id,
+    Expression<String>? designation,
+    Expression<String>? category,
+    Expression<String>? sourceType,
+    Expression<double>? raDegrees,
+    Expression<double>? decDegrees,
+    Expression<String>? constellation,
+    Expression<double>? visualMagnitude,
+    Expression<double>? majorAxisArcmin,
+    Expression<double>? minorAxisArcmin,
+    Expression<int>? messierNumber,
+    Expression<String>? commonNames,
+    Expression<String>? aliases,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (designation != null) 'designation': designation,
+      if (category != null) 'category': category,
+      if (sourceType != null) 'source_type': sourceType,
+      if (raDegrees != null) 'ra_degrees': raDegrees,
+      if (decDegrees != null) 'dec_degrees': decDegrees,
+      if (constellation != null) 'constellation': constellation,
+      if (visualMagnitude != null) 'visual_magnitude': visualMagnitude,
+      if (majorAxisArcmin != null) 'major_axis_arcmin': majorAxisArcmin,
+      if (minorAxisArcmin != null) 'minor_axis_arcmin': minorAxisArcmin,
+      if (messierNumber != null) 'messier_number': messierNumber,
+      if (commonNames != null) 'common_names': commonNames,
+      if (aliases != null) 'aliases': aliases,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CelestialCatalogEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? designation,
+    Value<String>? category,
+    Value<String>? sourceType,
+    Value<double>? raDegrees,
+    Value<double>? decDegrees,
+    Value<String>? constellation,
+    Value<double?>? visualMagnitude,
+    Value<double?>? majorAxisArcmin,
+    Value<double?>? minorAxisArcmin,
+    Value<int?>? messierNumber,
+    Value<String>? commonNames,
+    Value<String>? aliases,
+    Value<int>? rowid,
+  }) {
+    return CelestialCatalogEntriesCompanion(
+      id: id ?? this.id,
+      designation: designation ?? this.designation,
+      category: category ?? this.category,
+      sourceType: sourceType ?? this.sourceType,
+      raDegrees: raDegrees ?? this.raDegrees,
+      decDegrees: decDegrees ?? this.decDegrees,
+      constellation: constellation ?? this.constellation,
+      visualMagnitude: visualMagnitude ?? this.visualMagnitude,
+      majorAxisArcmin: majorAxisArcmin ?? this.majorAxisArcmin,
+      minorAxisArcmin: minorAxisArcmin ?? this.minorAxisArcmin,
+      messierNumber: messierNumber ?? this.messierNumber,
+      commonNames: commonNames ?? this.commonNames,
+      aliases: aliases ?? this.aliases,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (designation.present) {
+      map['designation'] = Variable<String>(designation.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (raDegrees.present) {
+      map['ra_degrees'] = Variable<double>(raDegrees.value);
+    }
+    if (decDegrees.present) {
+      map['dec_degrees'] = Variable<double>(decDegrees.value);
+    }
+    if (constellation.present) {
+      map['constellation'] = Variable<String>(constellation.value);
+    }
+    if (visualMagnitude.present) {
+      map['visual_magnitude'] = Variable<double>(visualMagnitude.value);
+    }
+    if (majorAxisArcmin.present) {
+      map['major_axis_arcmin'] = Variable<double>(majorAxisArcmin.value);
+    }
+    if (minorAxisArcmin.present) {
+      map['minor_axis_arcmin'] = Variable<double>(minorAxisArcmin.value);
+    }
+    if (messierNumber.present) {
+      map['messier_number'] = Variable<int>(messierNumber.value);
+    }
+    if (commonNames.present) {
+      map['common_names'] = Variable<String>(commonNames.value);
+    }
+    if (aliases.present) {
+      map['aliases'] = Variable<String>(aliases.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CelestialCatalogEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('designation: $designation, ')
+          ..write('category: $category, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('raDegrees: $raDegrees, ')
+          ..write('decDegrees: $decDegrees, ')
+          ..write('constellation: $constellation, ')
+          ..write('visualMagnitude: $visualMagnitude, ')
+          ..write('majorAxisArcmin: $majorAxisArcmin, ')
+          ..write('minorAxisArcmin: $minorAxisArcmin, ')
+          ..write('messierNumber: $messierNumber, ')
+          ..write('commonNames: $commonNames, ')
+          ..write('aliases: $aliases, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1784,6 +2590,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OpticalProfilesTable opticalProfiles = $OpticalProfilesTable(
     this,
   );
+  late final $CelestialCatalogEntriesTable celestialCatalogEntries =
+      $CelestialCatalogEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1793,6 +2601,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     observingLocations,
     equipmentItems,
     opticalProfiles,
+    celestialCatalogEntries,
   ];
 }
 
@@ -3050,6 +3859,407 @@ typedef $$OpticalProfilesTableProcessedTableManager =
       OpticalProfileRow,
       PrefetchHooks Function({bool cameraId, bool opticId, bool mountId})
     >;
+typedef $$CelestialCatalogEntriesTableCreateCompanionBuilder =
+    CelestialCatalogEntriesCompanion Function({
+      required String id,
+      required String designation,
+      required String category,
+      required String sourceType,
+      required double raDegrees,
+      required double decDegrees,
+      required String constellation,
+      Value<double?> visualMagnitude,
+      Value<double?> majorAxisArcmin,
+      Value<double?> minorAxisArcmin,
+      Value<int?> messierNumber,
+      Value<String> commonNames,
+      Value<String> aliases,
+      Value<int> rowid,
+    });
+typedef $$CelestialCatalogEntriesTableUpdateCompanionBuilder =
+    CelestialCatalogEntriesCompanion Function({
+      Value<String> id,
+      Value<String> designation,
+      Value<String> category,
+      Value<String> sourceType,
+      Value<double> raDegrees,
+      Value<double> decDegrees,
+      Value<String> constellation,
+      Value<double?> visualMagnitude,
+      Value<double?> majorAxisArcmin,
+      Value<double?> minorAxisArcmin,
+      Value<int?> messierNumber,
+      Value<String> commonNames,
+      Value<String> aliases,
+      Value<int> rowid,
+    });
+
+class $$CelestialCatalogEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CelestialCatalogEntriesTable> {
+  $$CelestialCatalogEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get designation => $composableBuilder(
+    column: $table.designation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get raDegrees => $composableBuilder(
+    column: $table.raDegrees,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get decDegrees => $composableBuilder(
+    column: $table.decDegrees,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get constellation => $composableBuilder(
+    column: $table.constellation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get visualMagnitude => $composableBuilder(
+    column: $table.visualMagnitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get majorAxisArcmin => $composableBuilder(
+    column: $table.majorAxisArcmin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minorAxisArcmin => $composableBuilder(
+    column: $table.minorAxisArcmin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get messierNumber => $composableBuilder(
+    column: $table.messierNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get commonNames => $composableBuilder(
+    column: $table.commonNames,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get aliases => $composableBuilder(
+    column: $table.aliases,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CelestialCatalogEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CelestialCatalogEntriesTable> {
+  $$CelestialCatalogEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get designation => $composableBuilder(
+    column: $table.designation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get raDegrees => $composableBuilder(
+    column: $table.raDegrees,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get decDegrees => $composableBuilder(
+    column: $table.decDegrees,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get constellation => $composableBuilder(
+    column: $table.constellation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get visualMagnitude => $composableBuilder(
+    column: $table.visualMagnitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get majorAxisArcmin => $composableBuilder(
+    column: $table.majorAxisArcmin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minorAxisArcmin => $composableBuilder(
+    column: $table.minorAxisArcmin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get messierNumber => $composableBuilder(
+    column: $table.messierNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get commonNames => $composableBuilder(
+    column: $table.commonNames,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get aliases => $composableBuilder(
+    column: $table.aliases,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CelestialCatalogEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CelestialCatalogEntriesTable> {
+  $$CelestialCatalogEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get designation => $composableBuilder(
+    column: $table.designation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get raDegrees =>
+      $composableBuilder(column: $table.raDegrees, builder: (column) => column);
+
+  GeneratedColumn<double> get decDegrees => $composableBuilder(
+    column: $table.decDegrees,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get constellation => $composableBuilder(
+    column: $table.constellation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get visualMagnitude => $composableBuilder(
+    column: $table.visualMagnitude,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get majorAxisArcmin => $composableBuilder(
+    column: $table.majorAxisArcmin,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minorAxisArcmin => $composableBuilder(
+    column: $table.minorAxisArcmin,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get messierNumber => $composableBuilder(
+    column: $table.messierNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get commonNames => $composableBuilder(
+    column: $table.commonNames,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get aliases =>
+      $composableBuilder(column: $table.aliases, builder: (column) => column);
+}
+
+class $$CelestialCatalogEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CelestialCatalogEntriesTable,
+          CelestialCatalogEntryRow,
+          $$CelestialCatalogEntriesTableFilterComposer,
+          $$CelestialCatalogEntriesTableOrderingComposer,
+          $$CelestialCatalogEntriesTableAnnotationComposer,
+          $$CelestialCatalogEntriesTableCreateCompanionBuilder,
+          $$CelestialCatalogEntriesTableUpdateCompanionBuilder,
+          (
+            CelestialCatalogEntryRow,
+            BaseReferences<
+              _$AppDatabase,
+              $CelestialCatalogEntriesTable,
+              CelestialCatalogEntryRow
+            >,
+          ),
+          CelestialCatalogEntryRow,
+          PrefetchHooks Function()
+        > {
+  $$CelestialCatalogEntriesTableTableManager(
+    _$AppDatabase db,
+    $CelestialCatalogEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CelestialCatalogEntriesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$CelestialCatalogEntriesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CelestialCatalogEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> designation = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> sourceType = const Value.absent(),
+                Value<double> raDegrees = const Value.absent(),
+                Value<double> decDegrees = const Value.absent(),
+                Value<String> constellation = const Value.absent(),
+                Value<double?> visualMagnitude = const Value.absent(),
+                Value<double?> majorAxisArcmin = const Value.absent(),
+                Value<double?> minorAxisArcmin = const Value.absent(),
+                Value<int?> messierNumber = const Value.absent(),
+                Value<String> commonNames = const Value.absent(),
+                Value<String> aliases = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CelestialCatalogEntriesCompanion(
+                id: id,
+                designation: designation,
+                category: category,
+                sourceType: sourceType,
+                raDegrees: raDegrees,
+                decDegrees: decDegrees,
+                constellation: constellation,
+                visualMagnitude: visualMagnitude,
+                majorAxisArcmin: majorAxisArcmin,
+                minorAxisArcmin: minorAxisArcmin,
+                messierNumber: messierNumber,
+                commonNames: commonNames,
+                aliases: aliases,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String designation,
+                required String category,
+                required String sourceType,
+                required double raDegrees,
+                required double decDegrees,
+                required String constellation,
+                Value<double?> visualMagnitude = const Value.absent(),
+                Value<double?> majorAxisArcmin = const Value.absent(),
+                Value<double?> minorAxisArcmin = const Value.absent(),
+                Value<int?> messierNumber = const Value.absent(),
+                Value<String> commonNames = const Value.absent(),
+                Value<String> aliases = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CelestialCatalogEntriesCompanion.insert(
+                id: id,
+                designation: designation,
+                category: category,
+                sourceType: sourceType,
+                raDegrees: raDegrees,
+                decDegrees: decDegrees,
+                constellation: constellation,
+                visualMagnitude: visualMagnitude,
+                majorAxisArcmin: majorAxisArcmin,
+                minorAxisArcmin: minorAxisArcmin,
+                messierNumber: messierNumber,
+                commonNames: commonNames,
+                aliases: aliases,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $CelestialCatalogEntriesTable,
+                    CelestialCatalogEntryRow
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $CelestialCatalogEntriesTable,
+                    CelestialCatalogEntryRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CelestialCatalogEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CelestialCatalogEntriesTable,
+      CelestialCatalogEntryRow,
+      $$CelestialCatalogEntriesTableFilterComposer,
+      $$CelestialCatalogEntriesTableOrderingComposer,
+      $$CelestialCatalogEntriesTableAnnotationComposer,
+      $$CelestialCatalogEntriesTableCreateCompanionBuilder,
+      $$CelestialCatalogEntriesTableUpdateCompanionBuilder,
+      (
+        CelestialCatalogEntryRow,
+        BaseReferences<
+          _$AppDatabase,
+          $CelestialCatalogEntriesTable,
+          CelestialCatalogEntryRow
+        >,
+      ),
+      CelestialCatalogEntryRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3062,4 +4272,9 @@ class $AppDatabaseManager {
       $$EquipmentItemsTableTableManager(_db, _db.equipmentItems);
   $$OpticalProfilesTableTableManager get opticalProfiles =>
       $$OpticalProfilesTableTableManager(_db, _db.opticalProfiles);
+  $$CelestialCatalogEntriesTableTableManager get celestialCatalogEntries =>
+      $$CelestialCatalogEntriesTableTableManager(
+        _db,
+        _db.celestialCatalogEntries,
+      );
 }
