@@ -44,6 +44,8 @@ dependencies:
   timezone: ^0.11.2
   http: ^1.6.0
   uuid: ^4.6.0
+  webview_flutter: ^4.14.1
+  web: ^1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -76,6 +78,8 @@ flutter:
   assets:
     - assets/catalog/openngc_20260501.json
     - assets/catalog/LICENSE-OpenNGC.txt
+    - assets/atlas/atlas.html
+    - assets/atlas/atlas_bridge.js
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

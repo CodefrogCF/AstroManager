@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <title>AstroManager Sky Atlas</title>
+  <style>
+    html, body, #aladin { height:100%;width:100%;margin:0;overflow:hidden;background:#10151f; }
+    #warning { position:absolute;z-index:20;top:0;left:0;right:0;display:none;
+      background:#38252b;color:#fff;font:14px system-ui;padding:10px; }
+  </style>
+</head>
+<body>
+  <div id="aladin"></div>
+  <div id="warning" role="alert"></div>
+  <script src="atlas_bridge.js"></script>
+  <!-- Pinned stable Aladin Lite release; image tiles still require network. -->
+  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.8.1/aladin.js"
+          onerror="window.AstroManagerAtlas.fatal('Could not load Aladin Lite script. Check the network.')"></script>
+  <script>window.AstroManagerAtlas.boot();</script>
+</body>
+</html>

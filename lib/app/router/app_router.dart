@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../navigation/app_shell.dart';
+import '../../features/atlas/presentation/sky_atlas_screen.dart';
+import '../../features/targets/domain/models/celestial_object.dart';
 
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/targets/presentation/targets_screen.dart';
@@ -14,6 +16,7 @@ import '../../features/locations/presentation/locations_screen.dart';
 abstract final class AppRoutes {
   static const dashboard = '/dashboard';
   static const targets = '/targets';
+  static const atlas = '/targets/atlas';
   static const planner = '/planner';
   static const equipment = '/equipment';
   static const projects = '/projects';
@@ -45,6 +48,16 @@ GoRouter createAppRouter({String? initialLocation}) {
               GoRoute(
                 path: AppRoutes.targets,
                 builder: (context, state) => const TargetsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'atlas',
+                    builder: (context, state) => SkyAtlasScreen(
+                      target: state.extra is CelestialObject
+                          ? state.extra! as CelestialObject
+                          : null,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

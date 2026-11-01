@@ -50,6 +50,9 @@ jobs:
       - name: Run automated tests
         run: flutter test --no-pub
 
+      - name: Test JavaScript atlas bridge
+        run: node --test test/js/atlas_bridge.test.cjs
+
       - name: Verify generated Drift code
         run: |
           dart run build_runner build --delete-conflicting-outputs

@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/router/app_router.dart';
+
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../../core/astronomy/solar_events.dart';
@@ -371,6 +375,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             ),
             if (window.isProvisional)
               const Text('Provisional recommendation · incomplete inputs'),
+            OutlinedButton.icon(
+              key: ValueKey('atlas-recommendation-${object.id}'),
+              onPressed: () => context.push(AppRoutes.atlas, extra: object),
+              icon: const Icon(Icons.public),
+              label: const Text('View in sky atlas'),
+            ),
             ExpansionTile(
               key: ValueKey('score-details-${object.id}'),
               tilePadding: EdgeInsets.zero,

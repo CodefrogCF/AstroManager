@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/router/app_router.dart';
 
 import '../../../core/errors/app_error_message.dart';
 import '../../discovery/presentation/target_discovery_panel.dart';
@@ -144,6 +147,17 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                 const Divider(),
                 const SizedBox(height: 12),
 
+                OutlinedButton.icon(
+                  key: ValueKey('atlas-object-${object.id}'),
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    context.push(AppRoutes.atlas, extra: object);
+                  },
+                  icon: const Icon(Icons.public),
+                  label: const Text('View in sky atlas'),
+                ),
+                const Divider(),
+
                 // Issue #11: Calculate the object's geometric
                 // sky position for a saved location and time.
                 TargetCoordinatesPanel(object: object),
@@ -241,6 +255,12 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                 Wrap(
                   spacing: 8,
                   children: [
+                    OutlinedButton.icon(
+                      key: const ValueKey('open-sky-atlas'),
+                      onPressed: () => context.push(AppRoutes.atlas),
+                      icon: const Icon(Icons.public),
+                      label: const Text('Sky atlas'),
+                    ),
                     FilledButton.icon(
                       key: const ValueKey('open-discovery'),
                       onPressed: () =>
