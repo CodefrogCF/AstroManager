@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
 import 'package:astromanager/app/app.dart';
+
+import 'support/fake_app_preferences_repository.dart';
 
 void setTestSize(WidgetTester tester, Size size) {
   tester.view.devicePixelRatio = 1;
@@ -17,8 +20,13 @@ void main() {
     setTestSize(tester, const Size(390, 844));
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: AstroManagerApp(initialLocation: '/dashboard'),
+      ProviderScope(
+        overrides: [
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
+        child: const AstroManagerApp(initialLocation: '/dashboard'),
       ),
     );
 
@@ -33,8 +41,13 @@ void main() {
     setTestSize(tester, const Size(390, 844));
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: AstroManagerApp(initialLocation: '/dashboard'),
+      ProviderScope(
+        overrides: [
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
+        child: const AstroManagerApp(initialLocation: '/dashboard'),
       ),
     );
 
@@ -51,8 +64,13 @@ void main() {
     setTestSize(tester, const Size(390, 844));
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: AstroManagerApp(initialLocation: '/dashboard'),
+      ProviderScope(
+        overrides: [
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
+        child: const AstroManagerApp(initialLocation: '/dashboard'),
       ),
     );
 
@@ -84,8 +102,13 @@ void main() {
     setTestSize(tester, const Size(1300, 900));
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: AstroManagerApp(initialLocation: '/dashboard'),
+      ProviderScope(
+        overrides: [
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
+        child: const AstroManagerApp(initialLocation: '/dashboard'),
       ),
     );
 
@@ -108,7 +131,14 @@ void main() {
     setTestSize(tester, const Size(390, 844));
 
     await tester.pumpWidget(
-      const ProviderScope(child: AstroManagerApp(initialLocation: '/projects')),
+      ProviderScope(
+        overrides: [
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
+        child: const AstroManagerApp(initialLocation: '/projects'),
+      ),
     );
 
     await tester.pumpAndSettle();

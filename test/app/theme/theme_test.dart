@@ -7,6 +7,9 @@ import 'package:astromanager/app/theme/app_theme_choice.dart';
 import 'package:astromanager/app/theme/app_themes.dart';
 import 'package:astromanager/app/theme/theme_controller.dart';
 import 'package:astromanager/app/theme/theme_repository.dart';
+import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
+
+import '../../support/fake_app_preferences_repository.dart';
 
 class FakeThemeRepository implements ThemeRepository {
   AppThemeChoice saved = AppThemeChoice.dark;
@@ -48,7 +51,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [themeRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          themeRepositoryProvider.overrideWithValue(repository),
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
         child: const AstroManagerApp(initialLocation: '/settings'),
       ),
     );
@@ -74,7 +82,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [themeRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          themeRepositoryProvider.overrideWithValue(repository),
+          appPreferencesRepositoryProvider.overrideWithValue(
+            FakeAppPreferencesRepository(),
+          ),
+        ],
         child: const AstroManagerApp(initialLocation: '/settings'),
       ),
     );

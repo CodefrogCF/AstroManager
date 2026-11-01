@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 
+import 'widgets/app_preferences_section.dart';
+
 import '../../../core/database/database_diagnostics_tile.dart';
 import '../../../app/theme/app_theme_choice.dart';
 import '../../../app/theme/theme_controller.dart';
@@ -90,6 +92,11 @@ class SettingsScreen extends ConsumerWidget {
                   'automatically and restored at startup.',
                   style: theme.textTheme.bodySmall,
                 ),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
+
+                const AppPreferencesSection(),
                 if (kDebugMode) ...[
                   const SizedBox(height: 24),
                   const DatabaseDiagnosticsTile(),

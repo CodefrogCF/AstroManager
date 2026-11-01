@@ -262,6 +262,87 @@ it must be loaded before application rendering.
 
 Other persistent settings may use the Drift database.
 
+## Application Preferences and Error Handling
+
+### Preferences Architecture
+
+Application preferences follow the feature-first architecture.
+
+- Domain: Typed preferences model and repository interface
+- Data: Drift-backed repository implementation
+- Application: Riverpod AsyncNotifier
+- Presentation: Settings UI
+
+### Storage
+
+Application preferences are stored in the existing
+SQLite AppSettings table.
+
+Storage key: `app.preferences.v1`
+
+Preferences are serialized as a versioned JSON document.
+
+Theme preferences remain in SharedPreferences because
+they are loaded before application rendering.
+
+### Supported Preferences
+
+- Measurement units: Metric / Imperial
+- Clock format: System / 12-hour / 24-hour
+- Language: System / English / German
+
+Full localization will be implemented in AM-037.
+
+### Validation
+
+- Preferences use strongly typed enums.
+- Serialized data includes a format version.
+- Unknown values and unsupported versions are rejected.
+- Missing preferences return documented defaults.
+- Invalid stored data is not silently overwritten.
+
+### Error Handling
+
+Expected application failures use typed exceptions:
+
+- StorageFailure
+- NetworkFailure
+- ValidationFailure
+
+User-facing error messages are generated centrally.
+
+Unexpected exceptions must not expose sensitive data.
+
+### Logging
+
+Application events use the centralized AppLogger.
+
+Logging must not include:
+
+- Precise observing locations
+- Credentials or API keys
+- Private user-generated content
+- Unfiltered exception messages containing sensitive data
+
+### Recovery
+
+- Failed saves preserve the previous preference values.
+- Failed loads display a recoverable error state.
+- Users can retry loading.
+- Users can explicitly restore default preferences.
+- Theme settings are not modified when restoring
+  the Drift-backed application preferences.
+
+### Testing
+
+- JSON serialization tests
+- Validation and schema version tests
+- SQLite repository tests
+- Riverpod state management tests
+- Failed-write rollback tests
+- Default restoration tests
+- Widget tests with mock repositories
+
 ## Dependency Rules
 
 1. Domain must not depend on Flutter, Riverpod, or data implementations.
