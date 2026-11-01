@@ -7,6 +7,7 @@ import '../../../core/errors/app_error_message.dart';
 
 import '../application/celestial_catalog_controller.dart';
 import '../domain/models/celestial_object.dart';
+import 'target_coordinates_panel.dart';
 
 class TargetsScreen extends ConsumerStatefulWidget {
   const TargetsScreen({super.key});
@@ -40,7 +41,6 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
 
   void _onQueryChanged(String query) {
     _query = query;
-
     _debounce?.cancel();
 
     _debounce = Timer(const Duration(milliseconds: 250), _search);
@@ -99,7 +99,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text(object.displayTitle),
         content: SizedBox(
-          width: 460,
+          width: 520,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,6 +109,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                   Text(object.commonNames, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 16),
                 ],
+
                 detail('Object type', object.category.label),
                 detail('Catalog type', object.sourceType),
                 detail(
@@ -134,13 +135,24 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                       ? 'Unknown'
                       : '${object.minorAxisArcmin} arcmin',
                 ),
+
                 if (object.aliases.isNotEmpty)
                   detail('Identifiers', object.aliases),
+
                 const Divider(),
+                const SizedBox(height: 12),
+
+                // Issue #11: Calculate the object's geometric
+                // sky position for a saved location and time.
+                TargetCoordinatesPanel(object: object),
+
+                const SizedBox(height: 20),
+                const Divider(),
+
                 const Text(
                   'Catalog: OpenNGC v20260501\n'
                   'License: CC BY-SA 4.0\n'
-                  'Coordinates: J2000',
+                  'Source coordinates: J2000',
                 ),
               ],
             ),
@@ -213,20 +225,16 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                // Keep compatibility with the existing
-                // navigation widget test from Issue #3.
                 Text(
                   'Find suitable celestial targets.',
                   style: theme.textTheme.bodyMedium,
                 ),
-
                 const SizedBox(height: 8),
 
                 const Text(
                   'Search Messier, NGC and IC objects, '
                   'common names and other identifiers.',
                 ),
-
                 const SizedBox(height: 24),
 
                 TextField(
@@ -350,7 +358,8 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                       Text(
                         'Source: OpenNGC · CC BY-SA 4.0\n'
                         'Equatorial coordinates: J2000\n'
-                        'Magnitude: Johnson V, where available',
+                        'Magnitude: Johnson V, '
+                        'where available',
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
