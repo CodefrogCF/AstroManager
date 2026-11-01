@@ -111,6 +111,67 @@ platform configuration if external deep links are introduced.
 - Avoid direct Navigator calls for primary application navigation.
 - Keep navigation logic separate from domain and data layers.
 
+## Application Theming
+
+AstroManager uses Material 3 and a centralized theme system.
+
+### Available Themes
+
+- Codefrog Light
+- Codefrog Dark
+- Astronomy Night
+- Follow System
+
+Codefrog Dark is the default appearance.
+
+### Design Principles
+
+- Dark surfaces with green accents for standard dark mode.
+- Light surfaces with green accents for light mode.
+- Red and near-black surfaces for astronomy night mode.
+- Consistent component styling across supported platforms.
+- Colors are managed centrally through design tokens.
+
+### Theme Architecture
+
+Theme configuration:
+`lib/app/theme/app_themes.dart`
+
+Theme selection:
+`lib/app/theme/app_theme_choice.dart`
+
+State management:
+`lib/app/theme/theme_controller.dart`
+
+Persistence:
+`lib/app/theme/theme_repository.dart`
+
+### State Management
+
+Riverpod manages the active theme selection.
+
+The application observes the theme provider and applies
+the corresponding Material theme configuration.
+
+Theme changes do not recreate the application router.
+
+### Persistence
+
+Theme preference is stored using SharedPreferencesAsync.
+
+The stored preference is loaded before the application
+is rendered to avoid displaying an incorrect initial theme.
+
+### Astronomy Night Mode
+
+Astronomy Night Mode uses dark red and near-black colors.
+
+It is designed to reduce unnecessary bright UI elements
+during nighttime observations.
+
+Platform-native dialogs and system UI may not fully
+follow the application color scheme.
+
 ## Dependency Rules
 
 1. Domain must not depend on Flutter, Riverpod, or data implementations.
