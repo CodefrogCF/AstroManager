@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../../../core/astronomy/astronomical_coordinates.dart';
 import '../../../core/astronomy/lunar_ephemeris.dart';
+import '../../../core/astronomy/solar_events.dart';
 
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
 
 import '../domain/models/celestial_object.dart';
+import 'target_visibility_panel.dart';
 
 class TargetCoordinatesPanel extends ConsumerStatefulWidget {
   const TargetCoordinatesPanel({super.key, required this.object});
@@ -147,6 +150,18 @@ class _TargetCoordinatesPanelState
       ),
     );
 
+    // The UTC picker selects an instant. Use the observing site's local
+    // calendar date; before local noon the ongoing night began yesterday.
+    final localInstant = tz.TZDateTime.from(
+      _utc,
+      SolarEvents.timeZone(location.timeZone),
+    );
+    final observingNightDate = DateTime.utc(
+      localInstant.year,
+      localInstant.month,
+      localInstant.day - (localInstant.hour < 12 ? 1 : 0),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -255,6 +270,14 @@ class _TargetCoordinatesPanelState
           'Brightness and skyglow depend on atmospheric conditions; '
           'separation alone is not a suitability rating.',
           style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 20),
+        const Divider(),
+        const SizedBox(height: 12),
+        TargetVisibilityPanel(
+          object: object,
+          location: location,
+          localDate: observingNightDate,
         ),
         const SizedBox(height: 20),
         Text(
