@@ -7,6 +7,7 @@ import 'package:astromanager/features/weather/domain/models/weather_error.dart';
 import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
 import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
+import 'package:astromanager/features/weather/domain/repositories/weather_cache_repository.dart';
 
 const mockMetadata = WeatherProviderMetadata(
   id: 'mock',
@@ -35,6 +36,29 @@ WeatherForecast response(WeatherForecastRequest request) => WeatherForecast(
   ],
 );
 
+/// Isolates provider-contract tests from platform-backed persistence.
+final class _MemoryWeatherCache implements WeatherCacheRepository {
+  final Map<WeatherCacheKey, WeatherForecast> _entries = {};
+
+  @override
+  Future<WeatherForecast?> read(WeatherCacheKey key) async => _entries[key];
+
+  @override
+  Future<void> write(WeatherCacheKey key, WeatherForecast forecast) async {
+    _entries[key] = forecast;
+  }
+
+  @override
+  Future<void> remove(WeatherCacheKey key) async {
+    _entries.remove(key);
+  }
+
+  @override
+  Future<void> clear() async {
+    _entries.clear();
+  }
+}
+
 void main() {
   group('Weather provider contract', () {
     test('mock returns normalized data and records requests', () async {
@@ -55,7 +79,12 @@ void main() {
         respond: response,
       );
       final container = ProviderContainer.test(
-        overrides: [weatherProviderProvider.overrideWith((ref) => mock)],
+        overrides: [
+          weatherProviderProvider.overrideWith((ref) => mock),
+          weatherCacheRepositoryProvider.overrideWith(
+            (ref) => _MemoryWeatherCache(),
+          ),
+        ],
       );
       final forecast = await container.read(
         weatherForecastProvider(request).future,
@@ -69,6 +98,9 @@ void main() {
         overrides: [
           weatherProviderProvider.overrideWith(
             (ref) => const UnconfiguredWeatherProvider(),
+          ),
+          weatherCacheRepositoryProvider.overrideWith(
+            (ref) => _MemoryWeatherCache(),
           ),
         ],
       );
