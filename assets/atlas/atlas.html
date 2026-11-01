@@ -14,9 +14,12 @@
   <div id="aladin"></div>
   <div id="warning" role="alert"></div>
   <script src="atlas_bridge.js"></script>
-  <!-- Pinned stable Aladin Lite release; image tiles still require network. -->
-  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.8.1/aladin.js"
-          onerror="window.AstroManagerAtlas.fatal('Could not load Aladin Lite script. Check the network.')"></script>
+  <!-- Use the URL shown in the upstream documentation for this diagnostic build.
+       After confirming loading, pin a verified version for reproducible releases.
+       Remote script and sky survey tiles require an internet connection. -->
+  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
+          charset="utf-8"
+          onerror="window.AstroManagerAtlas.fatal('Aladin Lite JavaScript could not be loaded from CDS. Inspect the aladin.js request in Chrome DevTools > Network (HTTP status / CSP / DNS).')"></script>
   <script>window.AstroManagerAtlas.boot();</script>
 </body>
 </html>

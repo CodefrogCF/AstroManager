@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../../../../core/errors/app_failure.dart';
+import '../services/optical_field_of_view.dart';
 
 enum EquipmentKind {
   camera,
@@ -184,10 +185,23 @@ final class OpticalMetrics {
   final double pixelScaleXArcsec;
   final double pixelScaleYArcsec;
 
+  /// Exact diagonal field of view, reconstructed from the two angular axes.
+  ///
+  /// Kept as a getter so existing const OpticalMetrics fixtures remain valid.
+  double get diagonalFovDegrees {
+    final x = math.tan(horizontalFovDegrees * math.pi / 360);
+    final y = math.tan(verticalFovDegrees * math.pi / 360);
+    return 2 * math.atan(math.sqrt(x * x + y * y)) * 180 / math.pi;
+  }
+
   static OpticalMetrics calculate({
     required EquipmentItem camera,
     required EquipmentItem optic,
     required double focalMultiplier,
+    double reducerFactor = 1,
+    double barlowFactor = 1,
+    double cropFactor = 1,
+    SensorRegionOfInterest? regionOfInterest,
   }) {
     camera.validate();
     optic.validate();
@@ -198,32 +212,27 @@ final class OpticalMetrics {
       );
     }
 
-    if (!focalMultiplier.isFinite ||
-        focalMultiplier < 0.1 ||
-        focalMultiplier > 10) {
-      throw const ValidationFailure('Invalid focal multiplier.');
-    }
-
-    final effectiveFocalLength = optic.focalLengthMm! * focalMultiplier;
-
-    double fieldOfView(double sensorDimensionMm) {
-      return 2 *
-          math.atan(sensorDimensionMm / (2 * effectiveFocalLength)) *
-          180 /
-          math.pi;
-    }
-
-    double pixelScale(double pixelSizeMicrons) {
-      return 206.265 * pixelSizeMicrons / effectiveFocalLength;
-    }
+    final field = OpticalFieldOfViewService.calculate(
+      focalLengthMm: optic.focalLengthMm!,
+      apertureMm: optic.apertureMm!,
+      sensorWidthMm: camera.sensorWidthMm!,
+      sensorHeightMm: camera.sensorHeightMm!,
+      resolutionX: camera.resolutionX!,
+      resolutionY: camera.resolutionY!,
+      focalMultiplier: focalMultiplier,
+      reducerFactor: reducerFactor,
+      barlowFactor: barlowFactor,
+      cropFactor: cropFactor,
+      regionOfInterest: regionOfInterest,
+    );
 
     return OpticalMetrics(
-      effectiveFocalLengthMm: effectiveFocalLength,
-      effectiveFocalRatio: effectiveFocalLength / optic.apertureMm!,
-      horizontalFovDegrees: fieldOfView(camera.sensorWidthMm!),
-      verticalFovDegrees: fieldOfView(camera.sensorHeightMm!),
-      pixelScaleXArcsec: pixelScale(camera.pixelSizeXMicrons!),
-      pixelScaleYArcsec: pixelScale(camera.pixelSizeYMicrons!),
+      effectiveFocalLengthMm: field.effectiveFocalLengthMm,
+      effectiveFocalRatio: field.effectiveFocalRatio,
+      horizontalFovDegrees: field.horizontalFovDegrees,
+      verticalFovDegrees: field.verticalFovDegrees,
+      pixelScaleXArcsec: field.pixelScaleXArcsecPerPixel,
+      pixelScaleYArcsec: field.pixelScaleYArcsecPerPixel,
     );
   }
 }
@@ -257,7 +266,16 @@ final class EquipmentInventory {
     return null;
   }
 
-  OpticalMetrics metricsFor(OpticalProfile profile) {
+  /// Calculates the profile's current image geometry, optionally with a
+  /// transient digital crop or a camera readout region.
+  /// These settings are not persisted in the profile database schema.
+  OpticalMetrics metricsFor(
+    OpticalProfile profile, {
+    double cropFactor = 1,
+    SensorRegionOfInterest? regionOfInterest,
+    double reducerFactor = 1,
+    double barlowFactor = 1,
+  }) {
     final camera = itemById(profile.cameraId);
     final optic = itemById(profile.opticId);
 
@@ -271,6 +289,10 @@ final class EquipmentInventory {
       camera: camera,
       optic: optic,
       focalMultiplier: profile.focalMultiplier,
+      cropFactor: cropFactor,
+      regionOfInterest: regionOfInterest,
+      reducerFactor: reducerFactor,
+      barlowFactor: barlowFactor,
     );
   }
 }

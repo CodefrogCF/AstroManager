@@ -96,3 +96,22 @@ test('valid astronomical overlays render circular annotation', async () => {
   assert.equal(circle.radius, 0.3);
   assert.equal(circle.ra, 10.6847);
 });
+
+test('script load failure is not overwritten by boot', () => {
+  const {win, messages} = fixture();
+  win.AstroManagerAtlas.fatal('CDS aladin.js failed to load');
+  win.AstroManagerAtlas.boot();
+  const errors = messages.filter(m => m.type === 'error');
+  assert.equal(errors.length, 1);
+  assert.match(errors[0].message, /CDS aladin.js failed/);
+});
+
+test('missing Aladin global produces actionable error', () => {
+  const {win, messages} = fixture();
+  delete win.A;
+  win.AstroManagerAtlas.boot();
+  const errors = messages.filter(m => m.type === 'error');
+  assert.equal(errors.length, 1);
+  assert.match(errors[0].message, /window.A/);
+  assert.match(errors[0].message, /DevTools/);
+});

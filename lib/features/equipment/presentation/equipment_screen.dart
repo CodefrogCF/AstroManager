@@ -269,6 +269,10 @@ class EquipmentScreen extends ConsumerWidget {
                   '${metrics.verticalFovDegrees.toStringAsFixed(3)}°',
                 ),
                 _metric(
+                  'Diagonal FOV',
+                  '${metrics.diagonalFovDegrees.toStringAsFixed(3)}°',
+                ),
+                _metric(
                   'Pixel scale X',
                   '${metrics.pixelScaleXArcsec.toStringAsFixed(3)} ″/px',
                 ),

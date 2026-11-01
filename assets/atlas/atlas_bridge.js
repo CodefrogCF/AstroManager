@@ -12,6 +12,7 @@
   let queued = null;
   let lastReported = '';
   let feedbackTimer = null;
+  let fatalMessage = null;
 
   function report(type, fields) {
     const packet = JSON.stringify({protocol, version, type, ...(fields || {})});
@@ -27,12 +28,16 @@
   }
 
   function fatal(message) {
+    // An onerror handler can run immediately before boot(). Preserve the
+    // original, actionable error instead of replacing it with a generic one.
+    if (fatalMessage) return;
+    fatalMessage = String(message);
     const warning = root.document && root.document.getElementById('warning');
     if (warning) {
-      warning.textContent = String(message);
+      warning.textContent = fatalMessage;
       warning.style.display = 'block';
     }
-    report('error', {message: String(message)});
+    report('error', {message: fatalMessage});
   }
 
   function validPosition(ra, dec) {
@@ -124,8 +129,13 @@
   }
 
   function boot() {
-    if (!root.A || !root.A.init || !root.A.init.then) {
-      fatal('Aladin Lite is unavailable (network or WebGL issue).');
+    if (fatalMessage) return;
+    if (!root.A) {
+      fatal('Aladin Lite JavaScript did not initialize window.A. Inspect the aladin.js request in Chrome DevTools > Network and the browser Console.');
+      return;
+    }
+    if (!root.A.init || typeof root.A.init.then !== 'function') {
+      fatal('Aladin Lite initialization API is missing (A.init). Check for a blocked or incompatible aladin.js script.');
       return;
     }
     root.A.init.then(function () {
