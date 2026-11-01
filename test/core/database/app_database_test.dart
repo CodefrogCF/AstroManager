@@ -48,14 +48,14 @@ void main() {
       expect(await repository.get('missing.key'), isNull);
     });
 
-    test('uses schema version 2', () async {
+    test('uses schema version 3', () async {
       await repository.put('schema.test', 'ok');
 
       final result = await database
           .customSelect('PRAGMA user_version')
           .getSingle();
 
-      expect(result.read<int>('user_version'), 2);
+      expect(result.read<int>('user_version'), 3);
     });
   });
 
@@ -67,7 +67,6 @@ void main() {
     final file = File('${directory.path}${Platform.pathSeparator}test.sqlite');
 
     try {
-      // First connection: write data.
       final firstDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -80,8 +79,6 @@ void main() {
         await firstDatabase.close();
       }
 
-      // Second connection: verify persistence.
-      // The first database has already been closed.
       final reopenedDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -96,12 +93,11 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(result.read<int>('user_version'), 2);
+        expect(result.read<int>('user_version'), 3);
       } finally {
         await reopenedDatabase.close();
       }
     } finally {
-      // Clean up the temporary SQLite database.
       await directory.delete(recursive: true);
     }
   });

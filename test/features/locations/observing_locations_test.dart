@@ -269,7 +269,7 @@ void main() {
     });
   });
 
-  test('migration v1 to v2 preserves settings', () async {
+  test('migration v1 to v3 preserves settings', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_migration_',
     );
@@ -279,21 +279,27 @@ void main() {
     );
 
     try {
-      // Prepare a database with the old v1 table structure
-      // using the current schema, then remove the v2 table.
+      // Construct a temporary database with the current schema.
+      // Remove the later tables to simulate the v1 structure.
       final oldDatabase = AppDatabase(NativeDatabase(file));
 
-      final oldSettings = AppSettingsRepository(oldDatabase);
+      try {
+        final oldSettings = AppSettingsRepository(oldDatabase);
 
-      await oldSettings.put('migration.test', 'preserved-value');
+        await oldSettings.put('migration.test', 'preserved-value');
 
-      await oldDatabase.customStatement('DROP TABLE observing_locations');
+        await oldDatabase.customStatement('DROP TABLE optical_profiles');
 
-      await oldDatabase.customStatement('PRAGMA user_version = 1');
+        await oldDatabase.customStatement('DROP TABLE equipment_items');
 
-      await oldDatabase.close();
+        await oldDatabase.customStatement('DROP TABLE observing_locations');
 
-      // Opening the database should migrate it to v2.
+        await oldDatabase.customStatement('PRAGMA user_version = 1');
+      } finally {
+        await oldDatabase.close();
+      }
+
+      // Opening the database upgrades v1 directly to v3.
       final migratedDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -311,7 +317,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 2);
+        expect(version.read<int>('user_version'), 3);
       } finally {
         await migratedDatabase.close();
       }
@@ -356,9 +362,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.locations, hasLength(1));
-
     expect(repository.locations.first.name, 'Test Observatory');
-
     expect(repository.locations.first.isDefault, isTrue);
   });
 }

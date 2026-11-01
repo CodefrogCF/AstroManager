@@ -3,15 +3,18 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/app_settings.dart';
 import 'tables/observing_locations.dart';
+import 'tables/equipment_tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [AppSettings, ObservingLocations])
+@DriftDatabase(
+  tables: [AppSettings, ObservingLocations, EquipmentItems, OpticalProfiles],
+)
 class AppDatabase extends _$AppDatabase {
   /// Constructor for tests and dependency injection.
   AppDatabase(super.executor);
 
-  /// Default database for supported Flutter platforms.
+  /// Platform-aware persistent SQLite database.
   AppDatabase.defaults()
     : super(
         driftDatabase(
@@ -24,7 +27,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,12 +36,29 @@ class AppDatabase extends _$AppDatabase {
     },
 
     onUpgrade: (migrator, from, to) async {
-      if (from == 1 && to == 2) {
-        await migrator.createTable(observingLocations);
-        return;
+      if (from < 1 || from >= to || to > schemaVersion) {
+        throw StateError('Unsupported database migration: $from -> $to');
       }
 
-      throw StateError('Unsupported database migration: $from -> $to');
+      // v1 -> v2:
+      // Add observing locations.
+      //
+      // This step is also executed for direct
+      // upgrades from v1 to v3.
+      if (from < 2 && to >= 2) {
+        await migrator.createTable(observingLocations);
+      }
+
+      // v2 -> v3:
+      // Add equipment inventory and optical profiles.
+      //
+      // These tables are not created when a migration
+      // test explicitly targets schema version 2.
+      if (from < 3 && to >= 3) {
+        await migrator.createTable(equipmentItems);
+
+        await migrator.createTable(opticalProfiles);
+      }
     },
 
     beforeOpen: (details) async {
