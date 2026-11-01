@@ -65,7 +65,13 @@ void main() {
     });
 
     test('without a configured provider the failure is typed', () async {
-      final container = ProviderContainer.test();
+      final container = ProviderContainer.test(
+        overrides: [
+          weatherProviderProvider.overrideWith(
+            (ref) => const UnconfiguredWeatherProvider(),
+          ),
+        ],
+      );
       await expectLater(
         container.read(weatherForecastProvider(request).future),
         throwsA(

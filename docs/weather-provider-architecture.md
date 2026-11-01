@@ -33,9 +33,11 @@ failures to `WeatherException`.
 `weatherForecastProvider(request)` exposes the common request/response to
 Riverpod consumers. No UI widget needs to import a vendor client.
 
-Until a real provider is connected, the default is `UnconfiguredWeatherProvider`,
-which fails with `WeatherErrorType.notConfigured`. It does not fabricate an
-optimistic forecast.
+Starting in Issue #16, the default live source is `OpenMeteoWeatherProvider`.
+The `UnconfiguredWeatherProvider` remains available for explicit overrides
+and tests. Live fetching requires a network connection; the provider does not
+fabricate an optimistic forecast when connectivity is unavailable. See
+[`open-meteo-provider.md`](open-meteo-provider.md) for the adapter and terms.
 
 ## Normalized units
 
@@ -69,9 +71,12 @@ missing cloud and precipitation forecasts as favorable conditions.
 
 ## Forecast times and freshness
 
-`WeatherForecast.issuedAtUtc` denotes when the provider generated the forecast.
+`WeatherForecast.issuedAtUtc` denotes the forecast issue time if known;
+`issuedAtIsEstimated` flags an unverified fallback. Open-Meteo does not expose
+a reliable model-run issuance timestamp, so its adapter uses the retrieval
+time and sets `issuedAtIsEstimated` to `true`.
 `WeatherForecast.fetchedAtUtc` denotes when AstroManager retrieved it. Both
-are UTC. `forecast.freshnessAt(now, maximumAge: ...)` calculates how old the
+timestamps are UTC. `forecast.freshnessAt(now, maximumAge: ...)` calculates how old the
 cached response is and whether it is stale. The freshness calculation does not
 implement caching, persistent storage, or stale-while-revalidate behavior.
 
@@ -86,8 +91,8 @@ Weather error types are `invalidRequest`, `notConfigured`, `authentication`,
 `unsupportedLocation`, `invalidResponse`, `noForecastData`, and `unknown`.
 
 `isRetryable` distinguishes transient errors. `retryAfter` supports provider
-rate-limit responses. A future HTTP adapter should preserve its underlying
-exception in the diagnostic `cause` field, not expose it directly to users.
+rate-limit responses. HTTP adapters preserve the underlying
+exception in the diagnostic `cause` field rather than exposing it directly to users.
 
 ## Mock example
 

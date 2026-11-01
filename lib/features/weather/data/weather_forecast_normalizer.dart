@@ -73,6 +73,7 @@ abstract final class WeatherForecastNormalizer {
     required double latitudeDegrees,
     required double longitudeDegrees,
     required DateTime issuedAtUtc,
+    bool issuedAtIsEstimated = false,
     required DateTime fetchedAtUtc,
     required Iterable<RawHourlyWeather> hours,
     WeatherSourceUnits units = const WeatherSourceUnits(),
@@ -115,6 +116,7 @@ abstract final class WeatherForecastNormalizer {
       latitudeDegrees: latitudeDegrees,
       longitudeDegrees: longitudeDegrees,
       issuedAtUtc: issuedAtUtc,
+      issuedAtIsEstimated: issuedAtIsEstimated,
       fetchedAtUtc: fetchedAtUtc,
       hours: normalized,
     );

@@ -162,6 +162,7 @@ final class WeatherForecast {
     required this.latitudeDegrees,
     required this.longitudeDegrees,
     required this.issuedAtUtc,
+    this.issuedAtIsEstimated = false,
     required this.fetchedAtUtc,
     required List<HourlyWeatherForecast> hours,
   }) : hours = List<HourlyWeatherForecast>.unmodifiable(hours) {
@@ -171,6 +172,10 @@ final class WeatherForecast {
   final WeatherProviderMetadata provider;
   final double latitudeDegrees;
   final double longitudeDegrees;
+
+  /// True when the provider does not expose an actual model run issue time.
+  /// The issuedAtUtc value is then a documented fallback (e.g. fetch time).
+  final bool issuedAtIsEstimated;
   final DateTime issuedAtUtc;
   final DateTime fetchedAtUtc;
   final List<HourlyWeatherForecast> hours;
