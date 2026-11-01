@@ -55,6 +55,62 @@ Responsibilities:
 - REST API clients
 - Local files and cached data
 
+## Navigation Architecture
+
+AstroManager uses `go_router` for declarative, URL-based navigation.
+
+### Stateful Navigation
+
+The application uses `StatefulShellRoute.indexedStack`.
+
+Each primary feature receives an independent navigation branch:
+
+- Dashboard
+- Targets
+- Night Planner
+- Equipment
+- Projects
+- Settings
+
+Independent navigation branches allow feature-specific navigation
+state to be preserved when switching between sections.
+
+### Responsive Navigation
+
+The application shell adapts to available screen width.
+
+- Below 840 logical pixels: NavigationBar
+- From 840 logical pixels: NavigationRail
+- From 1200 logical pixels: Extended NavigationRail
+
+On mobile, Settings is accessible from the application bar.
+
+### Route Configuration
+
+Routes are defined centrally in:
+
+`lib/app/router/app_router.dart`
+
+Feature-specific routes and screens remain within their
+corresponding feature modules.
+
+### Deep Linking
+
+Primary application routes use stable URL paths.
+
+Flutter Web supports direct navigation to known paths.
+
+Native app links and universal links require additional
+platform configuration if external deep links are introduced.
+
+### Navigation Rules
+
+- Use `StatefulNavigationShell.goBranch()` for main sections.
+- Use named or path-based routing for feature details.
+- Preserve independent navigation stacks where appropriate.
+- Avoid direct Navigator calls for primary application navigation.
+- Keep navigation logic separate from domain and data layers.
+
 ## Dependency Rules
 
 1. Domain must not depend on Flutter, Riverpod, or data implementations.
