@@ -172,6 +172,96 @@ during nighttime observations.
 Platform-native dialogs and system UI may not fully
 follow the application color scheme.
 
+## Database Architecture
+
+AstroManager uses Drift and SQLite for local persistence.
+
+### Database
+
+- Engine: SQLite
+- ORM / Query Layer: Drift
+- Platform integration: drift_flutter
+- Initial schema version: 1
+- Database name: astromanager
+
+### Platforms
+
+Native platforms use a local SQLite database file.
+
+Flutter Web uses SQLite compiled to WebAssembly with
+a Drift web worker and supported browser storage APIs.
+
+### Application Structure
+
+- `core/database/` - Database definitions and tables
+- `core/database/repositories/` - Shared repository implementations
+- `core/providers/` - Database dependency injection
+- `features/*/data/` - Feature-specific persistence logic
+
+### Dependency Injection
+
+Riverpod provides the application database instance.
+
+Repositories receive the database through constructor
+injection and must not create their own database instances.
+
+### Schema Management
+
+Schema changes are managed using Drift migrations.
+
+The initial schema is version 1.
+
+Schema snapshots are stored in `drift_schemas/`.
+
+Future schema upgrades must:
+1. Increment `schemaVersion`.
+2. Generate updated Drift code.
+3. Generate a new migration snapshot.
+4. Implement the required migration.
+5. Verify migrations and existing data integrity.
+
+### Code Generation
+
+Run:
+
+`dart run build_runner build --delete-conflicting-outputs`
+
+For schema migration generation:
+
+`dart run drift_dev make-migrations`
+
+### Web Requirements
+
+Flutter Web requires:
+
+- `web/sqlite3.wasm`
+- `web/drift_worker.dart.js`
+
+The WebAssembly file must be served using the
+`application/wasm` MIME type.
+
+Browser storage limitations must be handled explicitly.
+
+### Testing
+
+Database unit tests use in-memory SQLite.
+
+File-based tests verify persistence across connection
+restarts.
+
+Web persistence is additionally verified with a
+manual browser reload test.
+
+Schema migration tests are required whenever the
+database schema changes.
+
+### Application Settings
+
+Theme preference remains in SharedPreferences because
+it must be loaded before application rendering.
+
+Other persistent settings may use the Drift database.
+
 ## Dependency Rules
 
 1. Domain must not depend on Flutter, Riverpod, or data implementations.

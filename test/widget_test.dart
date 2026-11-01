@@ -58,20 +58,23 @@ void main() {
 
     await tester.pumpAndSettle();
 
+    // Navigate to Targets.
     await tester.tap(find.byIcon(Icons.travel_explore_outlined));
-
     await tester.pumpAndSettle();
 
+    expect(find.text('Find suitable celestial targets.'), findsOneWidget);
+
+    // Open Settings.
     await tester.tap(find.byTooltip('Open settings'));
-
     await tester.pumpAndSettle();
 
-    expect(find.text('Configure AstroManager preferences.'), findsOneWidget);
-
+    // Verify the new settings interface.
+    expect(find.text('Appearance'), findsOneWidget);
+    expect(find.text('Astronomy night'), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
 
+    // Return to the previous navigation section.
     await tester.tap(find.byTooltip('Back to previous section'));
-
     await tester.pumpAndSettle();
 
     expect(find.text('Find suitable celestial targets.'), findsOneWidget);
