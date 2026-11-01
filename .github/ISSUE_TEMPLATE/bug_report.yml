@@ -1,0 +1,83 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in AstroManager.
+title: "[Bug] "
+labels:
+  - "type: bug"
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Describe the problem clearly.
+      placeholder: What is not working as expected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide steps to reproduce the issue.
+      placeholder: |
+        1. Open AstroManager
+        2. Navigate to ...
+        3. Select ...
+        4. Observe the error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What happens instead?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android
+        - iOS
+        - Web
+        - Windows
+        - macOS
+        - Multiple platforms
+        - Not platform-specific
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: AstroManager Version
+      placeholder: "e.g. v0.1.0 or commit hash"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and Screenshots
+      description: |
+        Include relevant logs or screenshots.
+        Remove personal information, coordinates, and credentials.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched for existing issues.
+          required: true
+        - label: I removed sensitive data from logs.
+          required: true

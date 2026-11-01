@@ -408,3 +408,50 @@ credentials, or other private information.
 - Target recommendation engine
 - Sky atlas integration
 - Optional remote processing services
+
+## Continuous Integration
+
+AstroManager uses GitHub Actions for automated validation.
+
+Workflow configuration:
+
+`.github/workflows/ci.yml`
+
+### Quality Pipeline
+
+- Dart formatting verification
+- Flutter static analysis
+- Automated unit and widget tests
+- Drift generated-code consistency
+
+### Build Validation
+
+- Flutter Web release build
+- Windows desktop build
+- Android debug APK build
+
+iOS and macOS build validation will be added when
+the respective platforms are configured.
+
+### SDK Version
+
+The Flutter version is defined in `.fvmrc`.
+
+CI uses the same version to ensure reproducible builds.
+
+### Dependencies
+
+The application commits `pubspec.lock`.
+
+CI enforces the lockfile to prevent unintentional
+dependency changes during validation.
+
+### Branch Protection
+
+Pull requests should pass the required quality checks
+before merging into `main`.
+
+### Testing Standards
+
+See `docs/testing.md` for testing conventions,
+database migration requirements, and the Definition of Done.

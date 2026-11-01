@@ -1,0 +1,153 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Static analysis
+        run: flutter analyze --no-pub
+
+      - name: Run automated tests
+        run: flutter test --no-pub
+
+      - name: Verify generated Drift code
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- lib
+
+  web:
+    name: Web Build
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Verify Drift web assets
+        run: |
+          test -s web/sqlite3.wasm
+          test -s web/drift_worker.dart.js
+
+      - name: Build Flutter Web
+        run: flutter build web --release --no-pub
+
+      - name: Verify compiled web assets
+        run: |
+          test -s build/web/index.html
+          test -s build/web/sqlite3.wasm
+          test -s build/web/drift_worker.dart.js
+
+  windows:
+    name: Windows Build
+    if: github.event_name != 'pull_request'
+    needs: quality
+    runs-on: windows-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build Windows
+        run: flutter build windows --debug --no-pub
+
+  android:
+    name: Android Build
+    if: github.event_name != 'pull_request'
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Build Android Debug APK
+        run: flutter build apk --debug --no-pub

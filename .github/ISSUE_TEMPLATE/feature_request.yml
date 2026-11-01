@@ -1,0 +1,65 @@
+name: Feature Request
+description: Suggest a new feature or improvement for AstroManager.
+title: "[Feature] "
+labels:
+  - "type: feature"
+
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: |
+        What problem should this feature solve?
+        Describe the astrophotography workflow involved.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the desired functionality.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe possible alternatives.
+
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Suggested Acceptance Criteria
+      description: |
+        What conditions should be met for this
+        feature to be considered complete?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature Area
+      options:
+        - Astronomy
+        - Celestial Catalog
+        - Equipment
+        - Observing Locations
+        - Weather
+        - Target Recommendations
+        - Sky Atlas
+        - Night Planner
+        - Projects and Sessions
+        - UI and Accessibility
+        - Other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I checked the roadmap and existing issues.
+          required: true
