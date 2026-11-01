@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/app_error_message.dart';
+import '../../discovery/presentation/target_discovery_panel.dart';
 
 import '../application/celestial_catalog_controller.dart';
 import '../domain/models/celestial_object.dart';
@@ -19,6 +20,7 @@ class TargetsScreen extends ConsumerStatefulWidget {
 class _TargetsScreenState extends ConsumerState<TargetsScreen> {
   final _searchController = TextEditingController();
 
+  bool _showDiscovery = false;
   String _query = '';
   CelestialCategory? _category;
 
@@ -235,136 +237,162 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                   'Search Messier, NGC and IC objects, '
                   'common names and other identifiers.',
                 ),
-                const SizedBox(height: 24),
-
-                TextField(
-                  key: const ValueKey('catalog-search'),
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    labelText: 'Search celestial objects',
-                    hintText: 'M31, NGC 224, Andromeda...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isEmpty
-                        ? null
-                        : IconButton(
-                            tooltip: 'Clear search',
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _query = '');
-                              _debounce?.cancel();
-                              _search();
-                            },
-                          ),
-                  ),
-                  onChanged: (value) {
-                    setState(() {});
-                    _onQueryChanged(value);
-                  },
-                ),
-
                 const SizedBox(height: 16),
-
-                DropdownButtonFormField<String>(
-                  key: ValueKey('catalog-category-${_category?.name ?? "all"}'),
-                  initialValue: _category?.name ?? 'all',
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Object category',
-                    prefixIcon: Icon(Icons.filter_list),
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: 'all',
-                      child: Text('All categories'),
-                    ),
-                    for (final category in CelestialCategory.values)
-                      DropdownMenuItem(
-                        value: category.name,
-                        child: Text(category.label),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    FilledButton.icon(
+                      key: const ValueKey('open-discovery'),
+                      onPressed: () =>
+                          setState(() => _showDiscovery = !_showDiscovery),
+                      icon: Icon(
+                        _showDiscovery ? Icons.list : Icons.auto_awesome,
                       ),
+                      label: Text(
+                        _showDiscovery
+                            ? 'Browse catalog'
+                            : 'Discover recommended targets',
+                      ),
+                    ),
                   ],
-                  onChanged: _onCategoryChanged,
                 ),
+                if (_showDiscovery) ...[
+                  const SizedBox(height: 20),
+                  const TargetDiscoveryPanel(),
+                ] else ...[
+                  const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
+                  TextField(
+                    key: const ValueKey('catalog-search'),
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      labelText: 'Search celestial objects',
+                      hintText: 'M31, NGC 224, Andromeda...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear search',
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                                _debounce?.cancel();
+                                _search();
+                              },
+                            ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {});
+                      _onQueryChanged(value);
+                    },
+                  ),
 
-                catalog.when(
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 12),
-                          Text('Loading celestial catalog...'),
-                        ],
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(
+                      'catalog-category-${_category?.name ?? "all"}',
+                    ),
+                    initialValue: _category?.name ?? 'all',
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Object category',
+                      prefixIcon: Icon(Icons.filter_list),
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: 'all',
+                        child: Text('All categories'),
+                      ),
+                      for (final category in CelestialCategory.values)
+                        DropdownMenuItem(
+                          value: category.name,
+                          child: Text(category.label),
+                        ),
+                    ],
+                    onChanged: _onCategoryChanged,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  catalog.when(
+                    loading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Column(
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 12),
+                            Text('Loading celestial catalog...'),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
 
-                  error: (error, stackTrace) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        appErrorMessage(error),
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          ref.invalidate(celestialCatalogProvider);
-                        },
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+                    error: (error, stackTrace) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          appErrorMessage(error),
+                          style: TextStyle(color: theme.colorScheme.error),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            ref.invalidate(celestialCatalogProvider);
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
 
-                  data: (view) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${view.totalObjects} catalog objects '
-                        'available offline',
-                        style: theme.textTheme.titleMedium,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        '${view.results.length} results shown '
-                        '(maximum 80)',
-                        style: theme.textTheme.bodySmall,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      if (view.results.isEmpty)
-                        const Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Text(
-                              'No matching celestial objects. '
-                              'Try another name or catalog number.',
-                            ),
-                          ),
+                    data: (view) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${view.totalObjects} catalog objects '
+                          'available offline',
+                          style: theme.textTheme.titleMedium,
                         ),
 
-                      for (final object in view.results) _objectCard(object),
+                        const SizedBox(height: 8),
 
-                      const SizedBox(height: 24),
+                        Text(
+                          '${view.results.length} results shown '
+                          '(maximum 80)',
+                          style: theme.textTheme.bodySmall,
+                        ),
 
-                      Text(
-                        'Source: OpenNGC · CC BY-SA 4.0\n'
-                        'Equatorial coordinates: J2000\n'
-                        'Magnitude: Johnson V, '
-                        'where available',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+
+                        if (view.results.isEmpty)
+                          const Card(
+                            child: Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Text(
+                                'No matching celestial objects. '
+                                'Try another name or catalog number.',
+                              ),
+                            ),
+                          ),
+
+                        for (final object in view.results) _objectCard(object),
+
+                        const SizedBox(height: 24),
+
+                        Text(
+                          'Source: OpenNGC · CC BY-SA 4.0\n'
+                          'Equatorial coordinates: J2000\n'
+                          'Magnitude: Johnson V, '
+                          'where available',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

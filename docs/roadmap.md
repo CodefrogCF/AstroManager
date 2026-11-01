@@ -41,9 +41,9 @@
 
 | Version | Milestone | Issues | Status |
 |---|---|---:|---|
-| v0.1.0 | Project Foundation | 7 | Planned |
-| v0.2.0 | Astronomy Core | 7 | Planned |
-| v0.3.0 | Weather & Target Intelligence | 7 | Planned |
+| v0.1.0 | Project Foundation | 7 | Done |
+| v0.2.0 | Astronomy Core | 7 | Done |
+| v0.3.0 | Weather & Target Intelligence | 7 | in Progress |
 | v0.4.0 | Sky Atlas & Equipment Framing | 5 | Planned |
 | v0.5.0 | Projects & Observation Sessions | 5 | Planned |
 | v0.6.0 | Advanced Planning | 5 | Planned |
@@ -65,40 +65,40 @@ persistence and a consistent UI foundation.
 
 ### Planned Issues
 
-- [ ] **AM-001 – Initialize Flutter project and Git repository**
+- [x] **AM-001 – Initialize Flutter project and Git repository**
   - Create Flutter project with organization `com.codefrog`.
   - Configure Android, Web, and Windows targets.
   - Prepare Git repository, README, license, and `.gitignore`.
   - Verify initial builds, static analysis, and tests.
 
-- [ ] **AM-002 – Establish feature-first architecture**
+- [x] **AM-002 – Establish feature-first architecture**
   - Define `core`, `features`, and `shared` modules.
   - Implement repository abstractions.
   - Configure Riverpod dependency injection.
   - Document architecture conventions.
 
-- [ ] **AM-003 – Implement application shell and navigation**
+- [x] **AM-003 – Implement application shell and navigation**
   - Configure go_router.
   - Create Dashboard, Targets, Planner, Equipment, Projects, and Settings screens.
   - Implement responsive navigation.
 
-- [ ] **AM-004 – Implement application theming and astronomy night mode**
+- [x] **AM-004 – Implement application theming and astronomy night mode**
   - Create light and dark themes.
   - Implement red astronomy night mode.
   - Persist theme preferences.
 
-- [ ] **AM-005 – Configure Drift and SQLite persistence**
+- [x] **AM-005 – Configure Drift and SQLite persistence**
   - Initialize local database.
   - Configure migrations and schema versioning.
   - Implement platform-specific SQLite support.
   - Add database tests.
 
-- [ ] **AM-006 – Implement application settings and error handling**
+- [x] **AM-006 – Implement application settings and error handling**
   - Implement persistent settings.
   - Add measurement units and time display preferences.
   - Implement structured logging and error handling.
 
-- [ ] **AM-007 – Configure CI, testing standards and documentation**
+- [x] **AM-007 – Configure CI, testing standards and documentation**
   - Set up GitHub Actions.
   - Automate formatting, analysis, and tests.
   - Document local development setup.
@@ -121,42 +121,42 @@ determine celestial object visibility.
 
 ### Planned Issues
 
-- [ ] **AM-008 – Implement observing location management**
+- [x] **AM-008 – Implement observing location management**
   - Create, edit, and delete observing locations.
   - Store coordinates, altitude, and time zone.
   - Support optional GPS-based location detection.
   - Select a default observing location.
 
-- [ ] **AM-009 – Implement equipment inventory and optical profiles**
+- [x] **AM-009 – Implement equipment inventory and optical profiles**
   - Manage cameras and sensor specifications.
   - Manage lenses and telescopes.
   - Manage tracking mounts.
   - Create reusable imaging setups.
 
-- [ ] **AM-010 – Integrate a local celestial object catalog**
+- [x] **AM-010 – Integrate a local celestial object catalog**
   - Include the complete Messier catalog.
   - Include selected NGC/IC objects.
   - Store coordinates, object types, angular dimensions, and available magnitude data.
   - Implement offline catalog search.
 
-- [ ] **AM-011 – Implement astronomical coordinate calculations**
+- [x] **AM-011 – Implement astronomical coordinate calculations**
   - Calculate Julian dates and sidereal time.
   - Convert equatorial coordinates to altitude and azimuth.
   - Handle coordinate epochs and precession.
   - Validate against astronomical reference values.
 
-- [ ] **AM-012 – Implement solar events and astronomical darkness**
+- [x] **AM-012 – Implement solar events and astronomical darkness**
   - Calculate sunrise and sunset.
   - Calculate civil, nautical, and astronomical twilight.
   - Identify astronomical darkness intervals.
   - Handle special geographic conditions.
 
-- [ ] **AM-013 – Implement lunar ephemeris and target separation**
+- [x] **AM-013 – Implement lunar ephemeris and target separation**
   - Calculate Moon phase and illumination.
   - Determine Moon position and rise/set times.
   - Calculate angular separation between the Moon and selected targets.
 
-- [ ] **AM-014 – Implement target visibility calculations**
+- [x] **AM-014 – Implement target visibility calculations**
   - Calculate target altitude and azimuth over time.
   - Determine culmination.
   - Identify visibility intervals.
@@ -179,26 +179,26 @@ suitability to recommend astrophotography targets.
 
 ### Planned Issues
 
-- [ ] **AM-015 – Define extensible weather provider architecture**
+- [x] **AM-015 – Define extensible weather provider architecture**
   - Establish common weather provider interfaces.
   - Define normalized hourly forecast models.
   - Support multiple weather data sources.
   - Implement provider error handling.
 
-- [ ] **AM-016 – Integrate Open-Meteo forecast provider**
+- [x] **AM-016 – Integrate Open-Meteo forecast provider**
   - Retrieve total and available cloud-layer coverage.
   - Retrieve precipitation forecasts.
   - Retrieve wind and humidity data.
   - Include available visibility information.
   - Handle forecast time zones and timestamps.
 
-- [ ] **AM-017 – Implement weather caching and offline fallback**
+- [x] **AM-017 – Implement weather caching and offline fallback**
   - Cache weather forecasts locally.
   - Implement cache expiration and refresh.
   - Display forecast freshness.
   - Support offline fallback without presenting stale data as current.
 
-- [ ] **AM-018 – Implement astrophotography suitability scoring**
+- [x] **AM-018 – Implement astrophotography suitability scoring**
   - Evaluate target altitude and visibility.
   - Evaluate weather conditions.
   - Consider Moon illumination and target separation.
@@ -206,13 +206,13 @@ suitability to recommend astrophotography targets.
   - Implement weighted, configurable scoring.
   - Provide explainable scoring results.
 
-- [ ] **AM-019 – Implement observation window recommendation engine**
+- [x] **AM-019 – Implement observation window recommendation engine**
   - Identify suitable observing intervals.
   - Calculate recommended start and end times.
   - Support minimum imaging duration.
   - Rank available observation windows.
 
-- [ ] **AM-020 – Build target discovery and recommendation interface**
+- [x] **AM-020 – Build target discovery and recommendation interface**
   - Display recommended targets sorted by suitability.
   - Implement category and equipment filters.
   - Display target scores and explanations.

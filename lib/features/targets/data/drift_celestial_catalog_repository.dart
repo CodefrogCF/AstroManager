@@ -117,6 +117,26 @@ final class DriftCelestialCatalogRepository
     return rows.map(_fromRow).toList(growable: false);
   }
 
+  /// A bounded, bright-first catalog shortlist for interactive discovery.
+  /// Null magnitudes always sort after known magnitudes. This does not
+  /// replace the full offline catalog search used by the Targets browser.
+  Future<List<CelestialObject>> discoveryCandidates({
+    CelestialCategory? category,
+    int limit = 80,
+  }) async {
+    final statement = _database.select(_database.celestialCatalogEntries);
+    if (category != null) {
+      statement.where((row) => row.category.equals(category.name));
+    }
+    statement.orderBy([
+      (row) => OrderingTerm.asc(row.visualMagnitude.isNull()),
+      (row) => OrderingTerm.asc(row.visualMagnitude),
+      (row) => OrderingTerm.asc(row.designation),
+    ]);
+    statement.limit(limit.clamp(1, 100));
+    return (await statement.get()).map(_fromRow).toList(growable: false);
+  }
+
   @override
   Future<CelestialObject?> findById(String id) async {
     final statement = _database.select(_database.celestialCatalogEntries)
