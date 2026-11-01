@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/timezone.dart' as tz;
 
+import '../../../core/astronomy/astronomical_coordinates.dart';
+import '../../../core/astronomy/lunar_ephemeris.dart';
 import '../../../core/astronomy/solar_events.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
@@ -76,12 +79,56 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     );
   }
 
+  Widget _lunarEventRow(
+    String label,
+    LunarEvent? event,
+    LunarCrossingState state,
+  ) {
+    final value = event == null
+        ? switch (state) {
+            LunarCrossingState.alwaysAbove => 'Moon stays above horizon',
+            LunarCrossingState.alwaysBelow => 'Moon stays below horizon',
+            LunarCrossingState.crossings => 'No crossing in this night',
+          }
+        : SolarEvents.formatLocal(event.local, includeDate: true);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 135, child: Text(label)),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
+  }
+
   Widget _results(ObservingLocation location) {
     final day = SolarEvents.calculateForLocalDate(
       location: location,
       localDate: _date,
     );
     final darkness = day.astronomicalDarkness;
+    final moonEvents = LunarEphemeris.calculateForObservingNight(
+      location: location,
+      localDate: _date,
+    );
+    final zone = SolarEvents.timeZone(location.timeZone);
+    // Local midnight belonging to the observation night, never the device zone.
+    final localMidnight = tz.TZDateTime(
+      zone,
+      _date.year,
+      _date.month,
+      _date.day + 1,
+    );
+    final moon = LunarEphemeris.positionAt(
+      at: localMidnight.toUtc(),
+      observer: ObserverPosition(
+        latitudeDegrees: location.latitude,
+        longitudeDegrees: location.longitude,
+        elevationMeters: location.elevationMeters,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,6 +208,55 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               ),
             ),
           ),
+        const SizedBox(height: 20),
+        Text(
+          'Lunar conditions · observing night',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Moon position at ${SolarEvents.formatLocal(localMidnight, includeDate: true)}',
+        ),
+        const SizedBox(height: 10),
+        Card(
+          key: const ValueKey('planner-lunar-conditions'),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Moon phase: ${moon.phase.label}'),
+                const SizedBox(height: 6),
+                Text(
+                  'Illumination: ${(moon.illuminationFraction * 100).toStringAsFixed(1)}%',
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Moon altitude: ${moon.horizontal.altitudeDegrees.toStringAsFixed(1)}°',
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  moon.horizontal.azimuthDegrees == null
+                      ? 'Moon azimuth: undefined'
+                      : 'Moon azimuth: ${moon.horizontal.azimuthDegrees!.toStringAsFixed(1)}°',
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Distance: ${moon.distanceKilometers.toStringAsFixed(0)} km',
+                ),
+                const Divider(height: 22),
+                const Text('Moonrise / moonset · noon-to-noon window'),
+                const SizedBox(height: 8),
+                _lunarEventRow(
+                  'Moonrise',
+                  moonEvents.moonrise,
+                  moonEvents.state,
+                ),
+                _lunarEventRow('Moonset', moonEvents.moonset, moonEvents.state),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 16),
         Text(
           'Solar positions are approximate. Sunrise/sunset assumes an '

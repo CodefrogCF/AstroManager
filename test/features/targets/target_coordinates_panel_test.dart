@@ -106,6 +106,11 @@ void main() {
     expect(find.text('Altitude'), findsOneWidget);
     expect(find.text('Azimuth'), findsOneWidget);
     expect(find.text('Airmass'), findsOneWidget);
+    expect(find.text('Moon–target separation'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('moon-target-separation')),
+      findsOneWidget,
+    );
 
     expect(find.text('Local sidereal time'), findsOneWidget);
 

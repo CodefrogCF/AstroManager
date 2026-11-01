@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/astronomy/astronomical_coordinates.dart';
+import '../../../core/astronomy/lunar_ephemeris.dart';
 
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
@@ -133,6 +134,18 @@ class _TargetCoordinatesPanelState
     final altitude = result.horizontal.altitudeDegrees;
     final azimuth = result.horizontal.azimuthDegrees;
     final airmass = result.horizontal.relativeAirmass;
+    final lunar = LunarEphemeris.conditionsForTarget(
+      at: _utc,
+      observer: ObserverPosition(
+        latitudeDegrees: location.latitude,
+        longitudeDegrees: location.longitude,
+        elevationMeters: location.elevationMeters,
+      ),
+      targetJ2000: EquatorialPosition(
+        raDegrees: object.raDegrees,
+        decDegrees: object.decDegrees,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,6 +222,41 @@ class _TargetCoordinatesPanelState
 
         const SizedBox(height: 16),
 
+        const Divider(),
+        const SizedBox(height: 12),
+        Text(
+          'Moonlight conditions',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          key: const ValueKey('moon-target-separation'),
+          spacing: 16,
+          runSpacing: 16,
+          children: [
+            _valueTile(
+              'Moon–target separation',
+              _angle(lunar.targetSeparationDegrees),
+            ),
+            _valueTile(
+              'Moon illumination',
+              '${(lunar.moon.illuminationFraction * 100).toStringAsFixed(1)}%',
+            ),
+            _valueTile('Moon phase', lunar.moon.phase.label),
+            _valueTile(
+              'Moon altitude',
+              _angle(lunar.moon.horizontal.altitudeDegrees),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Angular separation includes lunar topocentric parallax. '
+          'Brightness and skyglow depend on atmospheric conditions; '
+          'separation alone is not a suitability rating.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 20),
         Text(
           'Geometric position using mean sidereal time. '
           'Atmospheric refraction, local obstructions, '

@@ -75,5 +75,12 @@ void main() {
     expect(find.textContaining('Solar events'), findsOneWidget);
     expect(find.textContaining('Europe/Zurich'), findsOneWidget);
     expect(find.textContaining('Astronomical darkness'), findsOneWidget);
+    expect(find.textContaining('Lunar conditions'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('planner-lunar-conditions')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Moon phase:'), findsOneWidget);
+    expect(find.textContaining('Illumination:'), findsOneWidget);
   });
 }
