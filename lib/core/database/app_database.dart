@@ -2,17 +2,16 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/app_settings.dart';
+import 'tables/observing_locations.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [AppSettings])
+@DriftDatabase(tables: [AppSettings, ObservingLocations])
 class AppDatabase extends _$AppDatabase {
-  /// Allows dependency injection of a custom executor.
-  ///
-  /// Unit tests can provide an in-memory SQLite database.
+  /// Constructor for tests and dependency injection.
   AppDatabase(super.executor);
 
-  /// Default database for Android, iOS, desktop and web.
+  /// Default database for supported Flutter platforms.
   AppDatabase.defaults()
     : super(
         driftDatabase(
@@ -25,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,13 +32,13 @@ class AppDatabase extends _$AppDatabase {
       await migrator.createAll();
     },
 
-    // Future schema upgrades will use generated
-    // step-by-step migrations.
     onUpgrade: (migrator, from, to) async {
-      throw StateError(
-        'Missing database migration from '
-        'schema version $from to $to.',
-      );
+      if (from == 1 && to == 2) {
+        await migrator.createTable(observingLocations);
+        return;
+      }
+
+      throw StateError('Unsupported database migration: $from -> $to');
     },
 
     beforeOpen: (details) async {

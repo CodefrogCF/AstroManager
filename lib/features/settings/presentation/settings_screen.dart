@@ -1,12 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/foundation.dart';
+import 'package:go_router/go_router.dart';
 
-import 'widgets/app_preferences_section.dart';
-
-import '../../../core/database/database_diagnostics_tile.dart';
+import '../../../app/router/app_router.dart';
 import '../../../app/theme/app_theme_choice.dart';
 import '../../../app/theme/theme_controller.dart';
+import '../../../core/database/database_diagnostics_tile.dart';
+
+import 'widgets/app_preferences_section.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -51,13 +53,16 @@ class SettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Appearance', style: theme.textTheme.headlineSmall),
+
                 const SizedBox(height: 8),
+
                 Text(
                   'Choose how AstroManager looks. '
                   'Astronomy night mode is designed for '
                   'use during observing sessions.',
                   style: theme.textTheme.bodyMedium,
                 ),
+
                 const SizedBox(height: 24),
 
                 for (final choice in AppThemeChoice.values)
@@ -92,11 +97,36 @@ class SettingsScreen extends ConsumerWidget {
                   'automatically and restored at startup.',
                   style: theme.textTheme.bodySmall,
                 ),
+
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 24),
 
                 const AppPreferencesSection(),
+
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
+
+                Text('Observing', style: theme.textTheme.headlineSmall),
+
+                const SizedBox(height: 12),
+
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.location_on_outlined),
+                    title: const Text('Observing Locations'),
+                    subtitle: const Text(
+                      'Manage coordinates, elevation '
+                      'and time zones.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      context.push(AppRoutes.locations);
+                    },
+                  ),
+                ),
+
                 if (kDebugMode) ...[
                   const SizedBox(height: 24),
                   const DatabaseDiagnosticsTile(),

@@ -9,6 +9,7 @@ import '../../features/planner/presentation/planner_screen.dart';
 import '../../features/equipment/presentation/equipment_screen.dart';
 import '../../features/projects/presentation/projects_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/locations/presentation/locations_screen.dart';
 
 abstract final class AppRoutes {
   static const dashboard = '/dashboard';
@@ -17,6 +18,7 @@ abstract final class AppRoutes {
   static const equipment = '/equipment';
   static const projects = '/projects';
   static const settings = '/settings';
+  static const locations = '/settings/locations';
 }
 
 GoRouter createAppRouter({String? initialLocation}) {
@@ -75,6 +77,12 @@ GoRouter createAppRouter({String? initialLocation}) {
               GoRoute(
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'locations',
+                    builder: (context, state) => const LocationsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

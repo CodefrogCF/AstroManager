@@ -7,20 +7,20 @@ import 'package:astromanager/core/database/app_database.dart';
 import 'package:astromanager/core/database/repositories/app_settings_repository.dart';
 
 void main() {
-  late AppDatabase database;
-  late AppSettingsRepository repository;
-
-  setUp(() {
-    database = AppDatabase(NativeDatabase.memory());
-
-    repository = AppSettingsRepository(database);
-  });
-
-  tearDown(() async {
-    await database.close();
-  });
-
   group('AppSettingsRepository', () {
+    late AppDatabase database;
+    late AppSettingsRepository repository;
+
+    setUp(() {
+      database = AppDatabase(NativeDatabase.memory());
+
+      repository = AppSettingsRepository(database);
+    });
+
+    tearDown(() async {
+      await database.close();
+    });
+
     test('stores and retrieves a value', () async {
       await repository.put('test.location', 'Switzerland');
 
@@ -48,14 +48,14 @@ void main() {
       expect(await repository.get('missing.key'), isNull);
     });
 
-    test('uses schema version 1', () async {
+    test('uses schema version 2', () async {
       await repository.put('schema.test', 'ok');
 
       final result = await database
           .customSelect('PRAGMA user_version')
           .getSingle();
 
-      expect(result.read<int>('user_version'), 1);
+      expect(result.read<int>('user_version'), 2);
     });
   });
 
@@ -67,16 +67,21 @@ void main() {
     final file = File('${directory.path}${Platform.pathSeparator}test.sqlite');
 
     try {
+      // First connection: write data.
       final firstDatabase = AppDatabase(NativeDatabase(file));
 
       try {
         final firstRepository = AppSettingsRepository(firstDatabase);
 
         await firstRepository.put('persistent.key', 'persistent.value');
+
+        expect(await firstRepository.get('persistent.key'), 'persistent.value');
       } finally {
         await firstDatabase.close();
       }
 
+      // Second connection: verify persistence.
+      // The first database has already been closed.
       final reopenedDatabase = AppDatabase(NativeDatabase(file));
 
       try {
@@ -86,10 +91,17 @@ void main() {
           await reopenedRepository.get('persistent.key'),
           'persistent.value',
         );
+
+        final result = await reopenedDatabase
+            .customSelect('PRAGMA user_version')
+            .getSingle();
+
+        expect(result.read<int>('user_version'), 2);
       } finally {
         await reopenedDatabase.close();
       }
     } finally {
+      // Clean up the temporary SQLite database.
       await directory.delete(recursive: true);
     }
   });
