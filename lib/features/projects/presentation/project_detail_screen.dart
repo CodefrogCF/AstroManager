@@ -11,6 +11,7 @@ import '../domain/planned_imaging_project.dart';
 import 'project_editor_dialog.dart';
 import 'project_integration_progress.dart';
 import 'observation_sessions_section.dart';
+import '../../mosaic/presentation/project_mosaic_section.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
   const ProjectDetailScreen({super.key, required this.project});
@@ -216,6 +217,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 ),
               ),
             ),
+          const SizedBox(height: 18),
+          ProjectMosaicSection(project: _project),
           const SizedBox(height: 18),
           ObservationSessionsSection(projectId: _project.id),
           const SizedBox(height: 18),

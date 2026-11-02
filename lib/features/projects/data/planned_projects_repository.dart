@@ -197,10 +197,13 @@ final class DriftPlannedProjectsRepository
           variables: [Variable<String>(id)],
         )
         .get();
-    await _database.customStatement(
-      'DELETE FROM imaging_projects WHERE id = ?',
-      [id],
-    );
+    await _database.transaction(() async {
+      await _settings.delete('projects.mosaic.v1.${Uri.encodeComponent(id)}');
+      await _database.customStatement(
+        'DELETE FROM imaging_projects WHERE id = ?',
+        [id],
+      );
+    });
     final storage = createSessionAttachmentStore();
     for (final row in imageRows) {
       await storage.remove(row.read<String>('storage_key'));

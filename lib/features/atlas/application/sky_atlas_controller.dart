@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../domain/sky_atlas_models.dart';
 import '../domain/camera_framing.dart';
+import '../../mosaic/domain/mosaic_plan.dart';
 
 enum SkyAtlasStatus { loading, imageryLoading, ready, error, unsupported }
 
@@ -27,6 +28,7 @@ class SkyAtlasController extends ChangeNotifier {
   String? _error;
   int _revision = 0;
   CameraFramingFootprint? _cameraFrame;
+  MosaicFootprint? _mosaic;
   SkyAtlasProjectionMode _projectionMode = SkyAtlasProjectionMode.detail;
   SkyDomeOverlay? _dome;
 
@@ -38,6 +40,7 @@ class SkyAtlasController extends ChangeNotifier {
   String? get error => _error;
   int get revision => _revision;
   CameraFramingFootprint? get cameraFrame => _cameraFrame;
+  MosaicFootprint? get mosaic => _mosaic;
   SkyAtlasProjectionMode get projectionMode => _projectionMode;
   SkyDomeOverlay? get dome => _dome;
 
@@ -47,6 +50,7 @@ class SkyAtlasController extends ChangeNotifier {
     markers: _markers,
     overlays: _overlays,
     cameraFrame: _cameraFrame,
+    mosaic: _mosaic,
     projectionMode: _projectionMode,
     dome: _dome,
   );
@@ -58,6 +62,7 @@ class SkyAtlasController extends ChangeNotifier {
       markers: _markers,
       overlays: _overlays,
       cameraFrame: _cameraFrame,
+      mosaic: _mosaic,
       projectionMode: _projectionMode,
       dome: _dome,
     );
@@ -114,6 +119,12 @@ class SkyAtlasController extends ChangeNotifier {
 
   void setCameraFrame(CameraFramingFootprint? frame) {
     _cameraFrame = frame;
+    _revision++;
+    notifyListeners();
+  }
+
+  void setMosaic(MosaicFootprint? mosaic) {
+    _mosaic = mosaic;
     _revision++;
     notifyListeners();
   }

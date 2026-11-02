@@ -13,7 +13,15 @@ import '../data/framing_repository.dart';
 import '../domain/camera_framing.dart';
 import '../domain/sky_dome.dart';
 import '../domain/sky_atlas_models.dart';
+import '../../mosaic/domain/mosaic_plan.dart';
 import 'sky_atlas_host.dart';
+
+/// Opens a project mosaic in the existing Aladin sky atlas.
+final class SkyAtlasMosaicRequest {
+  const SkyAtlasMosaicRequest({required this.plan, this.target});
+  final MosaicPlan plan;
+  final CelestialObject? target;
+}
 
 class SkyAtlasScreen extends StatefulWidget {
   const SkyAtlasScreen({
@@ -24,9 +32,11 @@ class SkyAtlasScreen extends StatefulWidget {
     this.framingRepository,
     this.observingLocations,
     this.initialObservationUtc,
+    this.initialMosaic,
   });
 
   final CelestialObject? target;
+  final MosaicPlan? initialMosaic;
 
   /// Inject an atlas transport and equipment set for offline widget tests.
   final Widget Function(SkyAtlasController controller)? hostBuilder;
@@ -48,6 +58,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   SkyAtlasPosition? _framingCenter;
   String? _profileId;
   double _rotation = 0;
+  MosaicPlan? _mosaicPlan;
   String? _feedback;
   int _hostGeneration = 0;
   int _restoreGeneration = 0;
@@ -74,7 +85,8 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   @override
   void initState() {
     super.initState();
-    final position = _targetPosition;
+    _mosaicPlan = widget.initialMosaic;
+    final position = widget.initialMosaic?.center ?? _targetPosition;
     _framingCenter = position;
     _controller = SkyAtlasController(
       initialPosition: position,
@@ -136,17 +148,22 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       if (!mounted || generation != _restoreGeneration) return;
       final inventory = _inventory;
       setState(() {
-        _framingCenter = stored?.center ?? _targetPosition;
+        _framingCenter =
+            _mosaicPlan?.center ?? stored?.center ?? _targetPosition;
         _profileId =
+            _mosaicPlan?.profileId ??
             stored?.profileId ??
             (inventory != null && inventory.profiles.isNotEmpty
                 ? inventory.profiles.first.id
                 : null);
-        _rotation = stored?.rotationDegrees ?? 0;
+        _rotation =
+            _mosaicPlan?.rotationDegrees ?? stored?.rotationDegrees ?? 0;
         _feedback = stored == null ? null : 'Saved framing restored';
       });
       _updateCameraFrame();
-      if (stored != null) {
+      if (_mosaicPlan != null) {
+        _controller.goto(_mosaicPlan!.center);
+      } else if (stored != null) {
         _controller.goto(stored.center);
       }
     } catch (error) {
@@ -395,6 +412,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     final center = _framingCenter;
     if (inventory == null || selected == null || center == null) {
       _controller.setCameraFrame(null);
+      _controller.setMosaic(null);
       return;
     }
     try {
@@ -410,8 +428,32 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
         verticalFovDegrees: metrics.verticalFovDegrees,
       );
       _controller.setCameraFrame(frame);
+      final mosaicPlan = _mosaicPlan;
+      if (mosaicPlan != null) {
+        final footprint = MosaicGeometry.calculate(
+          plan: mosaicPlan.copyWith(
+            profileId: selected,
+            center: center,
+            rotationDegrees: _rotation,
+          ),
+          optics: metrics,
+        );
+        _controller.setMosaic(footprint);
+        // An existing project mosaic can be wider than the default 3° atlas.
+        if (_controller.projectionMode == SkyAtlasProjectionMode.detail &&
+            _controller.fieldOfViewDegrees < footprint.widthDegrees * 1.2) {
+          _controller.setFieldOfView(
+            (math.max(footprint.widthDegrees, footprint.heightDegrees) * 1.4)
+                .clamp(0.1, 170.0)
+                .toDouble(),
+          );
+        }
+      } else {
+        _controller.setMosaic(null);
+      }
     } catch (error) {
       _controller.setCameraFrame(null);
+      _controller.setMosaic(null);
       if (mounted) setState(() => _feedback = 'Invalid optical setup: $error');
     }
   }
@@ -422,11 +464,19 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       _profileId = id;
       _feedback = null;
     });
+    if (_mosaicPlan != null) {
+      _mosaicPlan = _mosaicPlan!.copyWith(profileId: id);
+    }
     _updateCameraFrame();
   }
 
   void _changeRotation(double degrees) {
-    setState(() => _rotation = degrees % 360);
+    setState(() {
+      _rotation = degrees % 360;
+      if (_mosaicPlan != null) {
+        _mosaicPlan = _mosaicPlan!.copyWith(rotationDegrees: _rotation);
+      }
+    });
     _updateCameraFrame();
   }
 
@@ -436,6 +486,9 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       _framingCenter = center;
       _feedback = null;
     });
+    if (_mosaicPlan != null) {
+      _mosaicPlan = _mosaicPlan!.copyWith(center: center);
+    }
     _updateCameraFrame();
   }
 
@@ -480,12 +533,14 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   @override
   void didUpdateWidget(covariant SkyAtlasScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.target?.id != oldWidget.target?.id) {
+    if (widget.target?.id != oldWidget.target?.id ||
+        !identical(widget.initialMosaic, oldWidget.initialMosaic)) {
       if (widget.target != null) _selectTarget(widget.target!);
       if (_controller.projectionMode == SkyAtlasProjectionMode.skyDome) {
         _switchMode(SkyAtlasProjectionMode.detail);
       }
-      _framingCenter = _targetPosition;
+      _mosaicPlan = widget.initialMosaic;
+      _framingCenter = _mosaicPlan?.center ?? _targetPosition;
       _profileId = null;
       _rotation = 0;
       _updateCameraFrame();
@@ -645,6 +700,17 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
               sizeDegrees > shortest)
             const Text('Target may require rotation or a wider field of view.'),
         ],
+        if (_controller.mosaic != null)
+          Text(
+            '${_controller.mosaic!.panels.length} mosaic panels · '
+            '${_controller.mosaic!.widthDegrees.toStringAsFixed(2)}° × '
+            '${_controller.mosaic!.heightDegrees.toStringAsFixed(2)}°',
+            key: const ValueKey('atlas-mosaic-summary'),
+          ),
+        if (_controller.mosaic != null)
+          const Text(
+            'Atlas framing adjustments are previews; edit the project mosaic to save them.',
+          ),
         if (_feedback != null)
           Text(_feedback!, key: const ValueKey('frame-feedback')),
       ],
@@ -794,19 +860,45 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
             controller.status == SkyAtlasStatus.imageryLoading)
           ColoredBox(
             color: const Color(0xBB111827),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 12),
-                  Text(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final message =
                     controller.status == SkyAtlasStatus.imageryLoading
-                        ? 'Checking DSS2 Color survey imagery...'
-                        : 'Loading Aladin Lite sky survey...',
+                    ? 'Checking DSS2 Color survey imagery...'
+                    : 'Loading Aladin Lite sky survey...';
+                // The framing controls can leave a very short atlas viewport
+                // on compact screens. Keep the loading state inside its bounds.
+                if (constraints.maxHeight < 90) {
+                  return Center(
+                    child: Semantics(
+                      label: message,
+                      child: const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 3),
+                      ),
+                    ),
+                  );
+                }
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(
+                          message,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         if (controller.status == SkyAtlasStatus.error ||

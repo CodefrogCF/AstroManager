@@ -66,6 +66,11 @@ GoRouter createAppRouter({String? initialLocation}) {
                     builder: (context, state) => SkyAtlasScreen(
                       target: state.extra is CelestialObject
                           ? state.extra! as CelestialObject
+                          : state.extra is SkyAtlasMosaicRequest
+                          ? (state.extra! as SkyAtlasMosaicRequest).target
+                          : null,
+                      initialMosaic: state.extra is SkyAtlasMosaicRequest
+                          ? (state.extra! as SkyAtlasMosaicRequest).plan
                           : null,
                     ),
                   ),

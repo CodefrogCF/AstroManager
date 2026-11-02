@@ -317,3 +317,30 @@ test('late failures from a previous sky center cannot replace a successful tile 
   images[1].onload();
   assert.equal(messages.at(-1).type, 'imageryReady');
 });
+
+test('mosaic footprint renders independently and clears on sky dome switch', async () => {
+  const {win, commands, atlas} = fixture();
+  atlas.setProjection = () => {};
+  win.A.polyline = points => ({kind:'polyline', points});
+  win.A.source = (ra, dec, data) => ({ra, dec, data});
+  win.A.graphicOverlay = options => ({options, addFootprints(shape) {
+    commands.push(['mosaic-shape', shape]);
+  }});
+  win.A.catalog = () => ({addSources(s) {
+    commands.push(['mosaic-label', s]);
+  }, remove() {commands.push(['remove-labels']);}});
+  const points = [[10,40],[11,40],[11,41],[10,41],[10,40]];
+  const mosaic = {outline: points, panels: [{
+    label:'R1C1', row:1, column:1, ra:10.5, dec:40.5, points,
+  }]};
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({mosaic})), true);
+  assert.equal(commands.filter(c => c[0] === 'mosaic-shape').length, 3);
+  assert.equal(commands.filter(c => c[0] === 'mosaic-label').length, 2);
+  assert.equal(win.AstroManagerAtlas.receive(command({mosaic:null})), true);
+  assert.ok(commands.some(c => c[0] === 'remove-labels'));
+  assert.equal(win.AstroManagerAtlas.receive(command({mosaic: {
+    outline:points, panels:[{label:'bad',ra:10,dec:40,points}],
+  }})), false);
+});

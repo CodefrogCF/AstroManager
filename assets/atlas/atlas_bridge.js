@@ -9,6 +9,8 @@
   let markers = null;
   let overlay = null;
   let frameOverlay = null;
+  let mosaicOverlay = null;
+  let mosaicCenters = null;
   let domeLayers = [];
   let domeCompass = null;
   let projectionMode = 'detail';
@@ -124,6 +126,48 @@
     return true;
   }
 
+  function setMosaic(mosaic) {
+    if (mosaicOverlay) {
+      aladin.removeOverlay(mosaicOverlay);
+      mosaicOverlay = null;
+    }
+    if (mosaicCenters) {
+      mosaicCenters.remove();
+      mosaicCenters = null;
+    }
+    if (mosaic === null || mosaic === undefined) return true;
+    const validOutline = p => Array.isArray(p) && p.length === 5 &&
+      p.every(q => Array.isArray(q) && q.length === 2 &&
+        validPosition(q[0], q[1]));
+    if (typeof mosaic !== 'object' || !validOutline(mosaic.outline) ||
+        !Array.isArray(mosaic.panels) || mosaic.panels.length < 1 ||
+        mosaic.panels.length > 64 ||
+        !mosaic.panels.every(p => p && validOutline(p.points) &&
+          validPosition(p.ra, p.dec) &&
+          typeof p.label === 'string' && /^R[1-9][0-9]*C[1-9][0-9]*$/.test(p.label))) {
+      return false;
+    }
+    mosaicOverlay = root.A.graphicOverlay({
+      name:'AstroManager mosaic panels', color:'#ab82ff', lineWidth:2,
+    });
+    for (const panel of mosaic.panels) {
+      mosaicOverlay.addFootprints(root.A.polyline(panel.points));
+    }
+    mosaicOverlay.addFootprints(root.A.polyline(mosaic.outline));
+    aladin.addOverlay(mosaicOverlay);
+    mosaicCenters = root.A.catalog({
+      name:'Mosaic panel centers', color:'#c8aaff', sourceSize:5,
+      displayLabel:true, labelColumn:'name',
+      labelColor:'#ecdfff', labelFont:'12px sans-serif',
+    });
+    for (const panel of mosaic.panels) {
+      mosaicCenters.addSources(root.A.source(panel.ra, panel.dec,
+        {name: panel.label}));
+    }
+    aladin.addCatalog(mosaicCenters);
+    return true;
+  }
+
   function clearDome() {
     for (const layer of domeLayers) aladin.removeOverlay(layer);
     domeLayers = [];
@@ -206,6 +250,7 @@
       setOverlays(cmd.overlays);
       if (!setDome(mode === 'dome' ? cmd.dome : null)) return false;
       if (!setCameraFrame(mode === 'detail' ? cmd.cameraFrame : null)) return false;
+      if (!setMosaic(mode === 'detail' ? cmd.mosaic : null)) return false;
     } catch (error) {
       fatal('Sky atlas command failed: ' + (error && error.message || error));
       return false;

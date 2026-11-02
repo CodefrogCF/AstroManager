@@ -11,6 +11,7 @@ import '../../../core/database/app_database.dart';
 import '../../../core/providers/database_providers.dart';
 import '../../projects/data/attachments/attachment_store.dart';
 import '../../planner/domain/night_observation_block.dart';
+import '../../mosaic/domain/mosaic_plan.dart';
 import '../../settings/domain/models/app_preferences.dart';
 
 /// Portable AstroManager backup format v1; application schema v6.
@@ -245,6 +246,11 @@ final class AstroBackupService {
         }
         tables[table] = rows;
       }
+      // A restored mosaic must always refer to a project carried by the
+      // archive; app_settings keys do not have SQL foreign key constraints.
+      final savedProjectIds = tables['imaging_projects']!
+          .map((row) => row['id'])
+          .toSet();
       // Validate typed settings stored in the generic app_settings table,
       // including the JSON-based night plans from Issue #30.
       for (final row in tables['app_settings']!) {
@@ -257,6 +263,15 @@ final class AstroBackupService {
           AppPreferences.fromJson(
             Map<String, dynamic>.from(jsonDecode(value) as Map),
           );
+        } else if (key.startsWith('projects.mosaic.v1.')) {
+          final plan = MosaicPlan.fromJson(
+            Map<String, dynamic>.from(jsonDecode(value) as Map),
+          );
+          if ('projects.mosaic.v1.${Uri.encodeComponent(plan.projectId)}' !=
+                  key ||
+              !savedProjectIds.contains(plan.projectId)) {
+            throw const FormatException('Mosaic project key mismatch.');
+          }
         } else if (key.startsWith('planner.night.v1.')) {
           final blocks = jsonDecode(value);
           if (blocks is! List) {

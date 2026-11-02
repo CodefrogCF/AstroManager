@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'camera_framing.dart';
+import '../../mosaic/domain/mosaic_plan.dart';
 
 /// An ICRS/J2000 sky position in decimal degrees.
 final class SkyAtlasPosition {
@@ -121,6 +122,7 @@ abstract final class SkyAtlasProtocol {
 
   static String state({
     CameraFramingFootprint? cameraFrame,
+    MosaicFootprint? mosaic,
     SkyAtlasProjectionMode projectionMode = SkyAtlasProjectionMode.detail,
     SkyDomeOverlay? dome,
     required SkyAtlasPosition position,
@@ -143,6 +145,7 @@ abstract final class SkyAtlasProtocol {
       'markers': markers.map((m) => m.toJson()).toList(),
       'overlays': overlays.map((o) => o.toJson()).toList(),
       'cameraFrame': cameraFrame?.toJson(),
+      'mosaic': mosaic?.toJson(),
       'projection': projectionMode == SkyAtlasProjectionMode.skyDome
           ? 'dome'
           : 'detail',
