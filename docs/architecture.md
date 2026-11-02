@@ -1,457 +1,69 @@
-# AstroManager Architecture
+# Architecture and Development
 
-## Overview
+AstroManager is a Flutter/Dart application with feature-first modules and offline-first persistence. This document covers the current v0.6.0 structure; the user-facing workflow is in the [User guide](user-guide.md).
 
-AstroManager follows a feature-first architecture with
-separated presentation, application, domain, and data layers.
+## Structure and main dependencies
 
-The application is designed for offline-first operation,
-testability, and cross-platform compatibility.
+| Path | Responsibility |
+| --- | --- |
+| `lib/app/` | App bootstrap, themes, shell navigation and `go_router` routes. |
+| `lib/core/` | Astronomical utilities, Drift/SQLite database, shared providers, error handling. |
+| `lib/features/` | Features organized into `presentation`, `application`, `domain` and `data` where appropriate. |
+| `lib/shared/` | Reusable widgets. |
+| `assets/catalog/` | Bundled OpenNGC-derived catalog plus licensing. |
+| `assets/atlas/` | Locally bundled atlas HTML/JavaScript bridge; Aladin assets and imagery are fetched externally. |
+| `test/` | Unit, repository, provider, widget and JavaScript atlas tests. |
 
-## Project Structure
+Application state and dependency injection use `flutter_riverpod`; navigation uses an indexed-stack `go_router` shell with Dashboard, Targets, Night Planner, Equipment, Projects and Settings branches. Flutter Material 3 offers system, light, dark and astronomy-night themes.
 
-- `app/` - Application bootstrap and global configuration
-- `core/` - Shared infrastructure and cross-cutting concerns
-- `features/` - Independent application features
-- `shared/` - Reusable presentation components
+## Data ownership and persistence
 
-## Feature Layers
+- **Drift/SQLite (`AppDatabase`, schema v6):** saved observing locations, equipment and optical profiles, imaging projects and target links, observation sessions and image metadata. Migration tests protect earlier schema versions. Several versioned settings records also live in `app_settings`, including night plans, mosaic plans and opportunity alert configurations.
+- **Attachment binaries:** stored outside SQLite (native application support directory or separate browser IndexedDB). Rows carry opaque storage references and metadata; backup/restore copies content separately when selected.
+- **SharedPreferences:** selected theme and several derived-data caches (for example terrain and VIIRS location readings). Cache contents are not authoritative personal data and need not survive backup restoration.
+- **Bundled target catalog:** OpenNGC snapshot distributed with the app, loaded without a live service.
+- **Portable backups:** `.ambackup` is a versioned ZIP with JSON and optional detached images, validated before transactional restoration. See [Backup format](backup-format.md).
 
-### Presentation
+No AstroManager account or remote personal-data sync is part of this architecture. Requests for live weather, terrain, imagery and satellite radiance require network calls to third parties; do not assume that using an offline-first app means no network traffic.
 
-Contains Flutter widgets, screens, and UI-specific components.
+## Astronomical and planning conventions
 
-Responsibilities:
-- Display application state
-- Handle user interactions
-- Observe application providers
+- Catalog source coordinates are **ICRS/J2000 RA/Dec**. Coordinate utilities support Julian dates, sidereal time, precession, horizon altitude/azimuth, angular separation and relative airmass.
+- Sunrise/sunset and civil, nautical and astronomical twilight are calculated from solar altitude thresholds; astronomical darkness requires the Sun below approximately **−18°**.
+- Solar and lunar calculations use UTC instants and site coordinates. UI planning nights run from the site's **local noon to the following local noon**, including 23-/25-hour daylight-saving transitions when applicable.
+- Session start times store a UTC instant, IANA zone and recorded offset; nonexistent local times are rejected. Exposure integration is `accepted_frames × exposure_seconds` and totals are derived from sessions rather than stored redundantly.
+- Target visibility is a geometric approximation. Optional DEM obstruction requires altitude above both the minimum chosen elevation and the calculated horizon for the target's **azimuth**. Missing DEM bearings remain unknown, not visible.
+- Mosaic panels use a **shared gnomonic tangent plane** and inverse projection to celestial coordinates; angular layout supports rotation, overlap, RA=0 wrap and high declinations. Exported panel positions are ICRS/J2000 degrees and do not command a mount.
+- Weather-aware suitability scores are **heuristics**, not probability guarantees. Available and stale/missing values remain distinct. VIIRS upward radiance is optional for relative comparisons and must never be equated with measured SQM or Bortle.
 
-### Application
+Consult the domain implementations in `lib/core/astronomy/`, `lib/features/intelligence/`, `lib/features/terrain/`, `lib/features/mosaic/` and `lib/features/site_comparison/` for exact formulas and defaults.
 
-Coordinates feature workflows and exposes state.
+## External providers and caching
 
-Responsibilities:
-- Riverpod providers and controllers
-- Application-specific use cases
-- Orchestration of domain operations
+`lib/features/weather/` wraps Open-Meteo; `lib/features/terrain/` wraps OpenTopoData; `lib/features/light_pollution/` accesses a monthly VIIRS image service; and the atlas uses Aladin Lite / DSS Color imagery. Providers must be replaceable, timeout/error-aware, respectful of source limits and explicit about missing/freshness metadata. Use local results when valid; show stale data clearly when the offline fallback allows it. Full source details are in [Data sources and limitations](data-sources.md).
 
-### Domain
+## Opportunity notification lifecycle
 
-Contains framework-independent business definitions.
+Rules select a catalog target and site, minimum score and minimum continuous observation duration. They are evaluated using existing `ObservationWindowRecommendation` results (not a second scoring model) when the app launches, resumes or the user checks manually. Android/iOS local notifications require explicit opt-in and permissions. A persisted fingerprint prevents repeat notifications for the same rule/night. There is **no guaranteed autonomous background weather polling**.
 
-Responsibilities:
-- Domain models
-- Repository interfaces
-- Business rules
-- Astronomical calculations
+## Testing and development
 
-### Data
+The repository pins Flutter in `.fvmrc`. Install platform build tools and run:
 
-Implements persistence and external integrations.
+```bash
+flutter pub get
+dart format lib test
+flutter analyze
+flutter test --concurrency=2
+node --test test/js/atlas_bridge.test.cjs
+```
 
-Responsibilities:
-- Repository implementations
-- Database adapters
-- REST API clients
-- Local files and cached data
+The JavaScript command needs Node.js. For changes to Drift table definitions or schemas, regenerate source and update migration tests:
 
-## Navigation Architecture
+```bash
+dart run build_runner build
+```
 
-AstroManager uses `go_router` for declarative, URL-based navigation.
+Prefer deterministically fixed astronomical reference dates and explicit UTC/zone handling; mock provider HTTP calls rather than calling live services in tests. Test full backup round trips (including binary attachments), legacy migrations, denied permissions, no-data cases, DST ambiguity, RA wrap/poles and temporary/failed network responses. Close Drift executors and widget test containers cleanly; avoid two live `AppDatabase` wrappers sharing the same connection.
 
-### Stateful Navigation
-
-The application uses `StatefulShellRoute.indexedStack`.
-
-Each primary feature receives an independent navigation branch:
-
-- Dashboard
-- Targets
-- Night Planner
-- Equipment
-- Projects
-- Settings
-
-Independent navigation branches allow feature-specific navigation
-state to be preserved when switching between sections.
-
-### Responsive Navigation
-
-The application shell adapts to available screen width.
-
-- Below 840 logical pixels: NavigationBar
-- From 840 logical pixels: NavigationRail
-- From 1200 logical pixels: Extended NavigationRail
-
-On mobile, Settings is accessible from the application bar.
-
-### Route Configuration
-
-Routes are defined centrally in:
-
-`lib/app/router/app_router.dart`
-
-Feature-specific routes and screens remain within their
-corresponding feature modules.
-
-### Deep Linking
-
-Primary application routes use stable URL paths.
-
-Flutter Web supports direct navigation to known paths.
-
-Native app links and universal links require additional
-platform configuration if external deep links are introduced.
-
-### Navigation Rules
-
-- Use `StatefulNavigationShell.goBranch()` for main sections.
-- Use named or path-based routing for feature details.
-- Preserve independent navigation stacks where appropriate.
-- Avoid direct Navigator calls for primary application navigation.
-- Keep navigation logic separate from domain and data layers.
-
-## Application Theming
-
-AstroManager uses Material 3 and a centralized theme system.
-
-### Available Themes
-
-- Codefrog Light
-- Codefrog Dark
-- Astronomy Night
-- Follow System
-
-Codefrog Dark is the default appearance.
-
-### Design Principles
-
-- Dark surfaces with green accents for standard dark mode.
-- Light surfaces with green accents for light mode.
-- Red and near-black surfaces for astronomy night mode.
-- Consistent component styling across supported platforms.
-- Colors are managed centrally through design tokens.
-
-### Theme Architecture
-
-Theme configuration:
-`lib/app/theme/app_themes.dart`
-
-Theme selection:
-`lib/app/theme/app_theme_choice.dart`
-
-State management:
-`lib/app/theme/theme_controller.dart`
-
-Persistence:
-`lib/app/theme/theme_repository.dart`
-
-### State Management
-
-Riverpod manages the active theme selection.
-
-The application observes the theme provider and applies
-the corresponding Material theme configuration.
-
-Theme changes do not recreate the application router.
-
-### Persistence
-
-Theme preference is stored using SharedPreferencesAsync.
-
-The stored preference is loaded before the application
-is rendered to avoid displaying an incorrect initial theme.
-
-### Astronomy Night Mode
-
-Astronomy Night Mode uses dark red and near-black colors.
-
-It is designed to reduce unnecessary bright UI elements
-during nighttime observations.
-
-Platform-native dialogs and system UI may not fully
-follow the application color scheme.
-
-## Database Architecture
-
-AstroManager uses Drift and SQLite for local persistence.
-
-### Database
-
-- Engine: SQLite
-- ORM / Query Layer: Drift
-- Platform integration: drift_flutter
-- Initial schema version: 1
-- Database name: astromanager
-
-### Platforms
-
-Native platforms use a local SQLite database file.
-
-Flutter Web uses SQLite compiled to WebAssembly with
-a Drift web worker and supported browser storage APIs.
-
-### Application Structure
-
-- `core/database/` - Database definitions and tables
-- `core/database/repositories/` - Shared repository implementations
-- `core/providers/` - Database dependency injection
-- `features/*/data/` - Feature-specific persistence logic
-
-### Dependency Injection
-
-Riverpod provides the application database instance.
-
-Repositories receive the database through constructor
-injection and must not create their own database instances.
-
-### Schema Management
-
-Schema changes are managed using Drift migrations.
-
-The initial schema is version 1.
-
-Schema snapshots are stored in `drift_schemas/`.
-
-Future schema upgrades must:
-1. Increment `schemaVersion`.
-2. Generate updated Drift code.
-3. Generate a new migration snapshot.
-4. Implement the required migration.
-5. Verify migrations and existing data integrity.
-
-### Code Generation
-
-Run:
-
-`dart run build_runner build`
-
-For schema migration generation:
-
-`dart run drift_dev make-migrations`
-
-### Web Requirements
-
-Flutter Web requires:
-
-- `web/sqlite3.wasm`
-- `web/drift_worker.dart.js`
-
-The WebAssembly file must be served using the
-`application/wasm` MIME type.
-
-Browser storage limitations must be handled explicitly.
-
-### Testing
-
-Database unit tests use in-memory SQLite.
-
-File-based tests verify persistence across connection
-restarts.
-
-Web persistence is additionally verified with a
-manual browser reload test.
-
-Schema migration tests are required whenever the
-database schema changes.
-
-### Application Settings
-
-Theme preference remains in SharedPreferences because
-it must be loaded before application rendering.
-
-Other persistent settings may use the Drift database.
-
-## Application Preferences and Error Handling
-
-### Preferences Architecture
-
-Application preferences follow the feature-first architecture.
-
-- Domain: Typed preferences model and repository interface
-- Data: Drift-backed repository implementation
-- Application: Riverpod AsyncNotifier
-- Presentation: Settings UI
-
-### Storage
-
-Application preferences are stored in the existing
-SQLite AppSettings table.
-
-Storage key: `app.preferences.v1`
-
-Preferences are serialized as a versioned JSON document.
-
-Theme preferences remain in SharedPreferences because
-they are loaded before application rendering.
-
-### Supported Preferences
-
-- Measurement units: Metric / Imperial
-- Clock format: System / 12-hour / 24-hour
-- Language: System / English / German
-
-Full localization will be implemented in AM-037.
-
-### Validation
-
-- Preferences use strongly typed enums.
-- Serialized data includes a format version.
-- Unknown values and unsupported versions are rejected.
-- Missing preferences return documented defaults.
-- Invalid stored data is not silently overwritten.
-
-### Error Handling
-
-Expected application failures use typed exceptions:
-
-- StorageFailure
-- NetworkFailure
-- ValidationFailure
-
-User-facing error messages are generated centrally.
-
-Unexpected exceptions must not expose sensitive data.
-
-### Logging
-
-Application events use the centralized AppLogger.
-
-Logging must not include:
-
-- Precise observing locations
-- Credentials or API keys
-- Private user-generated content
-- Unfiltered exception messages containing sensitive data
-
-### Recovery
-
-- Failed saves preserve the previous preference values.
-- Failed loads display a recoverable error state.
-- Users can retry loading.
-- Users can explicitly restore default preferences.
-- Theme settings are not modified when restoring
-  the Drift-backed application preferences.
-
-### Testing
-
-- JSON serialization tests
-- Validation and schema version tests
-- SQLite repository tests
-- Riverpod state management tests
-- Failed-write rollback tests
-- Default restoration tests
-- Widget tests with mock repositories
-
-## Dependency Rules
-
-1. Domain must not depend on Flutter, Riverpod, or data implementations.
-2. Data may depend on domain interfaces and models.
-3. Application coordinates domain and repository operations.
-4. Presentation consumes application state.
-5. UI widgets must not access storage or HTTP clients directly.
-6. Cross-feature interactions should use public interfaces or services.
-
-## Dependency Injection
-
-Riverpod manages dependencies.
-
-Providers should be declared at the top level and remain
-close to their respective feature modules.
-
-Repository implementations must be replaceable through
-provider overrides during testing.
-
-## Asynchronous Operations
-
-- Use Future for one-time asynchronous operations.
-- Use Stream for continuously changing data.
-- Explicitly represent loading, data, and error states.
-- Avoid hiding unexpected failures.
-- Do not expose provider-specific types in domain models.
-
-## Error Handling
-
-Data adapters translate relevant external exceptions
-into application-level failures.
-
-Expected failures should be handled explicitly.
-
-Unexpected programming errors should remain observable
-during development and testing.
-
-Errors must not expose sensitive location data,
-credentials, or other private information.
-
-## Offline-First Principles
-
-- Core astronomical calculations run locally.
-- User-owned data is stored locally by default.
-- Network services are optional where feasible.
-- Cached external data includes freshness metadata.
-- Offline and stale-data states must be distinguishable.
-
-## Testing
-
-- Unit tests cover domain logic.
-- Provider tests verify dependency injection.
-- Repository tests verify data contracts.
-- Widget tests verify presentation behavior.
-- Integration tests verify critical workflows.
-
-## Future Architecture Extensions
-
-- Drift/SQLite persistence
-- Astronomical calculation services
-- Weather provider abstraction
-- Local celestial object catalog
-- Target recommendation engine
-- Sky atlas integration
-- Optional remote processing services
-
-## Continuous Integration
-
-AstroManager uses GitHub Actions for automated validation.
-
-Workflow configuration:
-
-`.github/workflows/ci.yml`
-
-### Quality Pipeline
-
-- Dart formatting verification
-- Flutter static analysis
-- Automated unit and widget tests
-- Drift generated-code consistency
-
-### Build Validation
-
-- Flutter Web release build
-- Windows desktop build
-- Android debug APK build
-
-iOS and macOS build validation will be added when
-the respective platforms are configured.
-
-### SDK Version
-
-The Flutter version is defined in `.fvmrc`.
-
-CI uses the same version to ensure reproducible builds.
-
-### Dependencies
-
-The application commits `pubspec.lock`.
-
-CI enforces the lockfile to prevent unintentional
-dependency changes during validation.
-
-### Branch Protection
-
-Pull requests should pass the required quality checks
-before merging into `main`.
-
-### Testing Standards
-
-See `docs/testing.md` for testing conventions,
-database migration requirements, and the Definition of Done.
+CI is defined at [`.github/workflows/ci.yml`](../.github/workflows/ci.yml); changes to native features additionally need real-platform smoke tests.

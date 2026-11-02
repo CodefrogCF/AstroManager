@@ -1,7 +1,7 @@
 // Lunar position model and Meeus Chapter 47 periodic-term data adapted from
 // Sonia Keys, meeus/v3/moonposition/moonposition.go, MIT License (2013).
 // https://github.com/soniakeys/meeus/blob/master/v3/moonposition/moonposition.go
-// See docs/lunar-ephemeris.md for references and model limitations.
+// See docs/data-sources.md for attribution and model limitations.
 import 'dart:math' as math;
 
 import 'package:timezone/timezone.dart' as tz;

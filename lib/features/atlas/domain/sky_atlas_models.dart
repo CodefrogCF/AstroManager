@@ -78,7 +78,7 @@ final class SkyAtlasCircleOverlay {
 ///
 /// This is a planning aid, not a terrain profile or an astrometric pointing
 /// solution. Mean sidereal time approximates UT1 with UTC; nutation and
-/// refraction are deliberately omitted, consistently with Issue #11.
+/// refraction are deliberately omitted for this approximate planning overlay.
 final class SkyDomeOverlay {
   const SkyDomeOverlay({
     required this.zenith,

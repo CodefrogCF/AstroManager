@@ -9,7 +9,7 @@ import '../domain/providers/weather_provider.dart';
 import '../domain/repositories/weather_cache_repository.dart';
 import 'weather_forecast_service.dart';
 
-/// Replaceable provider selection, retaining Issue #15's override contract.
+/// Replaceable weather provider selection for application and tests.
 final weatherProviderProvider = Provider<WeatherProvider>((ref) {
   final provider = OpenMeteoWeatherProvider();
   ref.onDispose(provider.close);

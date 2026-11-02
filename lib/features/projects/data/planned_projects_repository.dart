@@ -27,7 +27,7 @@ final class DriftPlannedProjectsRepository
   final AppSettingsRepository _settings;
   bool _legacyChecked = false;
 
-  /// One-time, lossless import of records created by Issue #25.
+  /// One-time, lossless import of legacy JSON-based project records.
   /// The legacy key is deleted only after all project inserts succeed.
   Future<void> _importLegacyIfNeeded() async {
     if (_legacyChecked) return;

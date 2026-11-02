@@ -253,7 +253,7 @@ final class AstroBackupService {
           .map((row) => row['id'])
           .toSet();
       // Validate typed settings stored in the generic app_settings table,
-      // including the JSON-based night plans from Issue #30.
+      // including JSON-based observation plans.
       for (final row in tables['app_settings']!) {
         final key = row['key'];
         final value = row['value'];

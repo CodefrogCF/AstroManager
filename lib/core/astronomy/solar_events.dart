@@ -127,7 +127,7 @@ final class SolarDayEvents {
 /// Offline solar ephemeris and local-date event calculations.
 ///
 /// Meeus/NOAA-style solar longitude, obliquity and equatorial coordinates,
-/// coupled to the mean sidereal-time calculation from Issue #11.
+/// coupled to the shared mean sidereal-time calculation.
 /// Accuracy is appropriate for planning, not precision telescope pointing.
 abstract final class SolarEvents {
   static const double _degreesToRadians = math.pi / 180;
