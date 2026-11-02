@@ -27,6 +27,8 @@ class SkyAtlasController extends ChangeNotifier {
   String? _error;
   int _revision = 0;
   CameraFramingFootprint? _cameraFrame;
+  SkyAtlasProjectionMode _projectionMode = SkyAtlasProjectionMode.detail;
+  SkyDomeOverlay? _dome;
 
   SkyAtlasPosition get position => _position;
   double get fieldOfViewDegrees => _fieldOfViewDegrees;
@@ -36,6 +38,8 @@ class SkyAtlasController extends ChangeNotifier {
   String? get error => _error;
   int get revision => _revision;
   CameraFramingFootprint? get cameraFrame => _cameraFrame;
+  SkyAtlasProjectionMode get projectionMode => _projectionMode;
+  SkyDomeOverlay? get dome => _dome;
 
   String get stateJson => SkyAtlasProtocol.state(
     position: _position,
@@ -43,6 +47,8 @@ class SkyAtlasController extends ChangeNotifier {
     markers: _markers,
     overlays: _overlays,
     cameraFrame: _cameraFrame,
+    projectionMode: _projectionMode,
+    dome: _dome,
   );
 
   void _validate() {
@@ -52,6 +58,8 @@ class SkyAtlasController extends ChangeNotifier {
       markers: _markers,
       overlays: _overlays,
       cameraFrame: _cameraFrame,
+      projectionMode: _projectionMode,
+      dome: _dome,
     );
   }
 
@@ -87,6 +95,19 @@ class SkyAtlasController extends ChangeNotifier {
       overlay.toJson();
     }
     _overlays = copied;
+    _revision++;
+    notifyListeners();
+  }
+
+  void setProjectionMode(SkyAtlasProjectionMode mode) {
+    if (mode == _projectionMode) return;
+    _projectionMode = mode;
+    _revision++;
+    notifyListeners();
+  }
+
+  void setSkyDome(SkyDomeOverlay? dome) {
+    _dome = dome;
     _revision++;
     notifyListeners();
   }

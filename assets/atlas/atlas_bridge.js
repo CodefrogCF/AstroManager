@@ -9,6 +9,9 @@
   let markers = null;
   let overlay = null;
   let frameOverlay = null;
+  let domeLayers = [];
+  let domeCompass = null;
+  let projectionMode = 'detail';
   let ready = false;
   let queued = null;
   let lastReported = '';
@@ -113,6 +116,66 @@
     return true;
   }
 
+  function clearDome() {
+    for (const layer of domeLayers) aladin.removeOverlay(layer);
+    domeLayers = [];
+    if (domeCompass) {
+      domeCompass.remove();
+      domeCompass = null;
+    }
+  }
+
+  function validRing(points) {
+    return Array.isArray(points) && points.length === 121 &&
+      points.every(p => Array.isArray(p) && p.length === 2 &&
+        validPosition(p[0], p[1]));
+  }
+
+  function setDome(dome) {
+    clearDome();
+    if (!dome) return true;
+    if (!dome.zenith || !validPosition(dome.zenith.ra, dome.zenith.dec) ||
+        !validRing(dome.horizon) || !validRing(dome.altitude30) ||
+        !validRing(dome.altitude60) ||
+        !Array.isArray(dome.minimumAltitude) ||
+        (dome.minimumAltitude.length !== 0 &&
+         !validRing(dome.minimumAltitude)) ||
+        !Array.isArray(dome.cardinals) || dome.cardinals.length !== 4) {
+      return false;
+    }
+    const layers = [
+      {points:dome.horizon, color:'#63d6a5', width:3},
+      {points:dome.altitude30, color:'#8aa6bc', width:1},
+      {points:dome.altitude60, color:'#8aa6bc', width:1},
+    ];
+    if (dome.minimumAltitude.length) {
+      layers.push({points:dome.minimumAltitude, color:'#f0c45b', width:2});
+    }
+    for (const item of layers) {
+      const layer = root.A.graphicOverlay({
+        name:'Local horizon / altitude', color:item.color,
+        lineWidth:item.width,
+      });
+      layer.addFootprints(root.A.polyline(item.points));
+      aladin.addOverlay(layer);
+      domeLayers.push(layer);
+    }
+    domeCompass = root.A.catalog({
+      name:'Horizon directions', color:'#86e9bf', sourceSize:5,
+      displayLabel:true, labelColumn:'name',
+      labelColor:'#d8ffeb', labelFont:'bold 14px sans-serif',
+    });
+    for (const point of dome.cardinals) {
+      if (!point || !validPosition(point.ra, point.dec) ||
+          !['N','E','S','W'].includes(point.label)) return false;
+      domeCompass.addSources(root.A.source(point.ra, point.dec, {
+        name:point.label,
+      }));
+    }
+    aladin.addCatalog(domeCompass);
+    return true;
+  }
+
   function receive(text) {
     let cmd;
     try { cmd = typeof text === 'string' ? JSON.parse(text) : text; }
@@ -120,13 +183,21 @@
     if (!cmd || cmd.protocol !== protocol || cmd.version !== version ||
         cmd.type !== 'state' || !validPosition(cmd.ra, cmd.dec) ||
         !validFov(cmd.fov)) return false;
+    const mode = cmd.projection || 'detail';
+    if (!['detail', 'dome'].includes(mode)) return false;
     if (!ready) { queued = cmd; return true; }
     try {
+      // The projection changes only when switching modes, not on each pan.
+      if (mode !== projectionMode) {
+        aladin.setProjection(mode === 'dome' ? 'ZEA' : 'TAN');
+        projectionMode = mode;
+      }
       aladin.gotoRaDec(cmd.ra, cmd.dec);
       aladin.setFoV(cmd.fov);
       setMarkers(cmd.markers);
       setOverlays(cmd.overlays);
-      if (!setCameraFrame(cmd.cameraFrame)) return false;
+      if (!setDome(mode === 'dome' ? cmd.dome : null)) return false;
+      if (!setCameraFrame(mode === 'detail' ? cmd.cameraFrame : null)) return false;
     } catch (error) {
       fatal('Sky atlas command failed: ' + (error && error.message || error));
       return false;
@@ -168,7 +239,7 @@
     root.A.init.then(function () {
       try {
         aladin = root.A.aladin('#aladin', {
-          target:'10.6847 41.2688', fov:3,
+          target:'10.6847 41.2688', fov:3, projection:'TAN',
           survey:'https://skies.esac.esa.int/DSSColor', cooFrame:'ICRS',
           showReticle:true, showFullscreenControl:false,
         });

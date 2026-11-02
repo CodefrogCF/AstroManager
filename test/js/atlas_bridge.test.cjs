@@ -175,3 +175,56 @@ test('initial survey uses an external full-sky HiPS mirror', async () => {
   assert.equal(options.survey, 'https://skies.esac.esa.int/DSSColor');
   assert.equal(options.cooFrame, 'ICRS');
 });
+
+test('dome mode changes projection and draws real sky-coordinate horizon rings', async () => {
+  const {win, atlas, commands} = fixture();
+  atlas.setProjection = value => commands.push(['projection', value]);
+  win.A.polyline = points => ({kind:'polyline', points});
+  win.A.source = (ra, dec, data) => ({ra, dec, data});
+  win.A.graphicOverlay = options => ({
+    options,
+    addFootprints(shape) { commands.push(['dome-footprint', shape]); },
+  });
+  win.A.catalog = options => ({
+    options,
+    addSources(source) { commands.push(['dome-source', source]); },
+    remove() { commands.push(['remove-compass']); },
+  });
+  const ring = Array.from({length:121}, (_, i) => [i * 0.5, 20]);
+  const dome = {
+    zenith:{ra:40,dec:47}, horizon:ring, altitude30:ring,
+    altitude60:ring, minimumAltitude:ring,
+    minimumAltitudeDegrees:25,
+    cardinals: ['N','E','S','W'].map((label, index) => ({
+      id:`horizon-${label}`, label, ra:10 + index * 45, dec:10,
+    })),
+  };
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({
+    projection:'dome', dome, ra:40, dec:47, fov:180,
+    cameraFrame:null,
+  })), true);
+  assert.deepEqual(commands.find(c => c[0] === 'projection'), ['projection', 'ZEA']);
+  assert.equal(commands.filter(c => c[0] === 'dome-footprint' && c[1].kind === 'polyline').length, 4);
+  assert.deepEqual(commands.filter(c => c[0] === 'dome-source' && !Array.isArray(c[1]))
+    .map(c => c[1].data.name), ['N', 'E', 'S', 'W']);
+  assert.equal(win.AstroManagerAtlas.receive(command({
+    projection:'detail', dome:null, cameraFrame:null,
+  })), true);
+  assert.deepEqual(commands.filter(c => c[0] === 'projection').at(-1),
+    ['projection', 'TAN']);
+  assert.ok(commands.some(c => c[0] === 'remove-compass'));
+});
+
+test('dome rejects malformed horizon geometry', async () => {
+  const {win, atlas} = fixture();
+  atlas.setProjection = () => {};
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({
+    projection:'dome', fov:180,
+    dome: {zenith:{ra:10,dec:30}, horizon:[[10,30]],
+      altitude30:[], altitude60:[], minimumAltitude:[], cardinals:[]},
+  })), false);
+});

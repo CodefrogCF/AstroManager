@@ -4,11 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../equipment/application/equipment_controller.dart';
+import '../../locations/application/observing_locations_controller.dart';
+import '../../locations/domain/models/observing_location.dart';
 import '../../equipment/domain/models/equipment_models.dart';
 import '../../targets/domain/models/celestial_object.dart';
 import '../application/sky_atlas_controller.dart';
 import '../data/framing_repository.dart';
 import '../domain/camera_framing.dart';
+import '../domain/sky_dome.dart';
 import '../domain/sky_atlas_models.dart';
 import 'sky_atlas_host.dart';
 
@@ -19,6 +22,8 @@ class SkyAtlasScreen extends StatefulWidget {
     this.hostBuilder,
     this.equipmentInventory,
     this.framingRepository,
+    this.observingLocations,
+    this.initialObservationUtc,
   });
 
   final CelestialObject? target;
@@ -27,6 +32,10 @@ class SkyAtlasScreen extends StatefulWidget {
   final Widget Function(SkyAtlasController controller)? hostBuilder;
   final EquipmentInventory? equipmentInventory;
   final CameraFramingRepository? framingRepository;
+
+  /// Optional inputs make dome mode independently widget-testable.
+  final List<ObservingLocation>? observingLocations;
+  final DateTime? initialObservationUtc;
 
   @override
   State<SkyAtlasScreen> createState() => _SkyAtlasScreenState();
@@ -42,6 +51,13 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   String? _feedback;
   int _hostGeneration = 0;
   int _restoreGeneration = 0;
+  late DateTime _observationUtc;
+  List<ObservingLocation> _locations = const [];
+  List<ObservingLocation>? _lastProviderLocations;
+  String? _locationId;
+  double _minimumAltitude = 25;
+  SkyAtlasPosition? _detailPosition;
+  double _detailFov = 3;
 
   String get _targetKey => widget.target?.id ?? '__untargeted__';
 
@@ -76,6 +92,10 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     // null until an equipment-provider update, so test / embedded hosts never
     // received a camera footprint or its framing controls.
     _inventory = widget.equipmentInventory;
+    _observationUtc = (widget.initialObservationUtc ?? DateTime.now()).toUtc();
+    if (widget.observingLocations != null) {
+      _updateLocations(widget.observingLocations!);
+    }
     _readSaved();
   }
 
@@ -133,6 +153,223 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       if (!mounted || generation != _restoreGeneration) return;
       setState(() => _feedback = 'Unable to restore framing: $error');
     }
+  }
+
+  void _updateLocations(List<ObservingLocation> locations) {
+    _locations = List.unmodifiable(locations);
+    if (!_locations.any((location) => location.id == _locationId)) {
+      final defaults = _locations.where((location) => location.isDefault);
+      _locationId = defaults.isNotEmpty
+          ? defaults.first.id
+          : (_locations.isEmpty ? null : _locations.first.id);
+    }
+    if (_controller.projectionMode == SkyAtlasProjectionMode.skyDome) {
+      _refreshDome();
+    }
+  }
+
+  ObservingLocation? get _selectedLocation {
+    for (final location in _locations) {
+      if (location.id == _locationId) return location;
+    }
+    return null;
+  }
+
+  void _switchMode(SkyAtlasProjectionMode mode) {
+    if (mode == _controller.projectionMode) return;
+    if (mode == SkyAtlasProjectionMode.skyDome) {
+      _detailPosition = _controller.position;
+      _detailFov = _controller.fieldOfViewDegrees;
+      _controller.setProjectionMode(mode);
+      _refreshDome();
+    } else {
+      _controller.setProjectionMode(mode);
+      _controller.setSkyDome(null);
+      _controller.goto(_detailPosition ?? _targetPosition);
+      _controller.setFieldOfView(_detailFov);
+    }
+  }
+
+  void _refreshDome() {
+    if (_controller.projectionMode != SkyAtlasProjectionMode.skyDome) return;
+    final site = _selectedLocation;
+    if (site == null) {
+      _controller.setSkyDome(null);
+      _controller.setFieldOfView(180);
+      return;
+    }
+    try {
+      final dome = SkyDomeGeometry.calculate(
+        location: site,
+        utc: _observationUtc,
+        minimumAltitudeDegrees: _minimumAltitude,
+      );
+      _controller.setSkyDome(dome);
+      _controller.goto(dome.zenith);
+      _controller.setFieldOfView(180);
+    } catch (error) {
+      if (mounted) {
+        setState(() => _feedback = 'Horizon calculation failed: $error');
+      }
+    }
+  }
+
+  Future<void> _pickDomeDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _observationUtc,
+      firstDate: DateTime.utc(1900),
+      lastDate: DateTime.utc(2100),
+      helpText: 'Select UTC observation date',
+    );
+    if (!mounted || date == null) return;
+    setState(() {
+      _observationUtc = DateTime.utc(
+        date.year,
+        date.month,
+        date.day,
+        _observationUtc.hour,
+        _observationUtc.minute,
+      );
+    });
+    _refreshDome();
+  }
+
+  Future<void> _pickDomeTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_observationUtc),
+      helpText: 'Select UTC observation time',
+    );
+    if (!mounted || time == null) return;
+    setState(() {
+      _observationUtc = DateTime.utc(
+        _observationUtc.year,
+        _observationUtc.month,
+        _observationUtc.day,
+        time.hour,
+        time.minute,
+      );
+    });
+    _refreshDome();
+  }
+
+  Widget _domeControls() {
+    if (widget.observingLocations == null && widget.hostBuilder == null) {
+      return Consumer(
+        builder: (context, ref, child) {
+          final locations = ref.watch(observingLocationsProvider);
+          return locations.when(
+            loading: () => const LinearProgressIndicator(),
+            error: (error, stack) =>
+                Text('Observing sites unavailable: $error'),
+            data: (items) {
+              if (!identical(_lastProviderLocations, items)) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  setState(() {
+                    _lastProviderLocations = items;
+                    _updateLocations(items);
+                  });
+                });
+              }
+              return _domeControlContents();
+            },
+          );
+        },
+      );
+    }
+    return _domeControlContents();
+  }
+
+  Widget _domeControlContents() {
+    final site = _selectedLocation;
+    final utc = _observationUtc.toIso8601String().replaceFirst('T', ' ');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_locations.isEmpty)
+          const Text('Add an observing location to display the local horizon.'),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 6,
+          children: [
+            if (_locations.isNotEmpty)
+              SizedBox(
+                width: 220,
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('dome-site-${_locationId ?? 'none'}'),
+                  initialValue: site?.id,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Observing location',
+                    isDense: true,
+                  ),
+                  items: [
+                    for (final entry in _locations)
+                      DropdownMenuItem(
+                        value: entry.id,
+                        child: Text(
+                          entry.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (id) {
+                    if (id == null) return;
+                    setState(() => _locationId = id);
+                    _refreshDome();
+                  },
+                ),
+              ),
+            Text(utc.length >= 16 ? '${utc.substring(0, 16)} UTC' : utc),
+            OutlinedButton(
+              key: const ValueKey('dome-date'),
+              onPressed: _pickDomeDate,
+              child: const Text('UTC date'),
+            ),
+            OutlinedButton(
+              key: const ValueKey('dome-time'),
+              onPressed: _pickDomeTime,
+              child: const Text('UTC time'),
+            ),
+            OutlinedButton(
+              key: const ValueKey('dome-now'),
+              onPressed: () {
+                setState(() => _observationUtc = DateTime.now().toUtc());
+                _refreshDome();
+              },
+              child: const Text('Now'),
+            ),
+          ],
+        ),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          children: [
+            const Text('Minimum altitude'),
+            SizedBox(
+              width: 140,
+              child: Slider(
+                key: const ValueKey('dome-min-altitude'),
+                value: _minimumAltitude,
+                min: 0,
+                max: 60,
+                divisions: 12,
+                onChanged: (value) {
+                  setState(() => _minimumAltitude = value);
+                  _refreshDome();
+                },
+              ),
+            ),
+            Text('${_minimumAltitude.round()}°'),
+            const Text('Green: horizon · Yellow: minimum altitude'),
+          ],
+        ),
+      ],
+    );
   }
 
   void _onInventory(EquipmentInventory inventory) {
@@ -245,11 +482,22 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.target?.id != oldWidget.target?.id) {
       if (widget.target != null) _selectTarget(widget.target!);
+      if (_controller.projectionMode == SkyAtlasProjectionMode.skyDome) {
+        _switchMode(SkyAtlasProjectionMode.detail);
+      }
       _framingCenter = _targetPosition;
       _profileId = null;
       _rotation = 0;
       _updateCameraFrame();
       _readSaved();
+    }
+    if (!identical(oldWidget.observingLocations, widget.observingLocations) &&
+        widget.observingLocations != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() => _updateLocations(widget.observingLocations!));
+        }
+      });
     }
     if (!identical(oldWidget.equipmentInventory, widget.equipmentInventory) &&
         widget.equipmentInventory != null) {
@@ -432,6 +680,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     final controller = _controller;
     final target = widget.target;
     final theme = Theme.of(context);
+    final isDome = controller.projectionMode == SkyAtlasProjectionMode.skyDome;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -443,97 +692,133 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
         child: Column(
           children: [
             Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
               children: [
-                Text('RA ${controller.position.raDegrees.toStringAsFixed(4)}°'),
-                Text(
-                  'Dec ${controller.position.decDegrees.toStringAsFixed(4)}°',
+                ChoiceChip(
+                  key: const ValueKey('atlas-mode-detail'),
+                  label: const Text('Detail atlas'),
+                  selected: !isDome,
+                  onSelected: (_) => _switchMode(SkyAtlasProjectionMode.detail),
                 ),
-                Text(
-                  'FOV ${controller.fieldOfViewDegrees.toStringAsFixed(2)}°',
+                ChoiceChip(
+                  key: const ValueKey('atlas-mode-dome'),
+                  label: const Text('Sky dome'),
+                  selected: isDome,
+                  onSelected: (_) =>
+                      _switchMode(SkyAtlasProjectionMode.skyDome),
                 ),
-                if (target != null)
-                  OutlinedButton.icon(
-                    key: const ValueKey('atlas-recenter'),
-                    onPressed: () => _selectTarget(target),
-                    icon: const Icon(Icons.center_focus_strong),
-                    label: const Text('Center target'),
-                  ),
-                for (final fov in [0.5, 1.0, 3.0, 10.0, 30.0])
-                  ChoiceChip(
-                    key: ValueKey('atlas-fov-$fov'),
-                    label: Text('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
-                    selected: controller.fieldOfViewDegrees == fov,
-                    onSelected: (_) => controller.setFieldOfView(fov),
-                  ),
               ],
             ),
             const SizedBox(height: 6),
-            _equipmentArea(),
-            const SizedBox(height: 6),
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
+            if (!isDome)
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child:
-                        widget.hostBuilder?.call(controller) ??
-                        SkyAtlasHost(
-                          key: ValueKey(_hostGeneration),
-                          controller: controller,
-                        ),
+                  Text(
+                    'RA ${controller.position.raDegrees.toStringAsFixed(4)}°',
                   ),
-                  if (controller.status == SkyAtlasStatus.loading)
-                    const ColoredBox(
-                      color: Color(0xBB111827),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 12),
-                            Text('Loading Aladin Lite sky survey...'),
-                          ],
-                        ),
-                      ),
+                  Text(
+                    'Dec ${controller.position.decDegrees.toStringAsFixed(4)}°',
+                  ),
+                  Text(
+                    'FOV ${controller.fieldOfViewDegrees.toStringAsFixed(2)}°',
+                  ),
+                  if (target != null)
+                    OutlinedButton.icon(
+                      key: const ValueKey('atlas-recenter'),
+                      onPressed: () => _selectTarget(target),
+                      icon: const Icon(Icons.center_focus_strong),
+                      label: const Text('Center target'),
                     ),
-                  if (controller.status == SkyAtlasStatus.error)
-                    ColoredBox(
-                      color: theme.colorScheme.surface,
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.cloud_off_outlined, size: 40),
-                            const SizedBox(height: 8),
-                            const Text('Sky atlas unavailable'),
-                            const SizedBox(height: 8),
-                            Text(controller.error ?? 'Unknown atlas error'),
-                            const SizedBox(height: 12),
-                            FilledButton.icon(
-                              key: const ValueKey('atlas-retry'),
-                              onPressed: _retry,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      ),
+                  for (final fov in [0.5, 1.0, 3.0, 10.0, 30.0])
+                    ChoiceChip(
+                      key: ValueKey('atlas-fov-$fov'),
+                      label: Text('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
+                      selected: controller.fieldOfViewDegrees == fov,
+                      onSelected: (_) => controller.setFieldOfView(fov),
                     ),
                 ],
               ),
-            ),
             const SizedBox(height: 6),
-            const Text(
-              'Survey imagery: DSS2 Color (ESA HiPS mirror; CDS/STScI).',
-              textAlign: TextAlign.center,
+            if (isDome) _domeControls() else _equipmentArea(),
+            const SizedBox(height: 6),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final side = math.min(
+                    constraints.maxWidth,
+                    constraints.maxHeight,
+                  );
+                  return Center(
+                    child: SizedBox(
+                      width: isDome ? side : constraints.maxWidth,
+                      height: isDome ? side : constraints.maxHeight,
+                      child: _atlasViewport(controller, theme),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _atlasViewport(SkyAtlasController controller, ThemeData theme) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child:
+              widget.hostBuilder?.call(controller) ??
+              SkyAtlasHost(
+                key: ValueKey(_hostGeneration),
+                controller: controller,
+              ),
+        ),
+        if (controller.status == SkyAtlasStatus.loading)
+          const ColoredBox(
+            color: Color(0xBB111827),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 12),
+                  Text('Loading Aladin Lite sky survey...'),
+                ],
+              ),
+            ),
+          ),
+        if (controller.status == SkyAtlasStatus.error)
+          ColoredBox(
+            color: theme.colorScheme.surface,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off_outlined, size: 40),
+                  const SizedBox(height: 8),
+                  const Text('Sky atlas unavailable'),
+                  const SizedBox(height: 8),
+                  Text(controller.error ?? 'Unknown atlas error'),
+                  const SizedBox(height: 12),
+                  FilledButton.icon(
+                    key: const ValueKey('atlas-retry'),
+                    onPressed: _retry,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

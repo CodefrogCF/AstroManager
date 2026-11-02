@@ -72,6 +72,48 @@ final class SkyAtlasCircleOverlay {
   }
 }
 
+/// A geometric (unrefracted) local horizon, expressed in J2000/ICRS-like
+/// equatorial coordinates for the Aladin image-survey frame.
+///
+/// This is a planning aid, not a terrain profile or an astrometric pointing
+/// solution. Mean sidereal time approximates UT1 with UTC; nutation and
+/// refraction are deliberately omitted, consistently with Issue #11.
+final class SkyDomeOverlay {
+  const SkyDomeOverlay({
+    required this.zenith,
+    required this.horizon,
+    required this.altitude30,
+    required this.altitude60,
+    required this.minimumAltitude,
+    required this.minimumAltitudeDegrees,
+    required this.cardinals,
+  });
+
+  final SkyAtlasPosition zenith;
+  final List<SkyAtlasPosition> horizon;
+  final List<SkyAtlasPosition> altitude30;
+  final List<SkyAtlasPosition> altitude60;
+  final List<SkyAtlasPosition> minimumAltitude;
+  final double minimumAltitudeDegrees;
+  final List<SkyAtlasMarker> cardinals;
+
+  Map<String, Object> toJson() => {
+    'zenith': zenith.toJson(),
+    'horizon': _points(horizon),
+    'altitude30': _points(altitude30),
+    'altitude60': _points(altitude60),
+    'minimumAltitude': _points(minimumAltitude),
+    'minimumAltitudeDegrees': minimumAltitudeDegrees,
+    'cardinals': cardinals.map((item) => item.toJson()).toList(),
+  };
+
+  static List<List<double>> _points(List<SkyAtlasPosition> positions) => [
+    for (final position in positions) [position.raDegrees, position.decDegrees],
+  ];
+}
+
+enum SkyAtlasProjectionMode { detail, skyDome }
+
 /// Versioned JSON envelope shared by browser and native WebView bridges.
 abstract final class SkyAtlasProtocol {
   static const identifier = 'astromanager.aladin';
@@ -79,6 +121,8 @@ abstract final class SkyAtlasProtocol {
 
   static String state({
     CameraFramingFootprint? cameraFrame,
+    SkyAtlasProjectionMode projectionMode = SkyAtlasProjectionMode.detail,
+    SkyDomeOverlay? dome,
     required SkyAtlasPosition position,
     required double fieldOfViewDegrees,
     required List<SkyAtlasMarker> markers,
@@ -99,6 +143,10 @@ abstract final class SkyAtlasProtocol {
       'markers': markers.map((m) => m.toJson()).toList(),
       'overlays': overlays.map((o) => o.toJson()).toList(),
       'cameraFrame': cameraFrame?.toJson(),
+      'projection': projectionMode == SkyAtlasProjectionMode.skyDome
+          ? 'dome'
+          : 'detail',
+      'dome': dome?.toJson(),
     });
   }
 
