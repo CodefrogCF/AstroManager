@@ -7,6 +7,7 @@ import '../../../app/router/app_router.dart';
 import '../../../app/theme/app_theme_choice.dart';
 import '../../../app/theme/theme_controller.dart';
 import '../../../core/database/database_diagnostics_tile.dart';
+import '../../backup/presentation/backup_settings_section.dart';
 
 import 'widgets/app_preferences_section.dart';
 
@@ -103,6 +104,11 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 const AppPreferencesSection(),
+
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 24),
+                const BackupSettingsSection(),
 
                 const SizedBox(height: 24),
                 const Divider(),
