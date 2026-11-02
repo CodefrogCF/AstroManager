@@ -4,6 +4,7 @@ import '../../../../core/astronomy/astronomical_coordinates.dart';
 import '../../../../core/astronomy/lunar_ephemeris.dart';
 import '../../../../core/astronomy/solar_events.dart';
 import '../../../../core/astronomy/target_visibility.dart';
+import '../../../light_pollution/domain/light_pollution.dart';
 import '../../../equipment/domain/models/equipment_models.dart';
 import '../../../targets/domain/models/celestial_object.dart';
 import '../../../weather/domain/models/weather_cache.dart';
@@ -33,6 +34,7 @@ abstract final class AstrophotographySuitabilityScoring {
     WeatherForecastSnapshot? weather,
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
+    LightPollutionReading? lightPollution,
     SuitabilityScoringProfile profile = const SuitabilityScoringProfile(),
   }) {
     target.validate();
@@ -255,6 +257,30 @@ abstract final class AstrophotographySuitabilityScoring {
       opticsGrade.score,
       opticsGrade.coverage,
       opticsGrade.explanation,
+    );
+
+    // Opt-in only: ground radiance cannot be used as measured SQM/Bortle.
+    // An unmatched source location is unknown, not zero light pollution.
+    final matchesSite =
+        lightPollution != null &&
+        (lightPollution.latitude - observer.latitudeDegrees).abs() < 0.001 &&
+        (lightPollution.longitude - observer.longitudeDegrees).abs() < 0.001;
+    final nightLightScore = matchesSite
+        ? SatelliteRadianceIndicator.relativeDarknessScore(lightPollution)
+        : null;
+    record(
+      SuitabilityFactor.lightPollution,
+      nightLightScore,
+      nightLightScore == null ? 0 : 1,
+      lightPollution == null
+          ? 'No night-light dataset supplied. No darkness is inferred.'
+          : !matchesSite
+          ? 'Night-light data belongs to a different observing location.'
+          : nightLightScore == null
+          ? 'This dataset is not VIIRS upward radiance; no proxy score.'
+          : 'Optional relative VIIRS upward-radiance comparison, '
+                'dataset ${lightPollution.datasetDate.year}. Not an '
+                'SQM measurement, Bortle class, or actual sky quality.',
     );
 
     var score = results.values.fold<double>(

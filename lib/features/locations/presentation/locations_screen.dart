@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_error_message.dart';
 import '../application/observing_locations_controller.dart';
 import '../domain/models/observing_location.dart';
+import '../../light_pollution/presentation/light_pollution_location_panel.dart';
 
 class LocationsScreen extends ConsumerWidget {
   const LocationsScreen({super.key});
@@ -200,75 +201,90 @@ class LocationsScreen extends ConsumerWidget {
                             key: ValueKey('location-${location.id}'),
                             child: Padding(
                               padding: const EdgeInsets.all(4),
-                              child: ListTile(
-                                leading: Icon(
-                                  location.isDefault
-                                      ? Icons.my_location
-                                      : Icons.place_outlined,
-                                  color: location.isDefault
-                                      ? theme.colorScheme.primary
-                                      : null,
-                                ),
-                                title: Text(location.name),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${location.latitude.toStringAsFixed(6)}°, '
-                                      '${location.longitude.toStringAsFixed(6)}°',
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    leading: Icon(
+                                      location.isDefault
+                                          ? Icons.my_location
+                                          : Icons.place_outlined,
+                                      color: location.isDefault
+                                          ? theme.colorScheme.primary
+                                          : null,
                                     ),
-                                    Text(
-                                      '${location.elevationMeters.toStringAsFixed(1)} m • '
-                                      '${location.timeZone}',
-                                    ),
-                                    if (location.isDefault)
-                                      Text(
-                                        'Default observing location',
-                                        style: TextStyle(
-                                          color: theme.colorScheme.primary,
-                                          fontWeight: FontWeight.w600,
+                                    title: Text(location.name),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${location.latitude.toStringAsFixed(6)}°, '
+                                          '${location.longitude.toStringAsFixed(6)}°',
                                         ),
-                                      ),
-                                  ],
-                                ),
-                                isThreeLine: true,
-                                trailing: Wrap(
-                                  spacing: 0,
-                                  children: [
-                                    if (!location.isDefault)
-                                      IconButton(
-                                        tooltip: 'Set as default',
-                                        icon: const Icon(Icons.star_outline),
-                                        onPressed: () => _execute(
-                                          context,
-                                          () => ref
-                                              .read(
-                                                observingLocationsProvider
-                                                    .notifier,
-                                              )
-                                              .setDefault(location.id),
+                                        Text(
+                                          '${location.elevationMeters.toStringAsFixed(1)} m • '
+                                          '${location.timeZone}',
                                         ),
-                                      ),
-                                    IconButton(
-                                      tooltip: 'Edit location',
-                                      icon: const Icon(Icons.edit_outlined),
-                                      onPressed: () => _showEditor(
-                                        context,
-                                        ref,
-                                        location: location,
-                                      ),
+                                        if (location.isDefault)
+                                          Text(
+                                            'Default observing location',
+                                            style: TextStyle(
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                      ],
                                     ),
-                                    IconButton(
-                                      tooltip: 'Delete location',
-                                      icon: const Icon(Icons.delete_outline),
-                                      onPressed: () => _confirmDelete(
-                                        context,
-                                        ref,
-                                        location,
-                                      ),
+                                    isThreeLine: true,
+                                    trailing: Wrap(
+                                      spacing: 0,
+                                      children: [
+                                        if (!location.isDefault)
+                                          IconButton(
+                                            tooltip: 'Set as default',
+                                            icon: const Icon(
+                                              Icons.star_outline,
+                                            ),
+                                            onPressed: () => _execute(
+                                              context,
+                                              () => ref
+                                                  .read(
+                                                    observingLocationsProvider
+                                                        .notifier,
+                                                  )
+                                                  .setDefault(location.id),
+                                            ),
+                                          ),
+                                        IconButton(
+                                          tooltip: 'Edit location',
+                                          icon: const Icon(Icons.edit_outlined),
+                                          onPressed: () => _showEditor(
+                                            context,
+                                            ref,
+                                            location: location,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Delete location',
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                          ),
+                                          onPressed: () => _confirmDelete(
+                                            context,
+                                            ref,
+                                            location,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  LightPollutionLocationPanel(
+                                    key: ValueKey(
+                                      'light-pollution-${location.id}',
+                                    ),
+                                    site: location,
+                                  ),
+                                ],
                               ),
                             ),
                           ),

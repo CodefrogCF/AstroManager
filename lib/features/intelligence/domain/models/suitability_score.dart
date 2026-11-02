@@ -6,7 +6,8 @@ enum SuitabilityFactor {
   astronomicalDarkness,
   weather,
   moonlight,
-  fieldOfView;
+  fieldOfView,
+  lightPollution;
 
   String get label => switch (this) {
     SuitabilityFactor.altitude => 'Target altitude',
@@ -15,6 +16,7 @@ enum SuitabilityFactor {
     SuitabilityFactor.weather => 'Weather',
     SuitabilityFactor.moonlight => 'Moonlight interference',
     SuitabilityFactor.fieldOfView => 'Optical field of view',
+    SuitabilityFactor.lightPollution => 'Local satellite night-light indicator',
   };
 }
 
@@ -32,6 +34,7 @@ final class SuitabilityWeights {
     this.weather = 0.28,
     this.moonlight = 0.14,
     this.fieldOfView = 0.08,
+    this.lightPollution = 0,
   });
 
   final double altitude;
@@ -41,6 +44,9 @@ final class SuitabilityWeights {
   final double moonlight;
   final double fieldOfView;
 
+  /// Opt-in. Raw upward radiance is only a relative site indicator.
+  final double lightPollution;
+
   double forFactor(SuitabilityFactor factor) => switch (factor) {
     SuitabilityFactor.altitude => altitude,
     SuitabilityFactor.visibleDuration => visibleDuration,
@@ -48,6 +54,7 @@ final class SuitabilityWeights {
     SuitabilityFactor.weather => weather,
     SuitabilityFactor.moonlight => moonlight,
     SuitabilityFactor.fieldOfView => fieldOfView,
+    SuitabilityFactor.lightPollution => lightPollution,
   };
 
   double get total =>
@@ -56,7 +63,8 @@ final class SuitabilityWeights {
       astronomicalDarkness +
       weather +
       moonlight +
-      fieldOfView;
+      fieldOfView +
+      lightPollution;
 
   void validate() {
     for (final factor in SuitabilityFactor.values) {

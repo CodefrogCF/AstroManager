@@ -5,6 +5,7 @@ import '../../../../core/astronomy/solar_events.dart';
 import '../../../../core/astronomy/target_visibility.dart';
 import '../../../equipment/domain/models/equipment_models.dart';
 import '../../../locations/domain/models/observing_location.dart';
+import '../../../light_pollution/domain/light_pollution.dart';
 import '../../../targets/domain/models/celestial_object.dart';
 import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/domain/models/weather_forecast.dart';
@@ -30,6 +31,7 @@ abstract final class ObservationWindowRecommendation {
     WeatherForecastSnapshot? weather,
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
+    LightPollutionReading? lightPollution,
     SuitabilityScoringProfile scoringProfile =
         const SuitabilityScoringProfile(),
     ObservationWindowOptions options = const ObservationWindowOptions(),
@@ -59,6 +61,7 @@ abstract final class ObservationWindowRecommendation {
       weather: weather,
       cachePolicy: cachePolicy,
       optics: optics,
+      lightPollution: lightPollution,
       scoringProfile: scoringProfile,
       options: options,
     );
@@ -75,6 +78,7 @@ abstract final class ObservationWindowRecommendation {
     WeatherForecastSnapshot? weather,
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
+    LightPollutionReading? lightPollution,
     SuitabilityScoringProfile scoringProfile =
         const SuitabilityScoringProfile(),
     ObservationWindowOptions options = const ObservationWindowOptions(),
@@ -91,6 +95,7 @@ abstract final class ObservationWindowRecommendation {
       weather: weather,
       cachePolicy: cachePolicy,
       optics: optics,
+      lightPollution: lightPollution,
       scoringProfile: scoringProfile,
       options: options,
     );
@@ -106,6 +111,7 @@ abstract final class ObservationWindowRecommendation {
     required WeatherForecastSnapshot? weather,
     required WeatherCachePolicy cachePolicy,
     required OpticalMetrics? optics,
+    required LightPollutionReading? lightPollution,
     required SuitabilityScoringProfile scoringProfile,
     required ObservationWindowOptions options,
   }) {
@@ -161,6 +167,7 @@ abstract final class ObservationWindowRecommendation {
               weather: weather,
               cachePolicy: cachePolicy,
               optics: optics,
+              lightPollution: lightPollution,
               profile: scoringProfile,
             );
             // Numerical sampling around a refined crossing may find a tiny

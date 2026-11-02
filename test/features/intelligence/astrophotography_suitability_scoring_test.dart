@@ -1,3 +1,4 @@
+import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:astromanager/core/astronomy/astronomical_coordinates.dart';
@@ -119,6 +120,7 @@ TargetSuitabilityScore calculate({
   DateTime? asOf,
   WeatherForecastSnapshot? weather,
   OpticalMetrics? optics = matchingOptics,
+  LightPollutionReading? lightPollution,
   SuitabilityScoringProfile profile = const SuitabilityScoringProfile(),
 }) {
   return AstrophotographySuitabilityScoring.score(
@@ -129,11 +131,69 @@ TargetSuitabilityScore calculate({
     evaluatedAtUtc: asOf ?? evaluated,
     weather: weather,
     optics: optics,
+    lightPollution: lightPollution,
     profile: profile,
   );
 }
 
 void main() {
+  group('VIIRS night light scoring integration', () {
+    LightPollutionReading reading(double radiance, {double latitude = 47.38}) =>
+        LightPollutionReading(
+          kind: NightLightKind.satelliteRadiance,
+          value: radiance,
+          sourceId: 'test',
+          sourceName: 'Synthetic VIIRS',
+          datasetDate: DateTime.utc(2025, 12, 31),
+          latitude: latitude,
+          longitude: observer.longitudeDegrees,
+          description: 'Test only',
+        );
+
+    test('missing VIIRS has zero weight by default, preserving old scores', () {
+      final old = calculate(weather: forecast());
+      final augmented = calculate(
+        weather: forecast(),
+        lightPollution: reading(2, latitude: observer.latitudeDegrees),
+      );
+      expect(augmented.score, old.score);
+      expect(old.factor(SuitabilityFactor.lightPollution).contribution, 0);
+    });
+
+    test('opt-in weighting ranks lower upward radiance as preferable', () {
+      const profile = SuitabilityScoringProfile(
+        weights: SuitabilityWeights(lightPollution: 0.15),
+      );
+      final dark = calculate(
+        weather: forecast(),
+        profile: profile,
+        lightPollution: reading(0.5, latitude: observer.latitudeDegrees),
+      );
+      final bright = calculate(
+        weather: forecast(),
+        profile: profile,
+        lightPollution: reading(25, latitude: observer.latitudeDegrees),
+      );
+      expect(
+        dark.factor(SuitabilityFactor.lightPollution).rawScore!,
+        greaterThan(bright.factor(SuitabilityFactor.lightPollution).rawScore!),
+      );
+      expect(dark.score, greaterThan(bright.score));
+      expect(
+        dark.factor(SuitabilityFactor.lightPollution).explanation,
+        contains('Not an'),
+      );
+    });
+
+    test('different location never supplies light pollution score', () {
+      final result = calculate(
+        weather: forecast(),
+        lightPollution: reading(0.2, latitude: 0),
+      );
+      expect(result.factor(SuitabilityFactor.lightPollution).rawScore, isNull);
+    });
+  });
+
   group('Interval suitability scoring', () {
     test(
       'identical inputs produce identical results with inspectable factors',
