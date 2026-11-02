@@ -762,6 +762,15 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 },
               ),
             ),
+            const SizedBox(height: 5),
+            const Text(
+              'DSS2 Color: Digitized Sky Survey (STScI/NASA), colour HiPS by CDS. '
+              'HiPS mirror: ESA. Viewer: Aladin Lite (CDS). '
+              'Object catalog: OpenNGC (CC BY-SA 4.0).',
+              key: ValueKey('atlas-attribution'),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11),
+            ),
           ],
         ),
       ),
@@ -781,21 +790,27 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 controller: controller,
               ),
         ),
-        if (controller.status == SkyAtlasStatus.loading)
-          const ColoredBox(
-            color: Color(0xBB111827),
+        if (controller.status == SkyAtlasStatus.loading ||
+            controller.status == SkyAtlasStatus.imageryLoading)
+          ColoredBox(
+            color: const Color(0xBB111827),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 12),
-                  Text('Loading Aladin Lite sky survey...'),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 12),
+                  Text(
+                    controller.status == SkyAtlasStatus.imageryLoading
+                        ? 'Checking DSS2 Color survey imagery...'
+                        : 'Loading Aladin Lite sky survey...',
+                  ),
                 ],
               ),
             ),
           ),
-        if (controller.status == SkyAtlasStatus.error)
+        if (controller.status == SkyAtlasStatus.error ||
+            controller.status == SkyAtlasStatus.unsupported)
           ColoredBox(
             color: theme.colorScheme.surface,
             child: Center(
@@ -804,16 +819,21 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 children: [
                   const Icon(Icons.cloud_off_outlined, size: 40),
                   const SizedBox(height: 8),
-                  const Text('Sky atlas unavailable'),
+                  Text(
+                    controller.status == SkyAtlasStatus.unsupported
+                        ? 'Embedded sky atlas unsupported'
+                        : 'Sky atlas unavailable',
+                  ),
                   const SizedBox(height: 8),
                   Text(controller.error ?? 'Unknown atlas error'),
                   const SizedBox(height: 12),
-                  FilledButton.icon(
-                    key: const ValueKey('atlas-retry'),
-                    onPressed: _retry,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
+                  if (controller.status == SkyAtlasStatus.error)
+                    FilledButton.icon(
+                      key: const ValueKey('atlas-retry'),
+                      onPressed: _retry,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                    ),
                 ],
               ),
             ),

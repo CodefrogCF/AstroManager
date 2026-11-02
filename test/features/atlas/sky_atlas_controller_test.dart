@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:astromanager/features/atlas/application/sky_atlas_controller.dart';
 import 'package:astromanager/features/atlas/domain/sky_atlas_models.dart';
+import 'package:astromanager/features/atlas/domain/camera_framing.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -123,4 +124,48 @@ void main() {
     expect(markers.single['label'], '<script>alert("x")</script>');
     // HTML-escaping happens in the atlas JavaScript display layer.
   });
+  test(
+    'imagery failure and retry retain camera framing, location and projection',
+    () {
+      final controller = SkyAtlasController(initialPosition: andromeda);
+      addTearDown(controller.dispose);
+      final frame = CameraFramingGeometry.calculate(
+        configuration: const CameraFramingConfiguration(
+          profileId: 'profile-1',
+          center: andromeda,
+          rotationDegrees: 42,
+        ),
+        horizontalFovDegrees: 2.5,
+        verticalFovDegrees: 1.7,
+      );
+      controller.setCameraFrame(frame);
+      controller.setFieldOfView(4);
+      controller.receive(event('ready'));
+      controller.receive(event('imageryLoading'));
+      expect(controller.status, SkyAtlasStatus.imageryLoading);
+      controller.receive(event('imageryError', {'message': 'Tile timeout'}));
+      expect(controller.status, SkyAtlasStatus.error);
+      expect(controller.error, contains('Tile timeout'));
+      final before = controller.stateJson;
+      controller.resetLoading();
+      expect(controller.stateJson, before);
+      expect(controller.cameraFrame, same(frame));
+      controller.receive(event('ready'));
+      controller.receive(event('imageryReady'));
+      expect(controller.status, SkyAtlasStatus.ready);
+      expect(controller.cameraFrame!.configuration.rotationDegrees, 42);
+    },
+  );
+
+  test(
+    'unsupported host fallback is distinct from recoverable imagery failures',
+    () {
+      final controller = SkyAtlasController(initialPosition: andromeda);
+      addTearDown(controller.dispose);
+      controller.reportUnsupported('Windows native viewer unsupported');
+      expect(controller.status, SkyAtlasStatus.unsupported);
+      expect(controller.error, contains('Windows'));
+      expect(controller.position.raDegrees, andromeda.raDegrees);
+    },
+  );
 }

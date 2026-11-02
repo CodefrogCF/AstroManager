@@ -17,6 +17,14 @@
   let lastReported = '';
   let feedbackTimer = null;
   let fatalMessage = null;
+  // A successful Aladin initialization does not prove the survey tiles load.
+  const surveyBase = 'https://skies.esac.esa.int/DSSColor';
+  const probeTimeoutMs = 14000;
+  let tileProbeRevision = 0;
+  let tileProbeTimer = null;
+  let viewProbeTimer = null;
+  let imageryStatus = 'unknown';
+
 
   function report(type, fields) {
     const packet = JSON.stringify({protocol, version, type, ...(fields || {})});
@@ -205,6 +213,100 @@
     return true;
   }
 
+  // HEALPix nested order-0 face containing the sky center. All 12 DSS2
+  // all-sky root tiles are expected to exist at this survey endpoint.
+  // This checks one tile near the visible center; it is not a guarantee that
+  // every higher-resolution tile across the field of view is available.
+  function rootTileIndex(ra, dec) {
+    if (!validPosition(ra, dec)) return 0;
+    const z = Math.sin(dec * Math.PI / 180);
+    const tt = (ra / 90) % 4;
+    if (Math.abs(z) <= 2 / 3) {
+      const jp = Math.floor(0.5 + tt - 0.75 * z);
+      const jm = Math.floor(0.5 + tt + 0.75 * z);
+      const fp = ((jp % 4) + 4) % 4;
+      const fm = ((jm % 4) + 4) % 4;
+      return jp === jm ? fp + 4 : jp < jm ? fp : fm + 8;
+    }
+    const quadrant = Math.min(3, Math.floor(tt));
+    return z > 0 ? quadrant : quadrant + 8;
+  }
+
+  function cancelImageryProbe() {
+    tileProbeRevision++;
+    if (tileProbeTimer !== null) root.clearTimeout(tileProbeTimer);
+    if (viewProbeTimer !== null) root.clearTimeout(viewProbeTimer);
+    tileProbeTimer = null;
+    viewProbeTimer = null;
+  }
+
+  function imageryEvent(type, message) {
+    if (fatalMessage) return;
+    if (imageryStatus === type) return;
+    imageryStatus = type;
+    report(type, message ? {message} : {});
+    const warning = root.document && root.document.getElementById('warning');
+    if (warning) {
+      if (type === 'imageryError') {
+        warning.textContent = message;
+        warning.style.display = 'block';
+      } else {
+        warning.style.display = 'none';
+      }
+    }
+  }
+
+  // Image element loading uses the same cross-origin rules as survey tiles,
+  // unlike fetch() which could report a false CORS failure. All callbacks
+  // are generation-checked to ignore stale results after navigation/retry.
+  function probeImagery() {
+    if (!ready || fatalMessage) return;
+    cancelImageryProbe();
+    const current = tileProbeRevision;
+    imageryEvent('imageryLoading');
+    if (typeof root.Image !== 'function') {
+      imageryEvent('imageryError', 'Survey tile checking is unsupported in this environment.');
+      return;
+    }
+    let settled = false;
+    const tile = new root.Image();
+    const finish = (ok, detail) => {
+      if (settled || current !== tileProbeRevision || fatalMessage) return;
+      settled = true;
+      if (tileProbeTimer !== null) root.clearTimeout(tileProbeTimer);
+      tileProbeTimer = null;
+      tile.onload = null;
+      tile.onerror = null;
+      if (ok) {
+        imageryEvent('imageryReady');
+      } else {
+        imageryEvent('imageryError',
+          'DSS2 Color survey imagery is unavailable (' + detail +
+          '). Check the network or survey service, then retry.');
+      }
+    };
+    tile.onload = () => finish(true);
+    tile.onerror = () => finish(false, 'tile request failed');
+    tileProbeTimer = root.setTimeout(() => finish(false, 'tile request timed out'), probeTimeoutMs);
+    try {
+      const p = aladin.getRaDec();
+      const ra = Array.isArray(p) ? p[0] : p.ra;
+      const dec = Array.isArray(p) ? p[1] : p.dec;
+      tile.src = surveyBase + '/Norder0/Dir0/Npix' + rootTileIndex(ra, dec) + '.jpg';
+    } catch (error) {
+      finish(false, 'tile check could not start');
+    }
+  }
+
+  function scheduleImageryProbe() {
+    if (!ready || imageryStatus === 'imageryError') return;
+    if (viewProbeTimer !== null) root.clearTimeout(viewProbeTimer);
+    viewProbeTimer = root.setTimeout(() => {
+      viewProbeTimer = null;
+      probeImagery();
+    }, 1500);
+  }
+
   function reportView() {
     if (!ready) return;
     try {
@@ -218,6 +320,7 @@
       if (key === lastReported) return;
       lastReported = key;
       report('viewChanged', {ra, dec, fov});
+      scheduleImageryProbe();
     } catch (_) { /* Invalid intermediate map position while dragging. */ }
   }
 
@@ -240,7 +343,7 @@
       try {
         aladin = root.A.aladin('#aladin', {
           target:'10.6847 41.2688', fov:3, projection:'TAN',
-          survey:'https://skies.esac.esa.int/DSSColor', cooFrame:'ICRS',
+          survey:surveyBase, cooFrame:'ICRS',
           showReticle:true, showFullscreenControl:false,
         });
         aladin.on('positionChanged', scheduleViewReport);
@@ -249,6 +352,7 @@
         report('ready');
         if (queued) { const pending = queued; queued = null; receive(pending); }
         scheduleViewReport();
+        probeImagery();
       } catch (error) {
         fatal('Sky atlas initialization failed: ' + (error && error.message || error));
       }
@@ -261,5 +365,5 @@
     if (event.source !== root.parent || event.origin !== root.location.origin) return;
     receive(event.data);
   });
-  root.AstroManagerAtlas = { boot, receive, fatal };
+  root.AstroManagerAtlas = { boot, receive, fatal, rootTileIndex };
 })(window);

@@ -67,4 +67,53 @@ void main() {
     expect(controller!.status, SkyAtlasStatus.loading);
     expect(find.text('Loading Aladin Lite sky survey...'), findsOneWidget);
   });
+  testWidgets('attribution and retry stay visible when imagery tiles fail', (
+    tester,
+  ) async {
+    SkyAtlasController? controller;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SkyAtlasScreen(
+          hostBuilder: (value) {
+            controller = value;
+            return const SizedBox.expand();
+          },
+        ),
+      ),
+    );
+    expect(find.byKey(const ValueKey('atlas-attribution')), findsOneWidget);
+    controller!.receive(
+      '{"protocol":"astromanager.aladin","version":1,'
+      '"type":"imageryError","message":"Tile request failed"}',
+    );
+    await tester.pump();
+    expect(find.textContaining('Tile request failed'), findsOneWidget);
+    expect(find.byKey(const ValueKey('atlas-attribution')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('atlas-retry')));
+    await tester.pump();
+    expect(controller!.status, SkyAtlasStatus.loading);
+    expect(find.byKey(const ValueKey('atlas-attribution')), findsOneWidget);
+  });
+
+  testWidgets(
+    'unsupported platform offers explanation without pointless retry',
+    (tester) async {
+      SkyAtlasController? controller;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SkyAtlasScreen(
+            hostBuilder: (value) {
+              controller = value;
+              return const SizedBox.expand();
+            },
+          ),
+        ),
+      );
+      controller!.reportUnsupported('Open AstroManager Web instead.');
+      await tester.pump();
+      expect(find.text('Embedded sky atlas unsupported'), findsOneWidget);
+      expect(find.byKey(const ValueKey('atlas-retry')), findsNothing);
+      expect(find.byKey(const ValueKey('atlas-attribution')), findsOneWidget);
+    },
+  );
 }

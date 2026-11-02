@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../domain/sky_atlas_models.dart';
 import '../domain/camera_framing.dart';
 
-enum SkyAtlasStatus { loading, ready, error }
+enum SkyAtlasStatus { loading, imageryLoading, ready, error, unsupported }
 
 /// Single source of truth; platform adapters only transport JSON packets.
 class SkyAtlasController extends ChangeNotifier {
@@ -118,6 +118,13 @@ class SkyAtlasController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// The transport and geometry are deliberately retained across retries.
+  void reportUnsupported(String message) {
+    _status = SkyAtlasStatus.unsupported;
+    _error = message;
+    notifyListeners();
+  }
+
   void resetLoading() {
     _status = SkyAtlasStatus.loading;
     _error = null;
@@ -140,6 +147,18 @@ class SkyAtlasController extends ChangeNotifier {
         _status = SkyAtlasStatus.ready;
         _error = null;
         notifyListeners();
+      case 'imageryLoading':
+        _status = SkyAtlasStatus.imageryLoading;
+        _error = null;
+        notifyListeners();
+      case 'imageryReady':
+        _status = SkyAtlasStatus.ready;
+        _error = null;
+        notifyListeners();
+      case 'imageryError':
+        reportError(
+          (event['message'] as String?) ?? 'Survey imagery unavailable.',
+        );
       case 'error':
         reportError((event['message'] as String?) ?? 'Atlas unavailable.');
       case 'viewChanged':

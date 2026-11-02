@@ -54,7 +54,8 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
       final data = message.data.dartify();
       if (data is! String) return;
       widget.controller.receive(data);
-      if (widget.controller.status == SkyAtlasStatus.ready) {
+      if (widget.controller.status == SkyAtlasStatus.ready ||
+          widget.controller.status == SkyAtlasStatus.imageryLoading) {
         _timeout?.cancel();
         _sendCurrentState();
       }
@@ -71,7 +72,10 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
   }
 
   void _onChange() {
-    if (widget.controller.status == SkyAtlasStatus.ready) _sendCurrentState();
+    if (widget.controller.status == SkyAtlasStatus.ready ||
+        widget.controller.status == SkyAtlasStatus.imageryLoading) {
+      _sendCurrentState();
+    }
   }
 
   void _sendCurrentState() {

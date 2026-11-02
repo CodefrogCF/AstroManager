@@ -37,7 +37,7 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && widget.controller.status == SkyAtlasStatus.loading) {
-          widget.controller.reportError(
+          widget.controller.reportUnsupported(
             'Embedded sky atlas is not available on Windows/Linux. '
             'Use AstroManager Web in a browser.',
           );
@@ -54,7 +54,8 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
         onMessageReceived: (message) {
           if (!mounted) return;
           widget.controller.receive(message.message);
-          if (widget.controller.status == SkyAtlasStatus.ready) {
+          if (widget.controller.status == SkyAtlasStatus.ready ||
+              widget.controller.status == SkyAtlasStatus.imageryLoading) {
             _timeout?.cancel();
             _sendCurrentState();
           }
@@ -97,7 +98,10 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
   }
 
   void _onChange() {
-    if (widget.controller.status == SkyAtlasStatus.ready) _sendCurrentState();
+    if (widget.controller.status == SkyAtlasStatus.ready ||
+        widget.controller.status == SkyAtlasStatus.imageryLoading) {
+      _sendCurrentState();
+    }
   }
 
   void _sendCurrentState() {

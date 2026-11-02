@@ -29,7 +29,7 @@ in a normal browser. Do not call `WebViewController()` on those platforms.
 
 Versioned JSON protocol: `{protocol:"astromanager.aladin", version:1, type:...}`.
 Flutter sends a `state` packet with `ra`, `dec`, `fov`, up to 250 markers and circular overlays.
-JS sends `ready`, `error` and `viewChanged` packets.
+JS sends `ready`, `imageryLoading`, `imageryReady`, `imageryError`, `error` and `viewChanged` packets.
 
 On Web: `HtmlElementView` hosts an iframe with the bundled HTML asset.
 Messages are sent with `postMessage`; the parent accepts messages **only**
@@ -54,9 +54,10 @@ registered Flutter assets. For Flutter Web, the page is served from the same
 origin as Flutter at `assets/assets/atlas/atlas.html`, resolved against the
 Flutter `<base href>` for deployments under a subpath. For native WebView,
 `loadFlutterAsset('assets/atlas/atlas.html')` loads the local document. Aladin
-JS is requested over HTTPS from CDS, and HiPS imagery is fetched independently.
+JS is requested over HTTPS as the pinned npm ES module via jsDelivr, and
+DSS2 Color HiPS imagery is independently fetched from ESA.
 
-Aladin Lite 3.8.1 is selected as a pinned stable release in the HTML tag.
+Aladin Lite 3.8.1 is pinned in the JavaScript module import.
 Changing that version should be a deliberate update and accompanied by a
 cross-platform visual smoke test.
 
@@ -102,3 +103,6 @@ When using the CI `--enforce-lockfile` flag, commit the updated `pubspec.lock`
 after the first local `flutter pub get`.
 
 The initial overlay highlights a catalogued object using its major-axis radius as an approximation. It is **not** an optical camera-framing rectangle.
+
+Full current credits, tile-probe limitations, retry behavior and platform
+smoke-test matrix: [atlas-sources-and-resilience.md](atlas-sources-and-resilience.md).
