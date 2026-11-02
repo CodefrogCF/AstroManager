@@ -69,6 +69,8 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   double _minimumAltitude = 25;
   SkyAtlasPosition? _detailPosition;
   double _detailFov = 3;
+  final DraggableScrollableController _mobileSheetController =
+      DraggableScrollableController();
 
   String get _targetKey => widget.target?.id ?? '__untargeted__';
 
@@ -574,6 +576,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     _restoreGeneration++;
     _controller.removeListener(_refresh);
     _controller.dispose();
+    _mobileSheetController.dispose();
     super.dispose();
   }
 
@@ -741,8 +744,506 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     );
   }
 
+  static const _atlasCredits =
+      'DSS2 Color: Digitized Sky Survey (STScI/NASA), colour HiPS by CDS. '
+      'HiPS mirror: ESA. Viewer: Aladin Lite (CDS). '
+      'Object catalog: OpenNGC (CC BY-SA 4.0).';
+
+  void _setMobileControlsExpanded(bool expanded) {
+    if (!_mobileSheetController.isAttached) return;
+    _mobileSheetController.animateTo(
+      expanded ? 0.78 : 0.14,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _showAtlasCredits() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Data sources'),
+        content: const SelectableText(_atlasCredits),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _mobileScreen(BuildContext context) {
+    // The hostBuilder guard preserves database-free, injectable widget tests.
+    return Consumer(
+      builder: (context, ref, _) {
+        final remoteInventory =
+            widget.equipmentInventory == null && widget.hostBuilder == null
+            ? ref.watch(equipmentProvider)
+            : null;
+        final incomingInventory =
+            widget.equipmentInventory ?? remoteInventory?.value;
+        if (incomingInventory != null &&
+            !identical(_inventory, incomingInventory)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _onInventory(incomingInventory);
+          });
+        }
+        final inventory = incomingInventory ?? _inventory;
+        final controller = _controller;
+        final theme = Theme.of(context);
+        final isDome =
+            controller.projectionMode == SkyAtlasProjectionMode.skyDome;
+        final selection = inventory?.profiles.where((p) => p.id == _profileId);
+        final setupName = selection != null && selection.isNotEmpty
+            ? selection.first.name
+            : 'No setup';
+
+        return Scaffold(
+          body: SafeArea(
+            bottom: false,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ColoredBox(
+                    color: theme.colorScheme.surface,
+                    child: Center(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final side = math.min(
+                            constraints.maxWidth,
+                            constraints.maxHeight,
+                          );
+                          return SizedBox(
+                            key: const ValueKey('atlas-mobile-viewport'),
+                            width: isDome ? side : constraints.maxWidth,
+                            height: isDome ? side : constraints.maxHeight,
+                            child: _atlasViewport(controller, theme),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                // A small overlay replaces the nested AppBar and the long
+                // coordinate/FOV toolbar, freeing most of the phone height.
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  top: 6,
+                  child: Row(
+                    children: [
+                      _atlasOverlayButton(
+                        key: const ValueKey('atlas-mobile-back'),
+                        tooltip: 'Back',
+                        icon: Icons.arrow_back,
+                        onPressed: () => Navigator.maybePop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.target?.displayTitle ?? 'Sky Atlas',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            shadows: const [
+                              Shadow(blurRadius: 8, color: Colors.black),
+                            ],
+                          ),
+                        ),
+                      ),
+                      _atlasOverlayButton(
+                        key: const ValueKey('atlas-mobile-info'),
+                        tooltip: 'Data sources & credits',
+                        icon: Icons.info_outline,
+                        onPressed: _showAtlasCredits,
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  left: 12,
+                  top: 58,
+                  child: Material(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.90),
+                    borderRadius: BorderRadius.circular(24),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      child: Text(
+                        isDome
+                            ? 'Dome'
+                            : '${controller.fieldOfViewDegrees.toStringAsFixed(1)}° FOV',
+                        key: const ValueKey('atlas-mobile-fov-label'),
+                        style: theme.textTheme.labelMedium,
+                      ),
+                    ),
+                  ),
+                ),
+                // Persistent, compact attribution. The full source text
+                // remains available from the info icon and Info section.
+                Positioned(
+                  right: 12,
+                  bottom: 102,
+                  child: Material(
+                    color: theme.colorScheme.surface.withValues(alpha: 0.90),
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      key: const ValueKey('atlas-mobile-credits'),
+                      onTap: _showAtlasCredits,
+                      borderRadius: BorderRadius.circular(8),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          'DSS2 · CDS · OpenNGC',
+                          style: TextStyle(fontSize: 10),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                DraggableScrollableSheet(
+                  key: const ValueKey('atlas-mobile-sheet'),
+                  controller: _mobileSheetController,
+                  initialChildSize: 0.14,
+                  minChildSize: 0.14,
+                  maxChildSize: 0.88,
+                  snap: true,
+                  snapSizes: const [0.14, 0.48, 0.88],
+                  builder: (context, scrollController) => Material(
+                    elevation: 12,
+                    color: theme.colorScheme.surfaceContainerHigh,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: ListView(
+                      key: const ValueKey('atlas-mobile-controls-list'),
+                      controller: scrollController,
+                      padding: EdgeInsets.zero,
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 9, bottom: 4),
+                            child: Container(
+                              width: 38,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
+                        ListTile(
+                          key: const ValueKey('atlas-mobile-controls-toggle'),
+                          dense: true,
+                          visualDensity: VisualDensity.compact,
+                          onTap: () => _setMobileControlsExpanded(
+                            _mobileSheetController.isAttached &&
+                                _mobileSheetController.size < 0.3,
+                          ),
+                          leading: const Icon(Icons.tune),
+                          title: Text(
+                            isDome
+                                ? 'Dome · $setupName'
+                                : '${controller.fieldOfViewDegrees.toStringAsFixed(1)}° · $setupName',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: const Icon(Icons.unfold_more),
+                        ),
+                        ExpansionTile(
+                          key: const ValueKey('atlas-mobile-view-section'),
+                          leading: const Icon(Icons.visibility_outlined),
+                          title: const Text('View'),
+                          onExpansionChanged: (expanded) {
+                            if (expanded) _setMobileControlsExpanded(true);
+                          },
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                              child: _mobileViewControls(isDome),
+                            ),
+                          ],
+                        ),
+                        ExpansionTile(
+                          key: const ValueKey('atlas-mobile-setup-section'),
+                          leading: const Icon(Icons.camera_alt_outlined),
+                          title: const Text('Setup'),
+                          onExpansionChanged: (expanded) {
+                            if (expanded) _setMobileControlsExpanded(true);
+                          },
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                              child: _mobileSetupControls(inventory),
+                            ),
+                          ],
+                        ),
+                        ExpansionTile(
+                          key: const ValueKey('atlas-mobile-frame-section'),
+                          leading: const Icon(Icons.crop_free),
+                          title: const Text('Frame'),
+                          onExpansionChanged: (expanded) {
+                            if (expanded) _setMobileControlsExpanded(true);
+                          },
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                              child: _mobileFrameControls(),
+                            ),
+                          ],
+                        ),
+                        ExpansionTile(
+                          key: const ValueKey('atlas-mobile-details-section'),
+                          leading: const Icon(Icons.info_outline),
+                          title: const Text('Info'),
+                          onExpansionChanged: (expanded) {
+                            if (expanded) _setMobileControlsExpanded(true);
+                          },
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'RA ${controller.position.raDegrees.toStringAsFixed(4)}°  '
+                                    'Dec ${controller.position.decDegrees.toStringAsFixed(4)}°',
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    _atlasCredits,
+                                    key: ValueKey('atlas-attribution'),
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _atlasOverlayButton({
+    required Key key,
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) => Material(
+    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
+    shape: const CircleBorder(),
+    child: IconButton(
+      key: key,
+      tooltip: tooltip,
+      icon: Icon(icon),
+      onPressed: onPressed,
+    ),
+  );
+
+  Widget _mobileViewControls(bool isDome) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            ChoiceChip(
+              key: const ValueKey('atlas-mode-detail'),
+              label: const Text('Atlas'),
+              selected: !isDome,
+              onSelected: (_) => _switchMode(SkyAtlasProjectionMode.detail),
+            ),
+            ChoiceChip(
+              key: const ValueKey('atlas-mode-dome'),
+              label: const Text('Dome'),
+              selected: isDome,
+              onSelected: (_) => _switchMode(SkyAtlasProjectionMode.skyDome),
+            ),
+          ],
+        ),
+        if (!isDome) ...[
+          Wrap(
+            spacing: 6,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final fov in [0.5, 1.0, 3.0, 10.0, 30.0])
+                ChoiceChip(
+                  key: ValueKey('atlas-fov-$fov'),
+                  label: Text('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
+                  selected: _controller.fieldOfViewDegrees == fov,
+                  onSelected: (_) => _controller.setFieldOfView(fov),
+                ),
+              if (widget.target != null)
+                IconButton(
+                  key: const ValueKey('atlas-recenter'),
+                  tooltip: 'Center target',
+                  onPressed: () => _selectTarget(widget.target!),
+                  icon: const Icon(Icons.center_focus_strong),
+                ),
+            ],
+          ),
+        ] else
+          _domeControls(),
+      ],
+    );
+  }
+
+  Widget _mobileSetupControls(EquipmentInventory? inventory) {
+    if (inventory == null) {
+      return const Text('Setup unavailable');
+    }
+    if (inventory.profiles.isEmpty) {
+      return const Text('Create an imaging setup in Equipment.');
+    }
+    final frame = _controller.cameraFrame;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          key: ValueKey('frame-profile-${_profileId ?? "none"}'),
+          initialValue: inventory.profiles.any((p) => p.id == _profileId)
+              ? _profileId
+              : null,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'Setup', isDense: true),
+          items: [
+            for (final profile in inventory.profiles)
+              DropdownMenuItem(
+                value: profile.id,
+                child: Text(profile.name, overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: _changeProfile,
+        ),
+        if (frame != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            '${frame.horizontalFovDegrees.toStringAsFixed(2)}° × '
+            '${frame.verticalFovDegrees.toStringAsFixed(2)}°',
+          ),
+          TextButton.icon(
+            key: const ValueKey('frame-use-atlas-center'),
+            onPressed: () => _setFrameCenter(_controller.position),
+            icon: const Icon(Icons.center_focus_weak),
+            label: const Text('Center frame'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _mobileFrameControls() {
+    final frame = _controller.cameraFrame;
+    if (frame == null) return const Text('Select a setup first.');
+    final sizeDegrees = (widget.target?.majorAxisArcmin ?? 0) / 60;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            IconButton.outlined(
+              key: const ValueKey('frame-save'),
+              tooltip: 'Save frame',
+              onPressed: _saveFrame,
+              icon: const Icon(Icons.save_outlined),
+            ),
+            IconButton.outlined(
+              key: const ValueKey('frame-restore'),
+              tooltip: 'Restore frame',
+              onPressed: _readSaved,
+              icon: const Icon(Icons.restore),
+            ),
+            IconButton.outlined(
+              key: const ValueKey('frame-use-atlas-center-mobile'),
+              tooltip: 'Frame at atlas center',
+              onPressed: () => _setFrameCenter(_controller.position),
+              icon: const Icon(Icons.center_focus_weak),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Text('Rot ${_rotation.round()}°'),
+            Expanded(
+              child: Slider(
+                key: const ValueKey('frame-rotation'),
+                value: _rotation,
+                min: 0,
+                max: 359,
+                divisions: 359,
+                onChanged: _changeRotation,
+              ),
+            ),
+          ],
+        ),
+        Wrap(
+          spacing: 8,
+          children: [
+            IconButton(
+              tooltip: 'Move frame west',
+              onPressed: () => _moveFrame(east: -1),
+              icon: const Icon(Icons.arrow_back),
+            ),
+            IconButton(
+              tooltip: 'Move frame east',
+              onPressed: () => _moveFrame(east: 1),
+              icon: const Icon(Icons.arrow_forward),
+            ),
+            IconButton(
+              tooltip: 'Move frame north',
+              onPressed: () => _moveFrame(north: 1),
+              icon: const Icon(Icons.arrow_upward),
+            ),
+            IconButton(
+              tooltip: 'Move frame south',
+              onPressed: () => _moveFrame(north: -1),
+              icon: const Icon(Icons.arrow_downward),
+            ),
+          ],
+        ),
+        if (sizeDegrees > frame.diagonalFovDegrees)
+          const Text(
+            'Target exceeds frame',
+            key: ValueKey('frame-too-small'),
+            style: TextStyle(color: Colors.orange),
+          ),
+        if (_controller.mosaic != null)
+          Text(
+            '${_controller.mosaic!.panels.length} mosaic panels',
+            key: const ValueKey('atlas-mosaic-summary'),
+          ),
+        if (_feedback != null)
+          Text(_feedback!, key: const ValueKey('frame-feedback')),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Retain the existing expanded layout on larger screens. On phones the
+    // survey must be the primary content, not a small remainder of a form.
+    if (MediaQuery.sizeOf(context).width < 600) {
+      return _mobileScreen(context);
+    }
     final controller = _controller;
     final target = widget.target;
     final theme = Theme.of(context);
