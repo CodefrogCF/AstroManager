@@ -12,6 +12,7 @@ import '../../../core/providers/database_providers.dart';
 import '../../projects/data/attachments/attachment_store.dart';
 import '../../planner/domain/night_observation_block.dart';
 import '../../mosaic/domain/mosaic_plan.dart';
+import '../../alerts/domain/observation_alert.dart';
 import '../../settings/domain/models/app_preferences.dart';
 
 /// Portable AstroManager backup format v1; application schema v6.
@@ -259,7 +260,11 @@ final class AstroBackupService {
         if (key is! String || value is! String) {
           throw const FormatException('Invalid application setting.');
         }
-        if (key == 'app.preferences.v1') {
+        if (key == 'observation.alerts.v1') {
+          ObservationAlertState.fromJson(
+            Map<String, dynamic>.from(jsonDecode(value) as Map),
+          );
+        } else if (key == 'app.preferences.v1') {
           AppPreferences.fromJson(
             Map<String, dynamic>.from(jsonDecode(value) as Map),
           );

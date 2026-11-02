@@ -8,6 +8,8 @@ import 'package:astromanager/app/app.dart';
 import 'package:astromanager/app/router/app_router.dart';
 
 import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
+import 'package:astromanager/features/alerts/data/observation_alert_store.dart';
+import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 import 'package:astromanager/features/settings/presentation/settings_screen.dart';
 import 'package:astromanager/features/targets/presentation/targets_screen.dart';
 
@@ -30,6 +32,12 @@ void main() {
             FakeAppPreferencesRepository(),
           ),
           createCatalogNavigationTestOverride(),
+          // The alert settings widget loads rules and locations on mount.
+          // Keep navigation tests independent of the production database.
+          observationAlertStoreProvider.overrideWithValue(
+            MemoryObservationAlertStore(),
+          ),
+          observingLocationsProvider.overrideWithBuild((ref, notifier) => []),
         ],
         child: AstroManagerApp(initialLocation: initialLocation),
       ),

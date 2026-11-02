@@ -8,6 +8,8 @@ import 'package:astromanager/app/theme/app_themes.dart';
 import 'package:astromanager/app/theme/theme_controller.dart';
 import 'package:astromanager/app/theme/theme_repository.dart';
 import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
+import 'package:astromanager/features/alerts/data/observation_alert_store.dart';
+import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 
 import '../../support/fake_app_preferences_repository.dart';
 
@@ -56,6 +58,12 @@ void main() {
           appPreferencesRepositoryProvider.overrideWithValue(
             FakeAppPreferencesRepository(),
           ),
+          // Settings also builds the alert section. Avoid accessing the real
+          // database during a theme-only widget test.
+          observationAlertStoreProvider.overrideWithValue(
+            MemoryObservationAlertStore(),
+          ),
+          observingLocationsProvider.overrideWithBuild((ref, notifier) => []),
         ],
         child: const AstroManagerApp(initialLocation: '/settings'),
       ),
@@ -87,6 +95,12 @@ void main() {
           appPreferencesRepositoryProvider.overrideWithValue(
             FakeAppPreferencesRepository(),
           ),
+          // Settings also builds the alert section. Avoid accessing the real
+          // database during a theme-only widget test.
+          observationAlertStoreProvider.overrideWithValue(
+            MemoryObservationAlertStore(),
+          ),
+          observingLocationsProvider.overrideWithBuild((ref, notifier) => []),
         ],
         child: const AstroManagerApp(initialLocation: '/settings'),
       ),
