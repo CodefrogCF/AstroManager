@@ -376,6 +376,15 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             if (window.isProvisional)
               const Text('Provisional recommendation · incomplete inputs'),
             OutlinedButton.icon(
+              key: ValueKey('details-recommendation-${object.id}'),
+              onPressed: () => context.push(
+                AppRoutes.targetDetails(object.id),
+                extra: object,
+              ),
+              icon: const Icon(Icons.info_outline),
+              label: const Text('Target details'),
+            ),
+            OutlinedButton.icon(
               key: ValueKey('atlas-recommendation-${object.id}'),
               onPressed: () => context.push(AppRoutes.atlas, extra: object),
               icon: const Icon(Icons.public),

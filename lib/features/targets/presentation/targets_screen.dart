@@ -11,7 +11,6 @@ import '../../discovery/presentation/target_discovery_panel.dart';
 
 import '../application/celestial_catalog_controller.dart';
 import '../domain/models/celestial_object.dart';
-import 'target_coordinates_panel.dart';
 
 class TargetsScreen extends ConsumerStatefulWidget {
   const TargetsScreen({super.key});
@@ -72,116 +71,8 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
     };
   }
 
-  String _magnitudeText(CelestialObject object) {
-    final magnitude = object.visualMagnitude;
-
-    return magnitude == null
-        ? 'V magnitude unknown'
-        : 'V mag ${magnitude.toStringAsFixed(2)}';
-  }
-
   void _showDetails(CelestialObject object) {
-    final theme = Theme.of(context);
-
-    Widget detail(String label, String value) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 110,
-              child: Text(label, style: theme.textTheme.bodySmall),
-            ),
-            Expanded(child: SelectableText(value)),
-          ],
-        ),
-      );
-    }
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(object.displayTitle),
-        content: SizedBox(
-          width: 520,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (object.commonNames.isNotEmpty) ...[
-                  Text(object.commonNames, style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 16),
-                ],
-
-                detail('Object type', object.category.label),
-                detail('Catalog type', object.sourceType),
-                detail(
-                  'Constellation',
-                  object.constellation.isEmpty
-                      ? 'Unknown'
-                      : object.constellation,
-                ),
-                detail('RA (J2000)', object.rightAscensionText),
-                detail('Dec (J2000)', object.declinationText),
-                detail('RA degrees', object.raDegrees.toStringAsFixed(6)),
-                detail('Dec degrees', object.decDegrees.toStringAsFixed(6)),
-                detail('Magnitude', _magnitudeText(object)),
-                detail(
-                  'Major axis',
-                  object.majorAxisArcmin == null
-                      ? 'Unknown'
-                      : '${object.majorAxisArcmin} arcmin',
-                ),
-                detail(
-                  'Minor axis',
-                  object.minorAxisArcmin == null
-                      ? 'Unknown'
-                      : '${object.minorAxisArcmin} arcmin',
-                ),
-
-                if (object.aliases.isNotEmpty)
-                  detail('Identifiers', object.aliases),
-
-                const Divider(),
-                const SizedBox(height: 12),
-
-                OutlinedButton.icon(
-                  key: ValueKey('atlas-object-${object.id}'),
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    context.push(AppRoutes.atlas, extra: object);
-                  },
-                  icon: const Icon(Icons.public),
-                  label: const Text('View in sky atlas'),
-                ),
-                const Divider(),
-
-                // Issue #11: Calculate the object's geometric
-                // sky position for a saved location and time.
-                TargetCoordinatesPanel(object: object),
-
-                const SizedBox(height: 20),
-                const Divider(),
-
-                const Text(
-                  'Catalog: OpenNGC v20260501\n'
-                  'License: CC BY-SA 4.0\n'
-                  'Source coordinates: J2000',
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+    context.push(AppRoutes.targetDetails(object.id), extra: object);
   }
 
   Widget _objectCard(CelestialObject object) {

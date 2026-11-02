@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../navigation/app_shell.dart';
 import '../../features/atlas/presentation/sky_atlas_screen.dart';
 import '../../features/targets/domain/models/celestial_object.dart';
+import '../../features/targets/presentation/target_details_screen.dart';
 
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/targets/presentation/targets_screen.dart';
@@ -17,6 +18,8 @@ abstract final class AppRoutes {
   static const dashboard = '/dashboard';
   static const targets = '/targets';
   static const atlas = '/targets/atlas';
+  static String targetDetails(String id) =>
+      '/targets/details/${Uri.encodeComponent(id)}';
   static const planner = '/planner';
   static const equipment = '/equipment';
   static const projects = '/projects';
@@ -49,6 +52,15 @@ GoRouter createAppRouter({String? initialLocation}) {
                 path: AppRoutes.targets,
                 builder: (context, state) => const TargetsScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'details/:id',
+                    builder: (context, state) => TargetDetailsScreen(
+                      targetId: state.pathParameters['id']!,
+                      initialObject: state.extra is CelestialObject
+                          ? state.extra! as CelestialObject
+                          : null,
+                    ),
+                  ),
                   GoRoute(
                     path: 'atlas',
                     builder: (context, state) => SkyAtlasScreen(
