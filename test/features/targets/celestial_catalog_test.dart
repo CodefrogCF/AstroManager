@@ -247,7 +247,7 @@ void main() {
     });
   });
 
-  test('migration v3 to v4 preserves existing settings', () async {
+  test('migration v3 to v5 preserves existing settings', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_catalog_migration_',
     );
@@ -265,6 +265,10 @@ void main() {
         await settings.put('existing.setting', 'preserved-value');
 
         // Simulate schema v3 before the catalog table existed.
+        // The simulated legacy schema must not contain v5 project tables.
+        await oldDatabase.customStatement('DROP TABLE imaging_project_targets');
+        await oldDatabase.customStatement('DROP TABLE imaging_projects');
+
         await oldDatabase.customStatement(
           'DROP TABLE celestial_catalog_entries',
         );
@@ -291,7 +295,15 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(result.read<int>('user_version'), 4);
+        expect(result.read<int>('user_version'), 5);
+
+        final projectTables = await migrated
+            .customSelect(
+              "SELECT name FROM sqlite_master WHERE type = 'table' "
+              "AND name IN ('imaging_projects', 'imaging_project_targets')",
+            )
+            .get();
+        expect(projectTables, hasLength(2));
       } finally {
         await migrated.close();
       }

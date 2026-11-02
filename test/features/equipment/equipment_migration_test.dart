@@ -13,7 +13,7 @@ import 'package:astromanager/features/equipment/data/repositories/drift_equipmen
 import 'package:astromanager/features/equipment/domain/models/equipment_models.dart';
 
 void main() {
-  test('migration v2 to v4 preserves existing data', () async {
+  test('migration v2 to v5 preserves existing data', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_equipment_migration_',
     );
@@ -46,6 +46,12 @@ void main() {
 
         // Construct a simulated v2 database.
         // Only temporary test data is affected.
+        // The simulated legacy schema must not contain v5 project tables.
+        await originalDatabase.customStatement(
+          'DROP TABLE imaging_project_targets',
+        );
+        await originalDatabase.customStatement('DROP TABLE imaging_projects');
+
         await originalDatabase.customStatement(
           'DROP TABLE celestial_catalog_entries',
         );
@@ -96,7 +102,15 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 4);
+        expect(version.read<int>('user_version'), 5);
+
+        final projectTables = await migratedDatabase
+            .customSelect(
+              "SELECT name FROM sqlite_master WHERE type = 'table' "
+              "AND name IN ('imaging_projects', 'imaging_project_targets')",
+            )
+            .get();
+        expect(projectTables, hasLength(2));
       } finally {
         await migratedDatabase.close();
       }

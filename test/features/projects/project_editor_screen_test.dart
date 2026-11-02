@@ -72,7 +72,10 @@ void main() {
       find.byKey(const ValueKey('project-integration')),
       '180',
     );
-    await tester.tap(find.byKey(const ValueKey('project-add-target')));
+    final addTarget = find.byKey(const ValueKey('project-add-target'));
+    await tester.ensureVisible(addTarget);
+    await tester.pumpAndSettle();
+    await tester.tap(addTarget);
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('project-catalog-query')),

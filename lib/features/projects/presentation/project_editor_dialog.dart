@@ -69,97 +69,13 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
   }
 
   Future<void> _pickTarget() async {
-    final search = TextEditingController();
-    Future<List<CelestialObject>> load(String query) async {
-      if (widget.testTargets != null) {
-        return widget.testTargets!
-            .where(
-              (target) =>
-                  target.designation.toLowerCase().contains(
-                    query.toLowerCase(),
-                  ) ||
-                  target.commonNames.toLowerCase().contains(
-                    query.toLowerCase(),
-                  ) ||
-                  target.aliases.toLowerCase().contains(query.toLowerCase()),
-            )
-            .toList();
-      }
-      await ref.read(celestialCatalogProvider.future);
-      return ref.read(celestialCatalogRepositoryProvider).search(query: query);
-    }
-
-    try {
-      var matches = load('');
-      final picked = await showDialog<CelestialObject>(
-        context: context,
-        builder: (dialogContext) => StatefulBuilder(
-          builder: (context, updateDialog) => AlertDialog(
-            title: const Text('Add catalog target'),
-            content: SizedBox(
-              width: 460,
-              height: 340,
-              child: Column(
-                children: [
-                  TextField(
-                    key: const ValueKey('project-catalog-query'),
-                    controller: search,
-                    decoration: const InputDecoration(
-                      labelText: 'Search Messier, NGC, IC or common name',
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                    onChanged: (value) =>
-                        updateDialog(() => matches = load(value)),
-                  ),
-                  Expanded(
-                    child: FutureBuilder<List<CelestialObject>>(
-                      future: matches,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Catalog unavailable: ${snapshot.error}',
-                            ),
-                          );
-                        }
-                        if (!snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        return ListView.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            final target = snapshot.data![index];
-                            return ListTile(
-                              title: Text(target.displayTitle),
-                              subtitle: Text(target.commonNames),
-                              onTap: () => Navigator.pop(dialogContext, target),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-            ],
-          ),
-        ),
-      );
-      if (picked != null && mounted && !_targets.contains(picked.id)) {
-        setState(() => _targets.add(picked.id));
-      }
-    } finally {
-      // The dialog route is fully dismissed before disposing its controller.
-      search.dispose();
-    }
+    final picked = await showDialog<CelestialObject>(
+      context: context,
+      builder: (context) =>
+          _ProjectCatalogTargetDialog(testTargets: widget.testTargets),
+    );
+    if (!mounted || picked == null || _targets.contains(picked.id)) return;
+    setState(() => _targets.add(picked.id));
   }
 
   Future<void> _pickDate() async {
@@ -384,4 +300,113 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
       ],
     );
   }
+}
+
+/// Owns the search controller for as long as the picker route is mounted.
+/// showDialog can complete before the reverse transition unmounts its widgets.
+class _ProjectCatalogTargetDialog extends ConsumerStatefulWidget {
+  const _ProjectCatalogTargetDialog({this.testTargets});
+
+  final List<CelestialObject>? testTargets;
+
+  @override
+  ConsumerState<_ProjectCatalogTargetDialog> createState() =>
+      _ProjectCatalogTargetDialogState();
+}
+
+class _ProjectCatalogTargetDialogState
+    extends ConsumerState<_ProjectCatalogTargetDialog> {
+  final _search = TextEditingController();
+  late Future<List<CelestialObject>> _matches;
+
+  @override
+  void initState() {
+    super.initState();
+    _matches = _load('');
+  }
+
+  Future<List<CelestialObject>> _load(String query) async {
+    final testTargets = widget.testTargets;
+    if (testTargets != null) {
+      final normalizedQuery = query.toLowerCase();
+      return testTargets
+          .where(
+            (target) =>
+                target.designation.toLowerCase().contains(normalizedQuery) ||
+                target.commonNames.toLowerCase().contains(normalizedQuery) ||
+                target.aliases.toLowerCase().contains(normalizedQuery),
+          )
+          .toList();
+    }
+
+    // Read dependencies before awaiting: the picker might close in the meantime.
+    final repository = ref.read(celestialCatalogRepositoryProvider);
+    final catalogReady = ref.read(celestialCatalogProvider.future);
+    await catalogReady;
+    return repository.search(query: query);
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Add catalog target'),
+    content: SizedBox(
+      width: 460,
+      height: 340,
+      child: Column(
+        children: [
+          TextField(
+            key: const ValueKey('project-catalog-query'),
+            controller: _search,
+            decoration: const InputDecoration(
+              labelText: 'Search Messier, NGC, IC or common name',
+              prefixIcon: Icon(Icons.search),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _matches = _load(value);
+              });
+            },
+          ),
+          Expanded(
+            child: FutureBuilder<List<CelestialObject>>(
+              future: _matches,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Catalog unavailable: ${snapshot.error}'),
+                  );
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    final target = snapshot.data![index];
+                    return ListTile(
+                      title: Text(target.displayTitle),
+                      subtitle: Text(target.commonNames),
+                      onTap: () => Navigator.of(context).pop(target),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Cancel'),
+      ),
+    ],
+  );
 }
