@@ -3,6 +3,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../../core/astronomy/solar_events.dart';
 import '../../../core/astronomy/astronomical_coordinates.dart';
 import '../../../core/astronomy/target_visibility.dart';
+import '../../terrain/domain/terrain_horizon.dart';
 import '../../../features/locations/domain/models/observing_location.dart';
 
 /// All geometry is based on UTC duration, not local clock arithmetic.
@@ -74,6 +75,7 @@ abstract final class NightTargetVisibility {
     required double raDegrees,
     required double decDegrees,
     double minimumAltitudeDegrees = 30,
+    TerrainHorizonProfile? terrainHorizon,
   }) => TargetVisibility.calculate(
     targetJ2000: EquatorialPosition(
       raDegrees: raDegrees,
@@ -87,6 +89,7 @@ abstract final class NightTargetVisibility {
     startUtc: timeline.startUtc,
     endUtc: timeline.endUtc,
     minimumAltitudeDegrees: minimumAltitudeDegrees,
+    terrainHorizon: terrainHorizon,
     allowedIntervals: timeline.darknessIntervals(),
   );
 }

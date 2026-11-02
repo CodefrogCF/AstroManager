@@ -1,6 +1,7 @@
 import '../../features/locations/domain/models/observing_location.dart';
 import 'astronomical_coordinates.dart';
 import 'solar_events.dart';
+import '../../features/terrain/domain/terrain_horizon.dart';
 
 /// A half-open UTC interval [startUtc, endUtc). Both boundaries are absolute
 /// instants, so intervals crossing midnight or daylight-saving changes work.
@@ -120,7 +121,7 @@ final class TargetVisibilityResult {
 /// Altitudes are geometric, referenced to an unobstructed horizon. The same
 /// IAU-1976 precession and mean sidereal time used elsewhere in AstroManager
 /// are applied. No terrain mask, refraction, weather or artificial light is
-/// modeled. Sampling identifies candidate transitions, which are then refined
+/// modeled unless an optional terrain profile is supplied. Sampling identifies candidate transitions, which are then refined
 /// by bisection (about one second). A short, isolated crossing entirely
 /// between two samples may be missed: use a smaller [sampleStep] if needed.
 abstract final class TargetVisibility {
@@ -139,9 +140,21 @@ abstract final class TargetVisibility {
     double minimumAltitudeDegrees = 30,
     Duration sampleStep = defaultSampleStep,
     List<VisibilityInterval>? allowedIntervals,
+    TerrainHorizonProfile? terrainHorizon,
   }) {
     targetJ2000.validate();
     observer.validate();
+    if (terrainHorizon != null &&
+        ((terrainHorizon.latitude - observer.latitudeDegrees).abs() > 1e-7 ||
+            (terrainHorizon.longitude - observer.longitudeDegrees).abs() >
+                1e-7 ||
+            (terrainHorizon.observerElevationMeters - observer.elevationMeters)
+                    .abs() >
+                0.01)) {
+      throw ArgumentError(
+        'Terrain profile does not match the observing position.',
+      );
+    }
     if (!minimumAltitudeDegrees.isFinite ||
         minimumAltitudeDegrees < -90 ||
         minimumAltitudeDegrees > 90) {
@@ -173,7 +186,20 @@ abstract final class TargetVisibility {
           observer: observer,
           time: utc,
         ).horizontal;
-    double altitude(DateTime utc) => horizontal(utc).altitudeDegrees;
+    // Geometric target altitude must exceed BOTH the desired imaging altitude
+    // and the sampled terrain horizon for its changing azimuth. Missing terrain
+    // elevations are not assumed to be obstacles; UI must label partial data.
+    bool qualifies(DateTime utc) {
+      final position = horizontal(utc);
+      if (position.altitudeDegrees < minimumAltitudeDegrees) {
+        return false;
+      }
+      final azimuth = position.azimuthDegrees;
+      final terrain = azimuth == null
+          ? null
+          : terrainHorizon?.altitudeAt(azimuth);
+      return terrain == null || position.altitudeDegrees >= terrain;
+    }
 
     final allowed = _allowed(start, end, allowedIntervals);
     final samples = <VisibilitySample>[];
@@ -227,25 +253,15 @@ abstract final class TargetVisibility {
 
     final visible = <VisibilityInterval>[];
     for (final span in allowed) {
-      DateTime? open = altitude(span.startUtc) >= minimumAltitudeDegrees
-          ? span.startUtc
-          : null;
+      DateTime? open = qualifies(span.startUtc) ? span.startUtc : null;
       var left = span.startUtc;
-      var leftAltitude = altitude(left);
+      var leftVisible = qualifies(left);
       while (left.isBefore(span.endUtc)) {
         final right = _next(left, sampleStep, span.endUtc);
-        final rightAltitude = altitude(right);
-        final leftVisible = leftAltitude >= minimumAltitudeDegrees;
-        final rightVisible = rightAltitude >= minimumAltitudeDegrees;
+        final rightVisible = qualifies(right);
 
         if (leftVisible != rightVisible) {
-          final crossing = _bisectAltitude(
-            left,
-            right,
-            minimumAltitudeDegrees,
-            altitude,
-            leftVisible,
-          );
+          final crossing = _bisectAltitude(left, right, qualifies, leftVisible);
           if (leftVisible) {
             if (open != null && crossing.isAfter(open)) {
               visible.add(VisibilityInterval(startUtc: open, endUtc: crossing));
@@ -256,7 +272,7 @@ abstract final class TargetVisibility {
           }
         }
         left = right;
-        leftAltitude = rightAltitude;
+        leftVisible = rightVisible;
       }
       if (open != null && span.endUtc.isAfter(open)) {
         visible.add(VisibilityInterval(startUtc: open, endUtc: span.endUtc));
@@ -317,6 +333,7 @@ abstract final class TargetVisibility {
     required ObservingLocation location,
     required DateTime localDate,
     double minimumAltitudeDegrees = 30,
+    TerrainHorizonProfile? terrainHorizon,
     bool requireAstronomicalDarkness = true,
     Duration sampleStep = defaultSampleStep,
   }) {
@@ -335,6 +352,7 @@ abstract final class TargetVisibility {
       startUtc: solar.nightStartUtc,
       endUtc: solar.nightEndUtc,
       minimumAltitudeDegrees: minimumAltitudeDegrees,
+      terrainHorizon: terrainHorizon,
       sampleStep: sampleStep,
       allowedIntervals: requireAstronomicalDarkness
           ? [
@@ -435,16 +453,14 @@ abstract final class TargetVisibility {
   static DateTime _bisectAltitude(
     DateTime left,
     DateTime right,
-    double threshold,
-    double Function(DateTime) altitude,
+    bool Function(DateTime) qualifies,
     bool initiallyVisible,
   ) {
     var a = left;
     var b = right;
     while (b.difference(a) > _precision) {
       final mid = _midpoint(a, b);
-      final visible = altitude(mid) >= threshold;
-      if (visible == initiallyVisible) {
+      if (qualifies(mid) == initiallyVisible) {
         a = mid;
       } else {
         b = mid;

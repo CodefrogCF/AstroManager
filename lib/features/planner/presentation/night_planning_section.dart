@@ -9,6 +9,9 @@ import '../../projects/domain/planned_imaging_project.dart';
 import '../../targets/application/celestial_catalog_controller.dart';
 import '../../targets/domain/models/celestial_object.dart';
 import '../../weather/application/weather_providers.dart';
+import '../../terrain/application/terrain_providers.dart';
+import '../../terrain/domain/terrain_horizon.dart';
+import '../../terrain/presentation/terrain_horizon_chart.dart';
 import '../../weather/domain/providers/weather_provider.dart';
 import '../data/night_plans_repository.dart';
 import '../domain/night_observation_block.dart';
@@ -59,6 +62,11 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
   double _pixelsPerHour = 70;
   bool _saving = false;
   bool _weatherRequested = false;
+  bool _terrainEnabled = false;
+  int _terrainAzimuthStep = 10;
+  int _terrainRangeMeters = 15000;
+  int _terrainDistanceStepMeters = 1000;
+  double _minimumTargetAltitude = 30;
 
   String get _nightDate =>
       '${widget.date.year.toString().padLeft(4, '0')}-'
@@ -174,19 +182,46 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
               p.targetIds.isNotEmpty,
         )
         .toList();
+    final terrainRequest = (
+      site: widget.location,
+      azimuthStep: _terrainAzimuthStep,
+      rangeMeters: _terrainRangeMeters,
+      distanceStep: _terrainDistanceStepMeters,
+    );
+    final terrainState = _terrainEnabled
+        ? ref.watch(terrainHorizonProvider(terrainRequest))
+        : null;
+    final terrainProfile = terrainState?.value;
     final visible = <String, TargetVisibilityResult>{};
+    var terrainObstructedTargets = 0;
     final uniqueTargets = available.expand((p) => p.targetIds).toSet().take(12);
     for (final id in uniqueTargets) {
       final target = targets[id];
       if (target == null) {
         continue;
       }
-      visible[target.displayTitle] = NightTargetVisibility.calculate(
+      final calculated = NightTargetVisibility.calculate(
         timeline: timeline,
         site: widget.location,
         raDegrees: target.raDegrees,
         decDegrees: target.decDegrees,
+        minimumAltitudeDegrees: _minimumTargetAltitude,
+        terrainHorizon: terrainProfile,
       );
+      visible[target.displayTitle] = calculated;
+      if (terrainProfile != null) {
+        final unobstructed = NightTargetVisibility.calculate(
+          timeline: timeline,
+          site: widget.location,
+          raDegrees: target.raDegrees,
+          decDegrees: target.decDegrees,
+          minimumAltitudeDegrees: _minimumTargetAltitude,
+        );
+        if (calculated.totalVisibleDuration <
+            unobstructed.totalVisibleDuration) {
+          terrainObstructedTargets++;
+        }
+      }
     }
     final now = DateTime.now().toUtc();
     // Weather providers cannot return historical or arbitrarily distant hours.
@@ -250,6 +285,155 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
             ),
           ],
         ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              'Minimum target altitude: ${_minimumTargetAltitude.toStringAsFixed(0)}°',
+            ),
+            SizedBox(
+              width: 180,
+              child: Slider(
+                key: const ValueKey('night-minimum-altitude'),
+                min: 0,
+                max: 60,
+                divisions: 12,
+                value: _minimumTargetAltitude,
+                onChanged: (value) =>
+                    setState(() => _minimumTargetAltitude = value),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            FilterChip(
+              key: const ValueKey('night-terrain-toggle'),
+              label: const Text('Use terrain horizon'),
+              selected: _terrainEnabled,
+              onSelected: (enabled) =>
+                  setState(() => _terrainEnabled = enabled),
+            ),
+            const Text('Azimuth step'),
+            DropdownButton<int>(
+              key: const ValueKey('night-terrain-azimuth-step'),
+              value: _terrainAzimuthStep,
+              items: [5, 10, 15, 30]
+                  .map(
+                    (step) =>
+                        DropdownMenuItem(value: step, child: Text('$step°')),
+                  )
+                  .toList(),
+              onChanged: (step) {
+                if (step != null) {
+                  setState(() => _terrainAzimuthStep = step);
+                }
+              },
+            ),
+            const Text('Range'),
+            DropdownButton<int>(
+              key: const ValueKey('night-terrain-range'),
+              value: _terrainRangeMeters,
+              items: [5000, 15000, 25000]
+                  .map(
+                    (range) => DropdownMenuItem(
+                      value: range,
+                      child: Text('${range ~/ 1000} km'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (range) {
+                if (range != null) {
+                  setState(() => _terrainRangeMeters = range);
+                }
+              },
+            ),
+            const Text('Radial step'),
+            DropdownButton<int>(
+              key: const ValueKey('night-terrain-distance-step'),
+              value: _terrainDistanceStepMeters,
+              items: [1000, 2000, 5000]
+                  .map(
+                    (step) => DropdownMenuItem(
+                      value: step,
+                      child: Text('${step ~/ 1000} km'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (step) {
+                if (step != null) {
+                  setState(() => _terrainDistanceStepMeters = step);
+                }
+              },
+            ),
+          ],
+        ),
+        if (_terrainEnabled) ...[
+          if (terrainState?.isLoading ?? false)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  LinearProgressIndicator(),
+                  Text(
+                    'Calculating terrain horizon (online fetch or local cache)…',
+                  ),
+                ],
+              ),
+            ),
+          if (terrainState?.hasError ?? false)
+            const Text(
+              'Terrain elevation unavailable. Existing geometric visibility remains active. '
+              'Try again when connected; previous night plans are not affected.',
+            ),
+          if (terrainProfile != null) ...[
+            const SizedBox(height: 8),
+            TerrainHorizonChart(profile: terrainProfile),
+            Text(
+              'Elevation source: ${terrainProfile.sourceId} · '
+              '${terrainProfile.knownBearings}/${terrainProfile.bearings.length} bearings covered · '
+              'profile ${terrainProfile.createdAtUtc.toIso8601String()} UTC.',
+            ),
+            Text(
+              'Terrain obstruction reduces visible time for $terrainObstructedTargets '
+              'of ${visible.length} displayed target(s).',
+            ),
+            if (!terrainProfile.isComplete)
+              const Text(
+                'Incomplete DEM coverage: visibility is uncertain at missing bearings.',
+              ),
+            TextButton.icon(
+              key: const ValueKey('night-terrain-refresh'),
+              onPressed: () async {
+                await ref
+                    .read(terrainProfileRepositoryProvider)
+                    .remove(
+                      widget.location,
+                      TerrainHorizonOptions(
+                        azimuthStepDegrees: _terrainAzimuthStep,
+                        maximumDistanceMeters: _terrainRangeMeters,
+                        distanceStepMeters: _terrainDistanceStepMeters,
+                      ),
+                    );
+                if (mounted) {
+                  ref.invalidate(terrainHorizonProvider(terrainRequest));
+                }
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh terrain profile'),
+            ),
+          ],
+          const Text(
+            'Approximate terrain-only horizon: buildings, trees and small obstacles '
+            'are excluded. This is not a guaranteed line-of-sight prediction.',
+          ),
+        ],
         if (_saving) const LinearProgressIndicator(),
         if (available.isEmpty)
           const Padding(
@@ -289,9 +473,9 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         Text(
-          'Altitude curves show geometric target height; shaded intervals are '
-          'above 30° during astronomical darkness. The horizon is unobstructed '
-          'and terrain is not modeled.',
+          'Altitude curves show geometric target height. Visibility windows are '
+          'above ${_minimumTargetAltitude.toStringAsFixed(0)}° in astronomical darkness'
+          '${terrainProfile == null ? ' (unobstructed mathematical horizon).' : ' and above the sampled terrain horizon.'}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         if (forecastEligible && forecast == null)
