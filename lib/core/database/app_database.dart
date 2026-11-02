@@ -32,12 +32,50 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
+
+  // Raw SQL avoids requiring generated Drift table code for this additive
+  // migration. Projects are accessed with parameterised custom queries.
+  Future<void> _createImagingProjectTables() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS imaging_projects (
+        id TEXT PRIMARY KEY NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        notes TEXT NOT NULL DEFAULT '',
+        imaging_goal TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'planned'
+          CHECK (status IN ('planned', 'inProgress', 'completed', 'archived')),
+        created_at_utc TEXT NOT NULL,
+        updated_at_utc TEXT NOT NULL,
+        planned_integration_seconds INTEGER NOT NULL DEFAULT 0
+          CHECK (planned_integration_seconds >= 0),
+        observing_date TEXT,
+        location_id TEXT,
+        optical_profile_id TEXT,
+        window_start_utc TEXT,
+        window_end_utc TEXT
+      )
+    ''');
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS imaging_project_targets (
+        project_id TEXT NOT NULL REFERENCES imaging_projects(id)
+          ON DELETE CASCADE,
+        target_id TEXT NOT NULL,
+        PRIMARY KEY (project_id, target_id)
+      )
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS imaging_projects_status_idx
+        ON imaging_projects(status, updated_at_utc)
+    ''');
+  }
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async {
       await migrator.createAll();
+      await _createImagingProjectTables();
     },
 
     onUpgrade: (migrator, from, to) async {
@@ -60,6 +98,11 @@ class AppDatabase extends _$AppDatabase {
       // v3 -> v4: Offline celestial catalog.
       if (from < 4 && to >= 4) {
         await migrator.createTable(celestialCatalogEntries);
+      }
+
+      // v4 -> v5: normalised offline imaging projects and target links.
+      if (from < 5 && to >= 5) {
+        await _createImagingProjectTables();
       }
     },
 

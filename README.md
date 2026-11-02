@@ -59,3 +59,6 @@ static analysis, automated tests, generated Drift code,
 and supported platform builds.
 
 [View CI Workflow](.github/workflows/ci.yml)
+## Offline astrophotography projects
+
+Project creation, editing, catalog association and archiving are implemented in v0.5.0 (Issue #27). See [project storage and migration](docs/astrophotography-projects.md).
