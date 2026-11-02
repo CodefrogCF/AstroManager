@@ -8,6 +8,7 @@
   let aladin = null;
   let markers = null;
   let overlay = null;
+  let frameOverlay = null;
   let ready = false;
   let queued = null;
   let lastReported = '';
@@ -87,6 +88,31 @@
     aladin.addOverlay(overlay);
   }
 
+  function setCameraFrame(frame) {
+    // A dedicated sky-coordinate layer: it stays at its celestial position
+    // while users pan, zoom or change the Aladin view projection.
+    if (frameOverlay) {
+      aladin.removeOverlay(frameOverlay);
+      frameOverlay = null;
+    }
+    if (frame === null || frame === undefined) return true;
+    if (typeof frame !== 'object' || !Number.isFinite(frame.width) ||
+        !Number.isFinite(frame.height) || frame.width <= 0 ||
+        frame.height <= 0 || frame.width >= 170 || frame.height >= 170 ||
+        !Number.isFinite(frame.rotation) || frame.rotation < 0 ||
+        frame.rotation >= 360 || !Array.isArray(frame.points) ||
+        frame.points.length < 5 || frame.points.length > 260 ||
+        !frame.points.every(p => Array.isArray(p) && p.length === 2 &&
+          validPosition(p[0], p[1]))) return false;
+    frameOverlay = root.A.graphicOverlay({
+      name: 'Camera sensor field of view', color: '#ffb74d',
+      lineWidth: 3, lineDash: [8, 4],
+    });
+    frameOverlay.addFootprints(root.A.polyline(frame.points));
+    aladin.addOverlay(frameOverlay);
+    return true;
+  }
+
   function receive(text) {
     let cmd;
     try { cmd = typeof text === 'string' ? JSON.parse(text) : text; }
@@ -100,6 +126,7 @@
       aladin.setFoV(cmd.fov);
       setMarkers(cmd.markers);
       setOverlays(cmd.overlays);
+      if (!setCameraFrame(cmd.cameraFrame)) return false;
     } catch (error) {
       fatal('Sky atlas command failed: ' + (error && error.message || error));
       return false;
@@ -142,7 +169,7 @@
       try {
         aladin = root.A.aladin('#aladin', {
           target:'10.6847 41.2688', fov:3,
-          survey:'P/DSS2/color', cooFrame:'ICRS',
+          survey:'https://skies.esac.esa.int/DSSColor', cooFrame:'ICRS',
           showReticle:true, showFullscreenControl:false,
         });
         aladin.on('positionChanged', scheduleViewReport);

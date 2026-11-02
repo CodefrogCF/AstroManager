@@ -40,7 +40,7 @@ function fixture() {
   };
   win.parent = win;
   vm.runInNewContext(source, {window: win});
-  return {win, commands, messages, handlers};
+  return {win, atlas, commands, messages, handlers};
 }
 function command(overrides={}) {
   return JSON.stringify({
@@ -114,4 +114,64 @@ test('missing Aladin global produces actionable error', () => {
   assert.equal(errors.length, 1);
   assert.match(errors[0].message, /window.A/);
   assert.match(errors[0].message, /DevTools/);
+});
+
+test('camera footprint uses a dedicated celestial polyline overlay', async () => {
+  const {win, commands} = fixture();
+  win.A.polyline = points => ({kind:'polyline', points});
+  win.A.graphicOverlay = options => ({
+    options, addFootprints(shape) {commands.push(['footprint', shape]);},
+  });
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  const points = [[10, 41], [11, 41], [11, 42], [10, 42], [10, 41]];
+  assert.equal(win.AstroManagerAtlas.receive(command({cameraFrame: {
+    width:1, height:1, rotation:45, points,
+  }})), true);
+  const shape = commands.find(c => c[0] === 'footprint' && c[1].kind === 'polyline')[1];
+  assert.equal(shape.kind, 'polyline');
+  assert.deepEqual(JSON.stringify(shape.points), JSON.stringify(points));
+  assert.equal(commands.filter(c => c[0] === 'overlay').length, 2);
+  // Removing the frame never removes circular target overlays.
+  assert.equal(win.AstroManagerAtlas.receive(command({cameraFrame:null})), true);
+  assert.equal(commands.filter(c => c[0] === 'remove-overlay').length, 2);
+});
+
+test('malformed camera outlines never draw a footprint', async () => {
+  const {win, commands} = fixture();
+  win.A.polyline = points => ({points});
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({cameraFrame:{
+    width:1,height:1,rotation:10,
+    points:[[999,2],[0,0],[1,1],[1,2],[999,2]],
+  }})), false);
+  assert.equal(commands.filter(c => c[0] === 'footprint').length, 0);
+});
+
+// Regression: The npm bundle contains ES module exports and cannot run
+// as a classic <script src="..."> without a SyntaxError.
+test('atlas HTML loads the pinned Aladin bundle as an ES module before boot', () => {
+  const html = fs.readFileSync(
+    path.resolve(__dirname, '../../assets/atlas/atlas.html'), 'utf8',
+  );
+  assert.match(html, /<script type="module">/);
+  assert.match(html, /await import\(/);
+  assert.match(html, /aladin-lite@3\.8\.1\/dist\/aladin\.min\.js/);
+  assert.match(html, /window\.A = api;[\s\S]*?window\.AstroManagerAtlas\.boot\(\)/);
+  assert.doesNotMatch(html, /<script\s+src="[^"]*aladin\.min\.js"/);
+});
+
+
+test('initial survey uses an external full-sky HiPS mirror', async () => {
+  const {win, atlas} = fixture();
+  let options;
+  win.A.aladin = (_selector, config) => {
+    options = config;
+    return atlas;
+  };
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(options.survey, 'https://skies.esac.esa.int/DSSColor');
+  assert.equal(options.cooFrame, 'ICRS');
 });

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../domain/sky_atlas_models.dart';
+import '../domain/camera_framing.dart';
 
 enum SkyAtlasStatus { loading, ready, error }
 
@@ -25,6 +26,7 @@ class SkyAtlasController extends ChangeNotifier {
   SkyAtlasStatus _status = SkyAtlasStatus.loading;
   String? _error;
   int _revision = 0;
+  CameraFramingFootprint? _cameraFrame;
 
   SkyAtlasPosition get position => _position;
   double get fieldOfViewDegrees => _fieldOfViewDegrees;
@@ -33,12 +35,14 @@ class SkyAtlasController extends ChangeNotifier {
   SkyAtlasStatus get status => _status;
   String? get error => _error;
   int get revision => _revision;
+  CameraFramingFootprint? get cameraFrame => _cameraFrame;
 
   String get stateJson => SkyAtlasProtocol.state(
     position: _position,
     fieldOfViewDegrees: _fieldOfViewDegrees,
     markers: _markers,
     overlays: _overlays,
+    cameraFrame: _cameraFrame,
   );
 
   void _validate() {
@@ -47,6 +51,7 @@ class SkyAtlasController extends ChangeNotifier {
       fieldOfViewDegrees: _fieldOfViewDegrees,
       markers: _markers,
       overlays: _overlays,
+      cameraFrame: _cameraFrame,
     );
   }
 
@@ -82,6 +87,12 @@ class SkyAtlasController extends ChangeNotifier {
       overlay.toJson();
     }
     _overlays = copied;
+    _revision++;
+    notifyListeners();
+  }
+
+  void setCameraFrame(CameraFramingFootprint? frame) {
+    _cameraFrame = frame;
     _revision++;
     notifyListeners();
   }

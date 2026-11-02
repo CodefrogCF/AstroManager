@@ -14,12 +14,27 @@
   <div id="aladin"></div>
   <div id="warning" role="alert"></div>
   <script src="atlas_bridge.js"></script>
-  <!-- Use the URL shown in the upstream documentation for this diagnostic build.
-       After confirming loading, pin a verified version for reproducible releases.
-       Remote script and sky survey tiles require an internet connection. -->
-  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"
-          charset="utf-8"
-          onerror="window.AstroManagerAtlas.fatal('Aladin Lite JavaScript could not be loaded from CDS. Inspect the aladin.js request in Chrome DevTools > Network (HTTP status / CSP / DNS).')"></script>
-  <script>window.AstroManagerAtlas.boot();</script>
+  <!-- The npm/jsDelivr build is an ES module (contains export statements).
+       Load it as a module, expose its API to the existing atlas bridge, then boot.
+       The HiPS surveys still require network access. -->
+  <script type="module">
+    try {
+      const aladinModule = await import(
+        'https://cdn.jsdelivr.net/npm/aladin-lite@3.8.1/dist/aladin.min.js'
+      );
+      const api = aladinModule.default ?? aladinModule.A ?? aladinModule;
+      if (!api || !api.init || typeof api.init.then !== 'function' ||
+          typeof api.aladin !== 'function') {
+        throw new Error('The ES module did not expose a compatible Aladin Lite API.');
+      }
+      window.A = api;
+      window.AstroManagerAtlas.boot();
+    } catch (error) {
+      window.AstroManagerAtlas.fatal(
+        'Aladin Lite module could not be initialized: ' +
+        (error instanceof Error ? error.message : String(error))
+      );
+    }
+  </script>
 </body>
 </html>

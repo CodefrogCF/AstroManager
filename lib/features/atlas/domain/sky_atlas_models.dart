@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'camera_framing.dart';
+
 /// An ICRS/J2000 sky position in decimal degrees.
 final class SkyAtlasPosition {
   const SkyAtlasPosition({required this.raDegrees, required this.decDegrees});
@@ -76,6 +78,7 @@ abstract final class SkyAtlasProtocol {
   static const version = 1;
 
   static String state({
+    CameraFramingFootprint? cameraFrame,
     required SkyAtlasPosition position,
     required double fieldOfViewDegrees,
     required List<SkyAtlasMarker> markers,
@@ -95,6 +98,7 @@ abstract final class SkyAtlasProtocol {
       'fov': fieldOfViewDegrees,
       'markers': markers.map((m) => m.toJson()).toList(),
       'overlays': overlays.map((o) => o.toJson()).toList(),
+      'cameraFrame': cameraFrame?.toJson(),
     });
   }
 
