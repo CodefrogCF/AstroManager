@@ -6,6 +6,7 @@ import '../../../core/errors/app_error_message.dart';
 import '../application/observing_locations_controller.dart';
 import '../domain/models/observing_location.dart';
 import '../../light_pollution/presentation/light_pollution_location_panel.dart';
+import '../../site_comparison/presentation/observing_site_comparison_panel.dart';
 
 class LocationsScreen extends ConsumerWidget {
   const LocationsScreen({super.key});
@@ -196,6 +197,10 @@ class LocationsScreen extends ConsumerWidget {
 
                     return Column(
                       children: [
+                        if (savedLocations.length >= 2) ...[
+                          ObservingSiteComparisonPanel(sites: savedLocations),
+                          const SizedBox(height: 14),
+                        ],
                         for (final location in savedLocations)
                           Card(
                             key: ValueKey('location-${location.id}'),
