@@ -333,7 +333,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 5);
+        expect(version.read<int>('user_version'), 6);
 
         final projectTables = await migratedDatabase
             .customSelect(

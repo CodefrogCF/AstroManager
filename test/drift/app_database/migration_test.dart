@@ -37,35 +37,30 @@ void main() {
     }
   });
 
-  test(
-    'v4 to v5 creates project tables without affecting existing catalog',
-    () async {
-      final oldSchema = await verifier.schemaAt(4);
-      final db = AppDatabase(oldSchema.newConnection());
-      try {
-        final version = await db
-            .customSelect('PRAGMA user_version')
-            .getSingle();
-        expect(version.read<int>('user_version'), 5);
-        final tables = await db
-            .customSelect(
-              "SELECT name FROM sqlite_master WHERE type='table' "
-              "AND name IN ('imaging_projects', 'imaging_project_targets')",
-            )
-            .get();
-        expect(tables, hasLength(2));
-        final catalog = await db
-            .customSelect(
-              "SELECT name FROM sqlite_master WHERE type='table' "
-              "AND name = 'celestial_catalog_entries'",
-            )
-            .get();
-        expect(catalog, hasLength(1));
-      } finally {
-        await db.close();
-      }
-    },
-  );
+  test('v4 to v6 creates project and session tables without affecting existing catalog', () async {
+    final oldSchema = await verifier.schemaAt(4);
+    final db = AppDatabase(oldSchema.newConnection());
+    try {
+      final version = await db.customSelect('PRAGMA user_version').getSingle();
+      expect(version.read<int>('user_version'), 6);
+      final tables = await db
+          .customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name IN ('imaging_projects', 'imaging_project_targets')",
+          )
+          .get();
+      expect(tables, hasLength(2));
+      final catalog = await db
+          .customSelect(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name = 'celestial_catalog_entries'",
+          )
+          .get();
+      expect(catalog, hasLength(1));
+    } finally {
+      await db.close();
+    }
+  });
 
   // The following template shows how to write tests ensuring your migrations
   // preserve existing data.

@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   // Raw SQL avoids requiring generated Drift table code for this additive
   // migration. Projects are accessed with parameterised custom queries.
@@ -71,11 +71,59 @@ class AppDatabase extends _$AppDatabase {
     ''');
   }
 
+  Future<void> _createObservationSessionTables() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS observation_sessions (
+        id TEXT PRIMARY KEY NOT NULL,
+        project_id TEXT NOT NULL REFERENCES imaging_projects(id) ON DELETE CASCADE,
+        started_at_utc TEXT NOT NULL,
+        ended_at_utc TEXT,
+        time_zone_id TEXT NOT NULL,
+        utc_offset_minutes INTEGER NOT NULL,
+        location_id TEXT,
+        location_name TEXT,
+        camera_id TEXT,
+        camera_name TEXT,
+        optic_id TEXT,
+        optic_name TEXT,
+        mount_id TEXT,
+        mount_name TEXT,
+        exposure_seconds REAL NOT NULL CHECK (exposure_seconds > 0),
+        frame_count INTEGER NOT NULL CHECK (frame_count > 0),
+        accepted_frames INTEGER NOT NULL CHECK (accepted_frames >= 0),
+        rejected_frames INTEGER NOT NULL CHECK (rejected_frames >= 0),
+        iso INTEGER,
+        gain REAL,
+        aperture_f_number REAL,
+        binning INTEGER NOT NULL DEFAULT 1,
+        filter_name TEXT NOT NULL DEFAULT '',
+        sensor_temperature_c REAL,
+        notes TEXT NOT NULL DEFAULT '',
+        CHECK (accepted_frames + rejected_frames <= frame_count)
+      )
+    ''');
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS observation_sessions_project_date_idx
+        ON observation_sessions(project_id, started_at_utc DESC)
+    ''');
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS observation_session_images (
+        id TEXT PRIMARY KEY NOT NULL,
+        session_id TEXT NOT NULL REFERENCES observation_sessions(id) ON DELETE CASCADE,
+        file_name TEXT NOT NULL,
+        storage_key TEXT NOT NULL UNIQUE,
+        byte_length INTEGER NOT NULL CHECK (byte_length > 0),
+        created_at_utc TEXT NOT NULL
+      )
+    ''');
+  }
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) async {
       await migrator.createAll();
       await _createImagingProjectTables();
+      await _createObservationSessionTables();
     },
 
     onUpgrade: (migrator, from, to) async {
@@ -103,6 +151,11 @@ class AppDatabase extends _$AppDatabase {
       // v4 -> v5: normalised offline imaging projects and target links.
       if (from < 5 && to >= 5) {
         await _createImagingProjectTables();
+      }
+
+      // v5 -> v6: observation logs, immutable equipment snapshots and images.
+      if (from < 6 && to >= 6) {
+        await _createObservationSessionTables();
       }
     },
 

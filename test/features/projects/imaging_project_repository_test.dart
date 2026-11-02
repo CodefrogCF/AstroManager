@@ -23,7 +23,7 @@ PlannedImagingProject project(String id, {String? equipment}) =>
     );
 
 void main() {
-  test('v5 creates normalized project and target-link tables', () async {
+  test('v6 retains normalized project and target-link tables', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final repository = DriftPlannedProjectsRepository(
@@ -32,7 +32,7 @@ void main() {
     );
     await repository.save(project('a'));
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 5);
+    expect(version.read<int>('user_version'), 6);
     final tables =
         (await db
                 .customSelect(

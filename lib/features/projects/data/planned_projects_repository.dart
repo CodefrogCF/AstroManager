@@ -8,6 +8,7 @@ import '../../../core/database/app_database.dart';
 import '../../../core/database/repositories/app_settings_repository.dart';
 import '../../../core/providers/database_providers.dart';
 import '../domain/planned_imaging_project.dart';
+import 'attachments/attachment_store.dart';
 
 abstract interface class PlannedProjectsRepository {
   Future<List<PlannedImagingProject>> load();
@@ -185,10 +186,25 @@ final class DriftPlannedProjectsRepository
   @override
   Future<void> remove(String id) async {
     await _importLegacyIfNeeded();
+    // Project deletion cascades session and image metadata. Remove detached
+    // image files as well to avoid leaving orphaned local attachments.
+    final imageRows = await _database
+        .customSelect(
+          '''
+      SELECT storage_key FROM observation_session_images WHERE session_id IN
+        (SELECT id FROM observation_sessions WHERE project_id = ?)
+    ''',
+          variables: [Variable<String>(id)],
+        )
+        .get();
     await _database.customStatement(
       'DELETE FROM imaging_projects WHERE id = ?',
       [id],
     );
+    final storage = createSessionAttachmentStore();
+    for (final row in imageRows) {
+      await storage.remove(row.read<String>('storage_key'));
+    }
   }
 }
 

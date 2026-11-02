@@ -9,6 +9,7 @@ import '../../targets/domain/models/celestial_object.dart';
 import '../data/planned_projects_repository.dart';
 import '../domain/planned_imaging_project.dart';
 import 'project_editor_dialog.dart';
+import 'observation_sessions_section.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
   const ProjectDetailScreen({super.key, required this.project});
@@ -217,6 +218,8 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 ),
               ),
             ),
+          const SizedBox(height: 18),
+          ObservationSessionsSection(projectId: _project.id),
           const SizedBox(height: 18),
           Text('Notes', style: Theme.of(context).textTheme.titleLarge),
           Text(_project.notes.isEmpty ? 'No notes yet.' : _project.notes),
