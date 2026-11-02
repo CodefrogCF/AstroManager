@@ -7,6 +7,7 @@ import '../../../core/astronomy/lunar_ephemeris.dart';
 import '../../../core/astronomy/solar_events.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
+import 'night_planning_section.dart';
 
 /// Solar events and darkness for one observing site and local calendar date.
 class PlannerScreen extends ConsumerStatefulWidget {
@@ -143,6 +144,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           'Local time: ${location.timeZone} · '
           'Civil day: ${day.civilDayLength.inHours} h',
         ),
+        const SizedBox(height: 12),
+        NightPlanningSection(location: location, date: _date),
         const SizedBox(height: 12),
         _thresholdCard(
           day,
