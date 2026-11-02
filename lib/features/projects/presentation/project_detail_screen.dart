@@ -9,6 +9,7 @@ import '../../targets/domain/models/celestial_object.dart';
 import '../data/planned_projects_repository.dart';
 import '../domain/planned_imaging_project.dart';
 import 'project_editor_dialog.dart';
+import 'project_integration_progress.dart';
 import 'observation_sessions_section.dart';
 
 class ProjectDetailScreen extends ConsumerStatefulWidget {
@@ -169,10 +170,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             ),
           Text('Imaging plan', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text(
-            'Planned integration: ${_project.plannedIntegrationSeconds ~/ 3600}h '
-            '${(_project.plannedIntegrationSeconds % 3600) ~/ 60}m',
-          ),
+          ProjectIntegrationProgress(project: _project),
           Text(
             'Imaging goal: ${_project.imagingGoal.isEmpty ? 'Not specified' : _project.imagingGoal}',
           ),

@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../data/observation_sessions_repository.dart';
 import '../domain/observation_session.dart';
+import '../domain/integration_time_calculator.dart';
 import 'observation_session_editor_dialog.dart';
 
 /// Project-scoped session history, with editable exposure logs and optional
@@ -232,7 +233,9 @@ class _ObservationSessionsSectionState
               '(accepted ${session.acceptedFrames}, rejected ${session.rejectedFrames})',
             ),
             Text(
-              'Accepted integration: ${session.acceptedIntegrationSeconds}s',
+              'Usable integration: '
+              '${IntegrationTimeFormatter.format(IntegrationTimeCalculator.acceptedSeconds(session))}',
+              key: ValueKey('session-integration-${session.id}'),
             ),
             Text('Location: ${session.locationName ?? 'Not recorded'}'),
             Text(

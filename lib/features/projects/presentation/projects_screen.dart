@@ -5,6 +5,7 @@ import '../data/planned_projects_repository.dart';
 import '../domain/planned_imaging_project.dart';
 import 'project_detail_screen.dart';
 import 'project_editor_dialog.dart';
+import 'project_integration_progress.dart';
 
 /// Offline project hub. All operations use the same repository as target details.
 class ProjectsScreen extends ConsumerStatefulWidget {
@@ -144,11 +145,16 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                     child: ListTile(
                       key: ValueKey('project-${project.id}'),
                       title: Text(project.title),
-                      subtitle: Text(
-                        '${project.status.label} · '
-                        '${project.targetIds.length} target(s) · '
-                        '${project.plannedIntegrationSeconds ~/ 60} planned minutes · '
-                        '${project.observingDate ?? 'Unscheduled'}',
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${project.status.label} · '
+                            '${project.targetIds.length} target(s) · '
+                            '${project.observingDate ?? 'Unscheduled'}',
+                          ),
+                          ProjectIntegrationListSummary(project: project),
+                        ],
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => _open(project),
