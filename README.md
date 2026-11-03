@@ -73,6 +73,14 @@ Developer checks and contribution guidelines are in [CONTRIBUTING.md](CONTRIBUTI
 - [Data sources and limitations](docs/data-sources.md) — catalog, survey, weather, terrain, light pollution and attribution.
 - [Backup format](docs/backup-format.md) — portable `.ambackup` structure and restore guarantees.
 
-## Data and credits
+## Data
 
-AstroManager stores personal planning records locally; optional provider requests use the location/time required to retrieve data. The built-in catalog is based on **OpenNGC** (license text at [`assets/catalog/LICENSE-OpenNGC.txt`](assets/catalog/LICENSE-OpenNGC.txt)). The bundled Meeus-derived component's license text is at [`docs/licenses/meeus_mit_license.txt`](docs/licenses/meeus_mit_license.txt). External imagery and data retain their own credits and conditions.
+AstroManager stores personal planning records locally; optional provider requests use the location/time required to retrieve data.
+
+## License
+
+AstroManager is licensed under the Apache License, Version 2.0.
+See [LICENSE](LICENSE).
+
+Third-party libraries and datasets retain their respective licenses.
+See [Third-Party Notices](docs/THIRD_PARTY_NOTICES.md).
