@@ -107,7 +107,7 @@ void main() {
     ]) {
       expect(find.text(name), findsOneWidget);
     }
-    expect(find.textContaining('not yet available'), findsOneWidget);
+    expect(find.byKey(const ValueKey('dashboard-tonight')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('dashboard-manage')));
     await tester.pumpAndSettle();
     await tester.tap(

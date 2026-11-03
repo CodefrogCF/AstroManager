@@ -55,7 +55,7 @@ jobs:
 
       - name: Verify generated Drift code
         run: |
-          dart run build_runner build --delete-conflicting-outputs
+          dart run build_runner build
           git diff --exit-code -- lib
 
   web:

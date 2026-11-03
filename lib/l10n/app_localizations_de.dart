@@ -1619,4 +1619,198 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dashboardWeatherTimeZoneSelect =>
       'Bitte eine Zeitzone aus der Liste auswählen.';
+
+  @override
+  String get dashboardTargets1 => 'Kandidatenziele';
+
+  @override
+  String get dashboardTargets2 => 'Minimale Beobachtungsdauer (Minuten)';
+
+  @override
+  String get dashboardTargets3 => 'Kombiniert';
+
+  @override
+  String get dashboardTargets4 => 'Katalog';
+
+  @override
+  String get dashboardTargets5 => 'Projekte';
+
+  @override
+  String get dashboardTargets6 => 'Favoriten';
+
+  @override
+  String get dashboardTargets7 => 'Projekte, Favoriten und Katalog';
+
+  @override
+  String get dashboardTargets8 => 'Katalogziele';
+
+  @override
+  String get dashboardTargets9 => 'Aktive Projekte';
+
+  @override
+  String get dashboardTargets10 => 'Favorisierte Ziele';
+
+  @override
+  String get dashboardTargets11 =>
+      'Zielempfehlungen konnten nicht berechnet werden.';
+
+  @override
+  String get dashboardTargets12 =>
+      'Wetter nicht verfügbar · vorläufige Bewertungen';
+
+  @override
+  String get dashboardTargets13 => 'Veraltetes Wetter · vorläufige Bewertungen';
+
+  @override
+  String get dashboardTargets14 => 'Empfehlungen neu berechnen';
+
+  @override
+  String get dashboardTargets15 =>
+      'Keine Kandidatenziele. Füge Projekte oder Favoriten hinzu oder wähle den Katalog.';
+
+  @override
+  String get dashboardTargets16 =>
+      'Keine geeigneten Ziele für diese Nacht und Mindestdauer.';
+
+  @override
+  String get dashboardTargets17 => 'Kandidaten bewertet';
+
+  @override
+  String get dashboardTargets18 =>
+      'Die Top 3 verwenden das vorhandene Eignungsmodell.';
+
+  @override
+  String get dashboardTargets19 => 'Vorläufig';
+
+  @override
+  String get dashboardTargets20 => 'Maximale Zielhöhe';
+
+  @override
+  String get dashboardTargets21 => 'Mondabstand';
+
+  @override
+  String get dashboardTargets22 =>
+      'Geländehorizont nicht verfügbar; nicht im Score enthalten.';
+
+  @override
+  String get dashboardTargets23 =>
+      'Geländeprofil aus Cache in optimaler Richtung';
+
+  @override
+  String get dashboardTargets24 => 'mögliche Abschattung';
+
+  @override
+  String get dashboardTargets25 => 'nicht im Score enthalten.';
+
+  @override
+  String get dashboardTargets26 => 'Himmelsatlas';
+
+  @override
+  String get dashboardTargets27 => 'Beobachtung planen';
+
+  @override
+  String get dashboardTargets28 => 'Wie entsteht dieser Score?';
+
+  @override
+  String get dashboardTargets29 => 'Wetterdatenabdeckung';
+
+  @override
+  String get dashboardTargets30 =>
+      'Dieses Beobachtungsfenster ist bereits vorbei.';
+
+  @override
+  String get dashboardTargets31 => 'Wähle ein Projekt für dieses Ziel:';
+
+  @override
+  String get dashboardTargets32 => 'Neues Aufnahmeprojekt erstellen und planen';
+
+  @override
+  String get dashboardTargets33 => 'Überlappende Beobachtung';
+
+  @override
+  String get dashboardTargets34 =>
+      'Dieser Block überlappt einen vorhandenen Plan. Trotzdem speichern?';
+
+  @override
+  String get dashboardTargets35 => 'Beobachtung zur Nachtplanung hinzugefügt.';
+
+  @override
+  String get dashboardTargets36 =>
+      'Beobachtung konnte nicht gespeichert werden';
+
+  @override
+  String get dashboardTargets37 => 'vollständig';
+
+  @override
+  String get dashboardTargets38 => 'teilweise';
+
+  @override
+  String get dashboardTargets39 => 'fehlend';
+
+  @override
+  String get dashboardTargets40 => 'veraltet';
+
+  @override
+  String get dashboardTonight02 =>
+      'Durchgehend astronomische Dunkelheit während dieser Beobachtungsnacht.';
+
+  @override
+  String get dashboardTonight03 => 'Dauer der Dunkelheit';
+
+  @override
+  String get dashboardTonight04 => 'Verbleibende Dunkelheit';
+
+  @override
+  String get dashboardTonight05 => 'Sonnenuntergang / Sonnenaufgang';
+
+  @override
+  String get dashboardTonight06 => 'Astronomische Abend- / Morgendämmerung';
+
+  @override
+  String get dashboardTonight07 => 'Mondphase und Beleuchtung';
+
+  @override
+  String get dashboardTonight08 => 'Mondaufgang / Monduntergang';
+
+  @override
+  String get dashboardTonight09 => 'Mond bleibt über dem Horizont';
+
+  @override
+  String get dashboardTonight10 => 'Mond bleibt unter dem Horizont';
+
+  @override
+  String get dashboardTonight11 =>
+      'Kein Mondauf- oder -untergang in dieser Nacht';
+
+  @override
+  String get dashboardTonight12 =>
+      'Einige Sonnenereignisse treten in dieser Beobachtungsnacht nicht auf.';
+
+  @override
+  String get dashboardTonight13 =>
+      'Astronomische Bedingungen konnten nicht berechnet werden.';
+
+  @override
+  String get dashboardTonight14 => 'Neumond';
+
+  @override
+  String get dashboardTonight15 => 'Zunehmende Sichel';
+
+  @override
+  String get dashboardTonight16 => 'Erstes Viertel';
+
+  @override
+  String get dashboardTonight17 => 'Zunehmender Dreiviertelmond';
+
+  @override
+  String get dashboardTonight18 => 'Vollmond';
+
+  @override
+  String get dashboardTonight19 => 'Abnehmender Dreiviertelmond';
+
+  @override
+  String get dashboardTonight20 => 'Letztes Viertel';
+
+  @override
+  String get dashboardTonight21 => 'Abnehmende Sichel';
 }

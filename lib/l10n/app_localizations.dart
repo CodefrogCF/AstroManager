@@ -3115,6 +3115,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select a time zone from the list.'**
   String get dashboardWeatherTimeZoneSelect;
+
+  /// No description provided for @dashboardTargets1.
+  ///
+  /// In en, this message translates to:
+  /// **'Candidate targets'**
+  String get dashboardTargets1;
+
+  /// No description provided for @dashboardTargets2.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum session duration (minutes)'**
+  String get dashboardTargets2;
+
+  /// No description provided for @dashboardTargets3.
+  ///
+  /// In en, this message translates to:
+  /// **'combined'**
+  String get dashboardTargets3;
+
+  /// No description provided for @dashboardTargets4.
+  ///
+  /// In en, this message translates to:
+  /// **'catalog'**
+  String get dashboardTargets4;
+
+  /// No description provided for @dashboardTargets5.
+  ///
+  /// In en, this message translates to:
+  /// **'projects'**
+  String get dashboardTargets5;
+
+  /// No description provided for @dashboardTargets6.
+  ///
+  /// In en, this message translates to:
+  /// **'favorites'**
+  String get dashboardTargets6;
+
+  /// No description provided for @dashboardTargets7.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects, favorites and catalog'**
+  String get dashboardTargets7;
+
+  /// No description provided for @dashboardTargets8.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalog targets'**
+  String get dashboardTargets8;
+
+  /// No description provided for @dashboardTargets9.
+  ///
+  /// In en, this message translates to:
+  /// **'Active projects'**
+  String get dashboardTargets9;
+
+  /// No description provided for @dashboardTargets10.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite targets'**
+  String get dashboardTargets10;
+
+  /// No description provided for @dashboardTargets11.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to calculate target recommendations.'**
+  String get dashboardTargets11;
+
+  /// No description provided for @dashboardTargets12.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather unavailable · provisional scores'**
+  String get dashboardTargets12;
+
+  /// No description provided for @dashboardTargets13.
+  ///
+  /// In en, this message translates to:
+  /// **'Stale weather · provisional scores'**
+  String get dashboardTargets13;
+
+  /// No description provided for @dashboardTargets14.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate recommendations'**
+  String get dashboardTargets14;
+
+  /// No description provided for @dashboardTargets15.
+  ///
+  /// In en, this message translates to:
+  /// **'No candidate targets. Add projects or favorites, or select Catalog.'**
+  String get dashboardTargets15;
+
+  /// No description provided for @dashboardTargets16.
+  ///
+  /// In en, this message translates to:
+  /// **'No qualifying targets for this night and minimum duration.'**
+  String get dashboardTargets16;
+
+  /// No description provided for @dashboardTargets17.
+  ///
+  /// In en, this message translates to:
+  /// **'candidates evaluated'**
+  String get dashboardTargets17;
+
+  /// No description provided for @dashboardTargets18.
+  ///
+  /// In en, this message translates to:
+  /// **'Top 3 use the existing suitability model.'**
+  String get dashboardTargets18;
+
+  /// No description provided for @dashboardTargets19.
+  ///
+  /// In en, this message translates to:
+  /// **'Provisional'**
+  String get dashboardTargets19;
+
+  /// No description provided for @dashboardTargets20.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak altitude'**
+  String get dashboardTargets20;
+
+  /// No description provided for @dashboardTargets21.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon separation'**
+  String get dashboardTargets21;
+
+  /// No description provided for @dashboardTargets22.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain horizon not available; not included in score.'**
+  String get dashboardTargets22;
+
+  /// No description provided for @dashboardTargets23.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached terrain at peak bearing'**
+  String get dashboardTargets23;
+
+  /// No description provided for @dashboardTargets24.
+  ///
+  /// In en, this message translates to:
+  /// **'possible obstruction'**
+  String get dashboardTargets24;
+
+  /// No description provided for @dashboardTargets25.
+  ///
+  /// In en, this message translates to:
+  /// **'not included in score.'**
+  String get dashboardTargets25;
+
+  /// No description provided for @dashboardTargets26.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky Atlas'**
+  String get dashboardTargets26;
+
+  /// No description provided for @dashboardTargets27.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan observation'**
+  String get dashboardTargets27;
+
+  /// No description provided for @dashboardTargets28.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this score?'**
+  String get dashboardTargets28;
+
+  /// No description provided for @dashboardTargets29.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather coverage'**
+  String get dashboardTargets29;
+
+  /// No description provided for @dashboardTargets30.
+  ///
+  /// In en, this message translates to:
+  /// **'This observing window has ended.'**
+  String get dashboardTargets30;
+
+  /// No description provided for @dashboardTargets31.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a project for this target:'**
+  String get dashboardTargets31;
+
+  /// No description provided for @dashboardTargets32.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new imaging project and plan'**
+  String get dashboardTargets32;
+
+  /// No description provided for @dashboardTargets33.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping observation'**
+  String get dashboardTargets33;
+
+  /// No description provided for @dashboardTargets34.
+  ///
+  /// In en, this message translates to:
+  /// **'This block overlaps another plan. Save it anyway?'**
+  String get dashboardTargets34;
+
+  /// No description provided for @dashboardTargets35.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation added to Night Planner.'**
+  String get dashboardTargets35;
+
+  /// No description provided for @dashboardTargets36.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save observation'**
+  String get dashboardTargets36;
+
+  /// No description provided for @dashboardTargets37.
+  ///
+  /// In en, this message translates to:
+  /// **'complete'**
+  String get dashboardTargets37;
+
+  /// No description provided for @dashboardTargets38.
+  ///
+  /// In en, this message translates to:
+  /// **'partial'**
+  String get dashboardTargets38;
+
+  /// No description provided for @dashboardTargets39.
+  ///
+  /// In en, this message translates to:
+  /// **'missing'**
+  String get dashboardTargets39;
+
+  /// No description provided for @dashboardTargets40.
+  ///
+  /// In en, this message translates to:
+  /// **'stale'**
+  String get dashboardTargets40;
+
+  /// No description provided for @dashboardTonight02.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuous astronomical darkness throughout this observing night.'**
+  String get dashboardTonight02;
+
+  /// No description provided for @dashboardTonight03.
+  ///
+  /// In en, this message translates to:
+  /// **'Darkness duration'**
+  String get dashboardTonight03;
+
+  /// No description provided for @dashboardTonight04.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining darkness'**
+  String get dashboardTonight04;
+
+  /// No description provided for @dashboardTonight05.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunset / sunrise'**
+  String get dashboardTonight05;
+
+  /// No description provided for @dashboardTonight06.
+  ///
+  /// In en, this message translates to:
+  /// **'Astronomical dusk / dawn'**
+  String get dashboardTonight06;
+
+  /// No description provided for @dashboardTonight07.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon phase and illumination'**
+  String get dashboardTonight07;
+
+  /// No description provided for @dashboardTonight08.
+  ///
+  /// In en, this message translates to:
+  /// **'Moonrise / moonset'**
+  String get dashboardTonight08;
+
+  /// No description provided for @dashboardTonight09.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon stays above horizon'**
+  String get dashboardTonight09;
+
+  /// No description provided for @dashboardTonight10.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon stays below horizon'**
+  String get dashboardTonight10;
+
+  /// No description provided for @dashboardTonight11.
+  ///
+  /// In en, this message translates to:
+  /// **'No lunar crossing this night'**
+  String get dashboardTonight11;
+
+  /// No description provided for @dashboardTonight12.
+  ///
+  /// In en, this message translates to:
+  /// **'Some solar events do not occur during this observing night.'**
+  String get dashboardTonight12;
+
+  /// No description provided for @dashboardTonight13.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to calculate astronomical conditions.'**
+  String get dashboardTonight13;
+
+  /// No description provided for @dashboardTonight14.
+  ///
+  /// In en, this message translates to:
+  /// **'New Moon'**
+  String get dashboardTonight14;
+
+  /// No description provided for @dashboardTonight15.
+  ///
+  /// In en, this message translates to:
+  /// **'Waxing Crescent'**
+  String get dashboardTonight15;
+
+  /// No description provided for @dashboardTonight16.
+  ///
+  /// In en, this message translates to:
+  /// **'First Quarter'**
+  String get dashboardTonight16;
+
+  /// No description provided for @dashboardTonight17.
+  ///
+  /// In en, this message translates to:
+  /// **'Waxing Gibbous'**
+  String get dashboardTonight17;
+
+  /// No description provided for @dashboardTonight18.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Moon'**
+  String get dashboardTonight18;
+
+  /// No description provided for @dashboardTonight19.
+  ///
+  /// In en, this message translates to:
+  /// **'Waning Gibbous'**
+  String get dashboardTonight19;
+
+  /// No description provided for @dashboardTonight20.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Quarter'**
+  String get dashboardTonight20;
+
+  /// No description provided for @dashboardTonight21.
+  ///
+  /// In en, this message translates to:
+  /// **'Waning Crescent'**
+  String get dashboardTonight21;
 }
 
 class _AppLocalizationsDelegate

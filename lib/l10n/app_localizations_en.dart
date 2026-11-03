@@ -1603,4 +1603,192 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardWeatherTimeZoneSelect =>
       'Select a time zone from the list.';
+
+  @override
+  String get dashboardTargets1 => 'Candidate targets';
+
+  @override
+  String get dashboardTargets2 => 'Minimum session duration (minutes)';
+
+  @override
+  String get dashboardTargets3 => 'combined';
+
+  @override
+  String get dashboardTargets4 => 'catalog';
+
+  @override
+  String get dashboardTargets5 => 'projects';
+
+  @override
+  String get dashboardTargets6 => 'favorites';
+
+  @override
+  String get dashboardTargets7 => 'Projects, favorites and catalog';
+
+  @override
+  String get dashboardTargets8 => 'Catalog targets';
+
+  @override
+  String get dashboardTargets9 => 'Active projects';
+
+  @override
+  String get dashboardTargets10 => 'Favorite targets';
+
+  @override
+  String get dashboardTargets11 =>
+      'Unable to calculate target recommendations.';
+
+  @override
+  String get dashboardTargets12 => 'Weather unavailable · provisional scores';
+
+  @override
+  String get dashboardTargets13 => 'Stale weather · provisional scores';
+
+  @override
+  String get dashboardTargets14 => 'Recalculate recommendations';
+
+  @override
+  String get dashboardTargets15 =>
+      'No candidate targets. Add projects or favorites, or select Catalog.';
+
+  @override
+  String get dashboardTargets16 =>
+      'No qualifying targets for this night and minimum duration.';
+
+  @override
+  String get dashboardTargets17 => 'candidates evaluated';
+
+  @override
+  String get dashboardTargets18 => 'Top 3 use the existing suitability model.';
+
+  @override
+  String get dashboardTargets19 => 'Provisional';
+
+  @override
+  String get dashboardTargets20 => 'Peak altitude';
+
+  @override
+  String get dashboardTargets21 => 'Moon separation';
+
+  @override
+  String get dashboardTargets22 =>
+      'Terrain horizon not available; not included in score.';
+
+  @override
+  String get dashboardTargets23 => 'Cached terrain at peak bearing';
+
+  @override
+  String get dashboardTargets24 => 'possible obstruction';
+
+  @override
+  String get dashboardTargets25 => 'not included in score.';
+
+  @override
+  String get dashboardTargets26 => 'Sky Atlas';
+
+  @override
+  String get dashboardTargets27 => 'Plan observation';
+
+  @override
+  String get dashboardTargets28 => 'Why this score?';
+
+  @override
+  String get dashboardTargets29 => 'Weather coverage';
+
+  @override
+  String get dashboardTargets30 => 'This observing window has ended.';
+
+  @override
+  String get dashboardTargets31 => 'Choose a project for this target:';
+
+  @override
+  String get dashboardTargets32 => 'Create a new imaging project and plan';
+
+  @override
+  String get dashboardTargets33 => 'Overlapping observation';
+
+  @override
+  String get dashboardTargets34 =>
+      'This block overlaps another plan. Save it anyway?';
+
+  @override
+  String get dashboardTargets35 => 'Observation added to Night Planner.';
+
+  @override
+  String get dashboardTargets36 => 'Could not save observation';
+
+  @override
+  String get dashboardTargets37 => 'complete';
+
+  @override
+  String get dashboardTargets38 => 'partial';
+
+  @override
+  String get dashboardTargets39 => 'missing';
+
+  @override
+  String get dashboardTargets40 => 'stale';
+
+  @override
+  String get dashboardTonight02 =>
+      'Continuous astronomical darkness throughout this observing night.';
+
+  @override
+  String get dashboardTonight03 => 'Darkness duration';
+
+  @override
+  String get dashboardTonight04 => 'Remaining darkness';
+
+  @override
+  String get dashboardTonight05 => 'Sunset / sunrise';
+
+  @override
+  String get dashboardTonight06 => 'Astronomical dusk / dawn';
+
+  @override
+  String get dashboardTonight07 => 'Moon phase and illumination';
+
+  @override
+  String get dashboardTonight08 => 'Moonrise / moonset';
+
+  @override
+  String get dashboardTonight09 => 'Moon stays above horizon';
+
+  @override
+  String get dashboardTonight10 => 'Moon stays below horizon';
+
+  @override
+  String get dashboardTonight11 => 'No lunar crossing this night';
+
+  @override
+  String get dashboardTonight12 =>
+      'Some solar events do not occur during this observing night.';
+
+  @override
+  String get dashboardTonight13 =>
+      'Unable to calculate astronomical conditions.';
+
+  @override
+  String get dashboardTonight14 => 'New Moon';
+
+  @override
+  String get dashboardTonight15 => 'Waxing Crescent';
+
+  @override
+  String get dashboardTonight16 => 'First Quarter';
+
+  @override
+  String get dashboardTonight17 => 'Waxing Gibbous';
+
+  @override
+  String get dashboardTonight18 => 'Full Moon';
+
+  @override
+  String get dashboardTonight19 => 'Waning Gibbous';
+
+  @override
+  String get dashboardTonight20 => 'Last Quarter';
+
+  @override
+  String get dashboardTonight21 => 'Waning Crescent';
 }
