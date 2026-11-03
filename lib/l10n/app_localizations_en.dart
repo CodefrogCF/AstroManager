@@ -1886,4 +1886,171 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardActivity30 =>
       'Select at least one quick action in widget settings.';
+
+  @override
+  String get dashboardUpcomingPlansTitle => 'Upcoming Observation Plans';
+
+  @override
+  String get dashboardUpcomingPlansDescription =>
+      'Scheduled observing blocks and overlapping plans';
+
+  @override
+  String get dashboardAlertsWidgetTitle => 'Observation Opportunities & Alerts';
+
+  @override
+  String get dashboardAlertsWidgetDescription =>
+      'Enabled alert rules and previously notified opportunities';
+
+  @override
+  String get dashboardUpcomingNights => 'Upcoming observing nights';
+
+  @override
+  String get dashboardMaxObservations => 'Maximum displayed observations';
+
+  @override
+  String get dashboardMaxAlerts => 'Maximum displayed alerts';
+
+  @override
+  String get dashboardShowNotified => 'Show recently notified opportunities';
+
+  @override
+  String get dashboardNoUpcomingPlans =>
+      'No upcoming observation blocks at this location.';
+
+  @override
+  String get dashboardOpenNightPlanner => 'Open Night Planner';
+
+  @override
+  String get dashboardOverlappingPlans => 'Overlapping observations';
+
+  @override
+  String get dashboardUnableLoadPlans => 'Unable to load planned observations.';
+
+  @override
+  String get dashboardAlertsDisabled =>
+      'Opportunity notifications are disabled.';
+
+  @override
+  String get dashboardNoAlertRules =>
+      'No alert rules for this observing location.';
+
+  @override
+  String get dashboardNoEnabledRules =>
+      'No enabled alert rules at this location.';
+
+  @override
+  String get dashboardMonitoredTargets => 'Monitored targets';
+
+  @override
+  String get dashboardRecentlyNotified => 'Recently notified opportunities';
+
+  @override
+  String get dashboardNotified => 'Notified';
+
+  @override
+  String get dashboardNoBackgroundChecks =>
+      'Checks run at app start, foreground or manually; no continuous background monitoring.';
+
+  @override
+  String get dashboardManageAlerts => 'Manage alerts in Settings';
+
+  @override
+  String get dashboardUnableLoadAlerts => 'Unable to load observation alerts.';
+
+  @override
+  String get dashboardObservingNightLabel => 'Observing night';
+
+  @override
+  String get dashboardSiteConditionsTitle => 'Observing Site';
+
+  @override
+  String get dashboardSiteConditionsDescription =>
+      'Cached terrain horizon and night-light conditions for the selected site';
+
+  @override
+  String get dashboardSiteShowDetails => 'Show environmental details';
+
+  @override
+  String get dashboardSiteTerrain => 'Terrain horizon';
+
+  @override
+  String get dashboardSiteLight => 'Night-light radiance';
+
+  @override
+  String get dashboardSiteNoTerrain =>
+      'No cached terrain profile. Check the site details to load one.';
+
+  @override
+  String get dashboardSiteNoLight =>
+      'No cached night-light data. Check the site details to load a sample.';
+
+  @override
+  String get dashboardSiteCacheOnly =>
+      'Cache only · no automatic data requests';
+
+  @override
+  String get dashboardSiteStale => 'Outdated cached data';
+
+  @override
+  String get dashboardSiteCoverage => 'Known bearings';
+
+  @override
+  String get dashboardSiteNotLineOfSight =>
+      'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.';
+
+  @override
+  String get dashboardSiteNotSkyBrightness =>
+      'Satellite radiance is not measured sky brightness or a Bortle class.';
+
+  @override
+  String get dashboardSiteSource => 'Source';
+
+  @override
+  String get dashboardSiteDatasetDate => 'Dataset month';
+
+  @override
+  String get dashboardSiteChecked => 'Retrieved';
+
+  @override
+  String get dashboardSiteProfileDate => 'Profile generated';
+
+  @override
+  String get dashboardSiteCompare => 'Compare observing sites';
+
+  @override
+  String get dashboardSiteManage => 'Manage site data';
+
+  @override
+  String get dashboardSiteExpand => 'Show details';
+
+  @override
+  String get dashboardSiteCollapse => 'Hide details';
+
+  @override
+  String get dashboardSiteUnavailable =>
+      'Unable to read cached site conditions.';
+
+  @override
+  String get dashboardSiteKindSatellite => 'Satellite upward radiance';
+
+  @override
+  String get dashboardSiteKindMeasured => 'Measured zenith sky brightness';
+
+  @override
+  String get dashboardSiteKindModeled => 'Modeled zenith sky brightness';
+
+  @override
+  String get dashboardSiteMissing => 'Not available';
+
+  @override
+  String get dashboardSiteCache => 'Cached';
+
+  @override
+  String get dashboardSiteCatalogUpdated => 'Source catalogue updated';
+
+  @override
+  String get dashboardSiteRefreshCache => 'Refresh cached site data';
+
+  @override
+  String get dashboardSaveError => 'Could not save dashboard changes.';
 }

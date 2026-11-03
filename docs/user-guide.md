@@ -134,11 +134,25 @@ sizes. Widget size and position are saved separately for phones, tablets,
 and desktop-sized windows. **Done editing** returns to normal interaction;
 scrolling and widget buttons work normally when not editing.
 
+On compact phones, the edit controls wrap to a second row when needed.
+At increased system font sizes the dashboard reserves more vertical space,
+while the content inside each card can still scroll independently. On a
+keyboard, use **Tab** / **Shift+Tab** to select buttons, **Enter** or **Space**
+to activate **Move up/down/left/right**, and **Size** to change dimensions.
+The move controls are the supported alternative to long-press dragging for
+screen readers, switches and keyboard users. Changing orientation can select a
+different saved device-size layout; it does not overwrite the other layouts.
+
 **Manage widgets** adds or removes widget types and lets you hide unused
 widgets. Hidden widgets are not built and do not fetch their own data.
 **Reset layout** resets only the current screen class after confirmation;
 **Restore default widgets** resets the complete widget list. The shared
 observing location is not changed by a layout reset.
+
+If the saved dashboard layout cannot be read, an explicit **Restore default
+widgets** action is offered. This replaces the invalid dashboard configuration
+only when selected; other local data is unaffected. Create a `.ambackup`
+before resetting settings if you want to retain a copy of the stored data.
 
 Your layout is stored locally, included in `.ambackup` exports and restored
 along with other application preferences. Backups from the previous linear
@@ -165,3 +179,23 @@ SQM value, or a Bortle rating. The original dataset month, retrieval date,
 provider, attribution, and license notes are shown when available. Stale data
 are marked explicitly. Use **Compare observing sites** to open the existing
 site-comparison panel when multiple saved locations are available.
+
+## Dashboard performance, offline use and accessibility (v0.7)
+
+The visible project widgets share the same session aggregation provider. When
+multiple instances use the same forecast request, the Riverpod provider shares
+its in-flight result; independently configured date ranges or sites may still
+require different requests. Environmental site cards read **only local caches**,
+with terrain and night-light cache reads running concurrently. Hiding a widget
+prevents its content from being mounted and requesting data.
+
+Missing weather or satellite data is not evidence of clear conditions. Stale
+forecasts and environmental readings are marked; the dashboard does not imply
+live monitoring. On a narrow display, scroll the card itself to reach long
+content and use **Manage widgets** to hide less frequently needed panels.
+
+Codefrog Light/Dark and Astronomy Night Mode use separate palettes. The night
+palette now has stronger card boundaries so controls remain distinguishable
+without replacing its red-light-oriented appearance. For detailed release
+checks on phone, tablet, desktop, iOS/Android and offline operation, see
+[`dashboard-v0.7.0-qa.md`](dashboard-v0.7.0-qa.md).

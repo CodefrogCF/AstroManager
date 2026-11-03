@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:astromanager/features/dashboard/domain/observing_site_conditions.dart';
@@ -85,6 +86,30 @@ class _NightStore implements LightPollutionCacheStore {
   }
 }
 
+class _WaitingTerrainStore extends _TerrainStore {
+  final started = Completer<void>();
+  final resume = Completer<void>();
+
+  @override
+  Future<Set<String>> getKeys() async {
+    started.complete();
+    await resume.future;
+    return super.getKeys();
+  }
+}
+
+class _WaitingNightStore extends _NightStore {
+  final started = Completer<void>();
+  final resume = Completer<void>();
+
+  @override
+  Future<String?> getString(String key) async {
+    started.complete();
+    await resume.future;
+    return super.getString(key);
+  }
+}
+
 TerrainHorizonProfile _profile(DateTime created) => TerrainHorizonProfile(
   sourceId: 'opentopodata:fixture:eudem25m',
   createdAtUtc: created,
@@ -115,6 +140,41 @@ LightPollutionReading _reading() => LightPollutionReading(
 );
 
 void main() {
+  test(
+    'independent terrain and night-light cache reads start concurrently',
+    () async {
+      final terrainStore = _WaitingTerrainStore();
+      final lightStore = _WaitingNightStore();
+      final terrainSource = _TerrainSource();
+      final lightSource = _NightSource();
+      final reader = ObservingSiteConditionsReader(
+        terrainRepository: TerrainProfileRepository(
+          provider: terrainSource,
+          store: terrainStore,
+        ),
+        lightPollutionRepository: LightPollutionRepository(
+          provider: lightSource,
+          cache: lightStore,
+        ),
+      );
+      final pending = reader.read(_site);
+      try {
+        await Future.wait([
+          terrainStore.started.future,
+          lightStore.started.future,
+        ]).timeout(const Duration(seconds: 3));
+      } finally {
+        if (!terrainStore.resume.isCompleted) terrainStore.resume.complete();
+        if (!lightStore.resume.isCompleted) lightStore.resume.complete();
+      }
+      final result = await pending;
+      expect(result.terrain, isNull);
+      expect(result.nightLightReading, isNull);
+      expect(terrainSource.calls, 0);
+      expect(lightSource.calls, 0);
+    },
+  );
+
   test(
     'dashboard reads cached terrain and radiance without any network calls',
     () async {

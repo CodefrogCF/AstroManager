@@ -125,6 +125,41 @@ void main() {
   });
 
   test(
+    'explicit recovery preserves invalid configuration until requested',
+    () async {
+      final database = AppDatabase(NativeDatabase.memory());
+      addTearDown(database.close);
+      final settings = AppSettingsRepository(database);
+      final repository = SettingsDashboardLayoutRepository(settings);
+      await settings.put(
+        SettingsDashboardLayoutRepository.storageKey,
+        '{bad json',
+      );
+      final container = ProviderContainer.test(
+        overrides: [
+          dashboardLayoutRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      await expectLater(
+        container.read(dashboardLayoutProvider.future),
+        throwsFormatException,
+      );
+      expect(
+        await settings.get(SettingsDashboardLayoutRepository.storageKey),
+        '{bad json',
+      );
+      await container.read(dashboardLayoutProvider.notifier).recoverDefaults();
+      final recovered = await repository.load();
+      expect(recovered.widgets.length, 4);
+      expect(recovered.toJson()['formatVersion'], 2);
+      expect(
+        container.read(dashboardLayoutProvider).requireValue.widgets.length,
+        4,
+      );
+    },
+  );
+
+  test(
     'layout controller serializes changes and preserves widget settings',
     () async {
       final store = MemoryDashboardLayoutRepository();

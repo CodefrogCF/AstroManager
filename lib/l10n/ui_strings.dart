@@ -119,6 +119,8 @@ const Map<String, String> appGermanUiStrings = {
   'Continue without account': 'Ohne Konto fortfahren',
   'Continuous astronomical darkness throughout this observing night.':
       'Durchgehend astronomische Dunkelheit während dieser Beobachtungsnacht.',
+  'Could not save dashboard changes.':
+      'Dashboard-Änderungen konnten nicht gespeichert werden.',
   'Could not save dashboard changes:':
       'Änderungen an der Übersicht konnten nicht gespeichert werden:',
   'Could not save observation': 'Beobachtung konnte nicht gespeichert werden',

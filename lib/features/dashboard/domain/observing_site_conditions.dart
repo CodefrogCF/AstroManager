@@ -36,21 +36,33 @@ final class ObservingSiteConditionsReader {
   final LightPollutionRepository lightPollutionRepository;
 
   Future<ObservingSiteConditions> read(ObservingLocation site) async {
-    ({TerrainHorizonProfile profile, bool isStale})? terrain;
-    LightPollutionSnapshot? lights;
-    try {
-      terrain = await terrainRepository.cachedAnyForSite(site);
-    } catch (_) {
-      // Unreadable or inaccessible cache is shown as unavailable.
+    // Both repositories read local caches only. Independent failures must
+    // never suppress the other data source, and neither read needs to block
+    // the other (important when multiple dashboard widgets mount together).
+    Future<({TerrainHorizonProfile profile, bool isStale})?>
+    readTerrain() async {
+      try {
+        return await terrainRepository.cachedAnyForSite(site);
+      } catch (_) {
+        return null;
+      }
     }
-    try {
-      lights = await lightPollutionRepository.cachedOnly(
-        latitude: site.latitude,
-        longitude: site.longitude,
-      );
-    } catch (_) {
-      // The terrain status is still useful if the light cache is unavailable.
+
+    Future<LightPollutionSnapshot?> readNightLights() async {
+      try {
+        return await lightPollutionRepository.cachedOnly(
+          latitude: site.latitude,
+          longitude: site.longitude,
+        );
+      } catch (_) {
+        return null;
+      }
     }
+
+    final terrainFuture = readTerrain();
+    final lightsFuture = readNightLights();
+    final terrain = await terrainFuture;
+    final lights = await lightsFuture;
     return ObservingSiteConditions(
       site: site,
       terrain: terrain?.profile,

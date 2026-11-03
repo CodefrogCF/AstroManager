@@ -642,5 +642,6 @@
   "dashboardSiteMissing": "Not available",
   "dashboardSiteCache": "Cached",
   "dashboardSiteCatalogUpdated": "Source catalogue updated",
-  "dashboardSiteRefreshCache": "Refresh cached site data"
+  "dashboardSiteRefreshCache": "Refresh cached site data",
+  "dashboardSaveError": "Could not save dashboard changes."
 }

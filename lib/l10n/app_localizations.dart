@@ -3655,6 +3655,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select at least one quick action in widget settings.'**
   String get dashboardActivity30;
+
+  /// No description provided for @dashboardUpcomingPlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Observation Plans'**
+  String get dashboardUpcomingPlansTitle;
+
+  /// No description provided for @dashboardUpcomingPlansDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled observing blocks and overlapping plans'**
+  String get dashboardUpcomingPlansDescription;
+
+  /// No description provided for @dashboardAlertsWidgetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation Opportunities & Alerts'**
+  String get dashboardAlertsWidgetTitle;
+
+  /// No description provided for @dashboardAlertsWidgetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled alert rules and previously notified opportunities'**
+  String get dashboardAlertsWidgetDescription;
+
+  /// No description provided for @dashboardUpcomingNights.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming observing nights'**
+  String get dashboardUpcomingNights;
+
+  /// No description provided for @dashboardMaxObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum displayed observations'**
+  String get dashboardMaxObservations;
+
+  /// No description provided for @dashboardMaxAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum displayed alerts'**
+  String get dashboardMaxAlerts;
+
+  /// No description provided for @dashboardShowNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Show recently notified opportunities'**
+  String get dashboardShowNotified;
+
+  /// No description provided for @dashboardNoUpcomingPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming observation blocks at this location.'**
+  String get dashboardNoUpcomingPlans;
+
+  /// No description provided for @dashboardOpenNightPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Night Planner'**
+  String get dashboardOpenNightPlanner;
+
+  /// No description provided for @dashboardOverlappingPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping observations'**
+  String get dashboardOverlappingPlans;
+
+  /// No description provided for @dashboardUnableLoadPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load planned observations.'**
+  String get dashboardUnableLoadPlans;
+
+  /// No description provided for @dashboardAlertsDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Opportunity notifications are disabled.'**
+  String get dashboardAlertsDisabled;
+
+  /// No description provided for @dashboardNoAlertRules.
+  ///
+  /// In en, this message translates to:
+  /// **'No alert rules for this observing location.'**
+  String get dashboardNoAlertRules;
+
+  /// No description provided for @dashboardNoEnabledRules.
+  ///
+  /// In en, this message translates to:
+  /// **'No enabled alert rules at this location.'**
+  String get dashboardNoEnabledRules;
+
+  /// No description provided for @dashboardMonitoredTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitored targets'**
+  String get dashboardMonitoredTargets;
+
+  /// No description provided for @dashboardRecentlyNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently notified opportunities'**
+  String get dashboardRecentlyNotified;
+
+  /// No description provided for @dashboardNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Notified'**
+  String get dashboardNotified;
+
+  /// No description provided for @dashboardNoBackgroundChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Checks run at app start, foreground or manually; no continuous background monitoring.'**
+  String get dashboardNoBackgroundChecks;
+
+  /// No description provided for @dashboardManageAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage alerts in Settings'**
+  String get dashboardManageAlerts;
+
+  /// No description provided for @dashboardUnableLoadAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load observation alerts.'**
+  String get dashboardUnableLoadAlerts;
+
+  /// No description provided for @dashboardObservingNightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Observing night'**
+  String get dashboardObservingNightLabel;
+
+  /// No description provided for @dashboardSiteConditionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Observing Site'**
+  String get dashboardSiteConditionsTitle;
+
+  /// No description provided for @dashboardSiteConditionsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached terrain horizon and night-light conditions for the selected site'**
+  String get dashboardSiteConditionsDescription;
+
+  /// No description provided for @dashboardSiteShowDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show environmental details'**
+  String get dashboardSiteShowDetails;
+
+  /// No description provided for @dashboardSiteTerrain.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrain horizon'**
+  String get dashboardSiteTerrain;
+
+  /// No description provided for @dashboardSiteLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night-light radiance'**
+  String get dashboardSiteLight;
+
+  /// No description provided for @dashboardSiteNoTerrain.
+  ///
+  /// In en, this message translates to:
+  /// **'No cached terrain profile. Check the site details to load one.'**
+  String get dashboardSiteNoTerrain;
+
+  /// No description provided for @dashboardSiteNoLight.
+  ///
+  /// In en, this message translates to:
+  /// **'No cached night-light data. Check the site details to load a sample.'**
+  String get dashboardSiteNoLight;
+
+  /// No description provided for @dashboardSiteCacheOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache only · no automatic data requests'**
+  String get dashboardSiteCacheOnly;
+
+  /// No description provided for @dashboardSiteStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdated cached data'**
+  String get dashboardSiteStale;
+
+  /// No description provided for @dashboardSiteCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Known bearings'**
+  String get dashboardSiteCoverage;
+
+  /// No description provided for @dashboardSiteNotLineOfSight.
+  ///
+  /// In en, this message translates to:
+  /// **'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.'**
+  String get dashboardSiteNotLineOfSight;
+
+  /// No description provided for @dashboardSiteNotSkyBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite radiance is not measured sky brightness or a Bortle class.'**
+  String get dashboardSiteNotSkyBrightness;
+
+  /// No description provided for @dashboardSiteSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get dashboardSiteSource;
+
+  /// No description provided for @dashboardSiteDatasetDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Dataset month'**
+  String get dashboardSiteDatasetDate;
+
+  /// No description provided for @dashboardSiteChecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Retrieved'**
+  String get dashboardSiteChecked;
+
+  /// No description provided for @dashboardSiteProfileDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile generated'**
+  String get dashboardSiteProfileDate;
+
+  /// No description provided for @dashboardSiteCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare observing sites'**
+  String get dashboardSiteCompare;
+
+  /// No description provided for @dashboardSiteManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage site data'**
+  String get dashboardSiteManage;
+
+  /// No description provided for @dashboardSiteExpand.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get dashboardSiteExpand;
+
+  /// No description provided for @dashboardSiteCollapse.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide details'**
+  String get dashboardSiteCollapse;
+
+  /// No description provided for @dashboardSiteUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read cached site conditions.'**
+  String get dashboardSiteUnavailable;
+
+  /// No description provided for @dashboardSiteKindSatellite.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite upward radiance'**
+  String get dashboardSiteKindSatellite;
+
+  /// No description provided for @dashboardSiteKindMeasured.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured zenith sky brightness'**
+  String get dashboardSiteKindMeasured;
+
+  /// No description provided for @dashboardSiteKindModeled.
+  ///
+  /// In en, this message translates to:
+  /// **'Modeled zenith sky brightness'**
+  String get dashboardSiteKindModeled;
+
+  /// No description provided for @dashboardSiteMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get dashboardSiteMissing;
+
+  /// No description provided for @dashboardSiteCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached'**
+  String get dashboardSiteCache;
+
+  /// No description provided for @dashboardSiteCatalogUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Source catalogue updated'**
+  String get dashboardSiteCatalogUpdated;
+
+  /// No description provided for @dashboardSiteRefreshCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh cached site data'**
+  String get dashboardSiteRefreshCache;
+
+  /// No description provided for @dashboardSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save dashboard changes.'**
+  String get dashboardSaveError;
 }
 
 class _AppLocalizationsDelegate

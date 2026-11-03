@@ -1911,4 +1911,178 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dashboardActivity30 =>
       'Wähle mindestens eine Schnellaktion in den Widget-Einstellungen.';
+
+  @override
+  String get dashboardUpcomingPlansTitle => 'Geplante Beobachtungen';
+
+  @override
+  String get dashboardUpcomingPlansDescription =>
+      'Geplante Beobachtungsblöcke und Überschneidungen';
+
+  @override
+  String get dashboardAlertsWidgetTitle =>
+      'Beobachtungsgelegenheiten und Alarme';
+
+  @override
+  String get dashboardAlertsWidgetDescription =>
+      'Aktive Alarmregeln und frühere Benachrichtigungen';
+
+  @override
+  String get dashboardUpcomingNights => 'Kommende Beobachtungsnächte';
+
+  @override
+  String get dashboardMaxObservations => 'Maximal angezeigte Beobachtungen';
+
+  @override
+  String get dashboardMaxAlerts => 'Maximal angezeigte Alarme';
+
+  @override
+  String get dashboardShowNotified =>
+      'Kürzlich gemeldete Gelegenheiten anzeigen';
+
+  @override
+  String get dashboardNoUpcomingPlans =>
+      'Keine bevorstehenden Beobachtungsblöcke an diesem Ort.';
+
+  @override
+  String get dashboardOpenNightPlanner => 'Nachtplanung öffnen';
+
+  @override
+  String get dashboardOverlappingPlans => 'Überschneidende Beobachtungen';
+
+  @override
+  String get dashboardUnableLoadPlans =>
+      'Geplante Beobachtungen konnten nicht geladen werden.';
+
+  @override
+  String get dashboardAlertsDisabled =>
+      'Benachrichtigungen zu Beobachtungsgelegenheiten sind deaktiviert.';
+
+  @override
+  String get dashboardNoAlertRules =>
+      'Keine Alarmregeln für diesen Beobachtungsort.';
+
+  @override
+  String get dashboardNoEnabledRules =>
+      'Keine aktiven Alarmregeln an diesem Ort.';
+
+  @override
+  String get dashboardMonitoredTargets => 'Überwachte Ziele';
+
+  @override
+  String get dashboardRecentlyNotified => 'Kürzlich gemeldete Gelegenheiten';
+
+  @override
+  String get dashboardNotified => 'Benachrichtigt';
+
+  @override
+  String get dashboardNoBackgroundChecks =>
+      'Prüfungen erfolgen beim App-Start, im Vordergrund oder manuell; keine fortlaufende Hintergrundüberwachung.';
+
+  @override
+  String get dashboardManageAlerts => 'Alarme in Einstellungen verwalten';
+
+  @override
+  String get dashboardUnableLoadAlerts =>
+      'Beobachtungsalarme konnten nicht geladen werden.';
+
+  @override
+  String get dashboardObservingNightLabel => 'Beobachtungsnacht';
+
+  @override
+  String get dashboardSiteConditionsTitle => 'Beobachtungsort';
+
+  @override
+  String get dashboardSiteConditionsDescription =>
+      'Geländehorizont und Nachtlichtdaten aus dem Cache für den gewählten Beobachtungsort';
+
+  @override
+  String get dashboardSiteShowDetails => 'Umgebungsdetails anzeigen';
+
+  @override
+  String get dashboardSiteTerrain => 'Geländehorizont';
+
+  @override
+  String get dashboardSiteLight => 'Nachtlicht-Strahldichte';
+
+  @override
+  String get dashboardSiteNoTerrain =>
+      'Kein Geländehorizont zwischengespeichert. Im Standortdetailbereich laden.';
+
+  @override
+  String get dashboardSiteNoLight =>
+      'Keine Nachtlichtdaten zwischengespeichert. Im Standortdetailbereich abrufen.';
+
+  @override
+  String get dashboardSiteCacheOnly =>
+      'Nur Cache · keine automatischen Datenabfragen';
+
+  @override
+  String get dashboardSiteStale => 'Veraltete Cache-Daten';
+
+  @override
+  String get dashboardSiteCoverage => 'Bekannte Richtungen';
+
+  @override
+  String get dashboardSiteNotLineOfSight =>
+      'Der modellierte Geländehorizont ist keine vermessene Sichtlinie. Unbekannte Richtungen bleiben unbekannt.';
+
+  @override
+  String get dashboardSiteNotSkyBrightness =>
+      'Satelliten-Strahldichte ist keine gemessene Himmelshelligkeit und keine Bortle-Klasse.';
+
+  @override
+  String get dashboardSiteSource => 'Quelle';
+
+  @override
+  String get dashboardSiteDatasetDate => 'Datensatzmonat';
+
+  @override
+  String get dashboardSiteChecked => 'Abgerufen';
+
+  @override
+  String get dashboardSiteProfileDate => 'Profil erstellt';
+
+  @override
+  String get dashboardSiteCompare => 'Beobachtungsorte vergleichen';
+
+  @override
+  String get dashboardSiteManage => 'Standortdaten verwalten';
+
+  @override
+  String get dashboardSiteExpand => 'Details anzeigen';
+
+  @override
+  String get dashboardSiteCollapse => 'Details ausblenden';
+
+  @override
+  String get dashboardSiteUnavailable =>
+      'Zwischengespeicherte Standortbedingungen konnten nicht gelesen werden.';
+
+  @override
+  String get dashboardSiteKindSatellite =>
+      'Aufwärts gerichtete Satelliten-Strahldichte';
+
+  @override
+  String get dashboardSiteKindMeasured => 'Gemessene Zenit-Himmelshelligkeit';
+
+  @override
+  String get dashboardSiteKindModeled => 'Modellierte Zenit-Himmelshelligkeit';
+
+  @override
+  String get dashboardSiteMissing => 'Nicht verfügbar';
+
+  @override
+  String get dashboardSiteCache => 'Zwischengespeichert';
+
+  @override
+  String get dashboardSiteCatalogUpdated => 'Quellkatalog aktualisiert';
+
+  @override
+  String get dashboardSiteRefreshCache =>
+      'Standortdaten aus Cache neu einlesen';
+
+  @override
+  String get dashboardSaveError =>
+      'Dashboard-Änderungen konnten nicht gespeichert werden.';
 }

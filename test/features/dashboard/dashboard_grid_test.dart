@@ -195,6 +195,16 @@ void main() {
     addTearDown(source.close);
     addTearDown(target.close);
     final saved = DashboardLayout.defaults.copyWith(
+      selectedLocationId: 'restored-site',
+      widgets: [
+        ...DashboardLayout.defaults.widgets,
+        const DashboardWidgetInstance(
+          id: 'hidden-extension',
+          typeId: 'future-widget',
+          visible: false,
+          settings: {'size': 3, 'useCache': true},
+        ),
+      ],
       grids: {
         DashboardViewport.phone: const [
           DashboardTile(
@@ -202,6 +212,24 @@ void main() {
             column: 0,
             row: 0,
             columns: 1,
+            rows: 2,
+          ),
+        ],
+        DashboardViewport.tablet: const [
+          DashboardTile(
+            widgetId: 'targets-default',
+            column: 0,
+            row: 0,
+            columns: 2,
+            rows: 1,
+          ),
+        ],
+        DashboardViewport.desktop: const [
+          DashboardTile(
+            widgetId: 'weather-default',
+            column: 2,
+            row: 3,
+            columns: 2,
             rows: 2,
           ),
         ],
@@ -223,6 +251,12 @@ void main() {
     final tile = restored.grids[DashboardViewport.phone]!.single;
     expect(tile.widgetId, 'actions-default');
     expect(tile.rows, 2);
-    expect(restored.widgets.length, 4);
+    expect(restored.widgets.length, 5);
+    expect(restored.selectedLocationId, 'restored-site');
+    expect(restored.widgets.last.visible, isFalse);
+    expect(restored.widgets.last.settings['useCache'], isTrue);
+    expect(restored.grids[DashboardViewport.tablet]!.single.columns, 2);
+    expect(restored.grids[DashboardViewport.desktop]!.single.row, 3);
+    expect(jsonEncode(restored.toJson()), jsonEncode(saved.toJson()));
   });
 }

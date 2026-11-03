@@ -26,7 +26,8 @@ abstract final class AstroPalette {
   static const nightAccent = Color(0xFFD65A5A);
   static const nightText = Color(0xFFE2AAAA);
   static const nightMuted = Color(0xFFAB7070);
-  static const nightBorder = Color(0xFF492020);
+  // At least 3:1 against the night card surface (non-text boundary).
+  static const nightBorder = Color(0xFF855050);
 }
 
 abstract final class AstroThemes {

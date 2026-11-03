@@ -198,7 +198,16 @@ Future<bool> _perform(
   } catch (error) {
     if (context.mounted) {
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: AppText('Could not save dashboard changes: $error')),
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppText('Could not save dashboard changes.'),
+              Text('$error'),
+            ],
+          ),
+        ),
       );
     }
     return false;
@@ -494,7 +503,9 @@ class _ManageWidgetsDialog extends ConsumerWidget {
       title: const AppText('Manage widgets'),
       content: SizedBox(
         width: 460,
-        height: 400,
+        height: (MediaQuery.sizeOf(context).height * 0.50)
+            .clamp(160.0, 400.0)
+            .toDouble(),
         child: layout == null
             ? const Center(child: CircularProgressIndicator())
             : ListView(

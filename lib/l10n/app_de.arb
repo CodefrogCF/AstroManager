@@ -642,5 +642,6 @@
   "dashboardSiteMissing": "Nicht verfügbar",
   "dashboardSiteCache": "Zwischengespeichert",
   "dashboardSiteCatalogUpdated": "Quellkatalog aktualisiert",
-  "dashboardSiteRefreshCache": "Standortdaten aus Cache neu einlesen"
+  "dashboardSiteRefreshCache": "Standortdaten aus Cache neu einlesen",
+  "dashboardSaveError": "Dashboard-Änderungen konnten nicht gespeichert werden."
 }

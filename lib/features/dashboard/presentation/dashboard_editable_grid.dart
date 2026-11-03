@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/app_text.dart';
@@ -54,7 +55,14 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
       if (mounted) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
           SnackBar(
-            content: AppText('Could not save dashboard changes: $error'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const AppText('Could not save dashboard changes.'),
+                Text('$error'),
+              ],
+            ),
           ),
         );
       }
@@ -87,7 +95,14 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
       final viewport = DashboardViewport.forWidth(constraints.maxWidth);
       final columns = viewport.columns;
       final cellWidth = (constraints.maxWidth - (columns - 1) * _gap) / columns;
-      final cellHeight = widget.editing ? 248.0 : 198.0;
+      // Scaled content remains scrollable inside its card, but reserve a
+      // larger visible area for headings, actions and status messages.
+      final textScale = math.max(
+        1.0,
+        MediaQuery.textScalerOf(context).scale(16) / 16,
+      );
+      final cellHeight =
+          (widget.editing ? 248.0 : 198.0) + (textScale - 1.0) * 116.0;
       _viewport = viewport;
       _cellWidth = cellWidth;
       _cellHeight = cellHeight;
@@ -105,64 +120,79 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
         for (final instance in widget.widgets) instance.id: instance,
       };
 
-      return DragTarget<String>(
-        onWillAcceptWithDetails: (details) =>
-            widget.editing && byId.containsKey(details.data),
-        onAcceptWithDetails: _acceptDrop,
-        builder: (context, candidates, rejected) => SizedBox(
-          key: _gridKey,
-          height: height,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (final tile in tiles)
-                Positioned(
-                  left: tile.column * (cellWidth + _gap),
-                  top: tile.row * (cellHeight + _gap),
-                  width: tile.columns * cellWidth + (tile.columns - 1) * _gap,
-                  height: tile.rows * cellHeight + (tile.rows - 1) * _gap,
-                  child: SizedBox(
-                    key: ValueKey('dashboard-widget-${tile.widgetId}'),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: widget.tileBuilder(
-                            context,
-                            byId[tile.widgetId]!,
-                            viewport,
-                            tile,
-                          ),
-                        ),
-                        if (widget.editing)
-                          SizedBox(
-                            height: 48,
-                            child: _TileEditBar(
-                              instance: byId[tile.widgetId]!,
-                              title: widget.titleFor(byId[tile.widgetId]!),
-                              viewport: viewport,
-                              tile: tile,
-                              sizes: widget.sizesFor(byId[tile.widgetId]!),
-                              save: _save,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              if (widget.editing && candidates.isNotEmpty)
-                IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
+      return FocusTraversalGroup(
+        child: DragTarget<String>(
+          onWillAcceptWithDetails: (details) =>
+              widget.editing && byId.containsKey(details.data),
+          onAcceptWithDetails: _acceptDrop,
+          builder: (context, candidates, rejected) => SizedBox(
+            key: _gridKey,
+            height: height,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                for (final tile in tiles)
+                  Positioned(
+                    left: tile.column * (cellWidth + _gap),
+                    top: tile.row * (cellHeight + _gap),
+                    width: tile.columns * cellWidth + (tile.columns - 1) * _gap,
+                    height: tile.rows * cellHeight + (tile.rows - 1) * _gap,
+                    child: Semantics(
+                      container: true,
+                      sortKey: OrdinalSortKey(
+                        (tile.row * columns + tile.column).toDouble(),
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        key: ValueKey('dashboard-widget-${tile.widgetId}'),
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: widget.tileBuilder(
+                                context,
+                                byId[tile.widgetId]!,
+                                viewport,
+                                tile,
+                              ),
+                            ),
+                            if (widget.editing)
+                              SizedBox(
+                                // Six 48px controls require two rows in narrow
+                                // phone tiles; preserve touch target dimensions.
+                                height:
+                                    tile.columns * cellWidth +
+                                            (tile.columns - 1) * _gap <
+                                        300
+                                    ? 104
+                                    : 52,
+                                child: _TileEditBar(
+                                  instance: byId[tile.widgetId]!,
+                                  title: widget.titleFor(byId[tile.widgetId]!),
+                                  viewport: viewport,
+                                  tile: tile,
+                                  sizes: widget.sizesFor(byId[tile.widgetId]!),
+                                  save: _save,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: SizedBox.expand(),
                   ),
-                ),
-            ],
+                if (widget.editing && candidates.isNotEmpty)
+                  IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: SizedBox.expand(),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       );
@@ -198,88 +228,97 @@ class _TileEditBar extends ConsumerWidget {
       container: true,
       label:
           '${appTranslate(context, 'Edit widget')}: ${appTranslate(context, title)}',
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          LongPressDraggable<String>(
-            data: instance.id,
-            feedback: Material(
-              elevation: 4,
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(title),
+      child: Center(
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 0,
+          runSpacing: 0,
+          children: [
+            LongPressDraggable<String>(
+              data: instance.id,
+              feedback: Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(title),
+                ),
               ),
-            ),
-            child: Tooltip(
-              message: appTranslate(context, 'Hold to drag widget'),
-              child: SizedBox(
-                key: ValueKey('dashboard-drag-${instance.id}'),
-                width: 44,
-                height: 44,
-                child: const Icon(Icons.drag_indicator),
-              ),
-            ),
-          ),
-          _move(
-            context,
-            ref,
-            Icons.arrow_back,
-            'Move widget left',
-            'left',
-            -1,
-            0,
-            enabled: tile.column > 0,
-          ),
-          _move(
-            context,
-            ref,
-            Icons.arrow_upward,
-            'Move widget up',
-            'up',
-            0,
-            -1,
-            enabled: tile.row > 0,
-          ),
-          _move(
-            context,
-            ref,
-            Icons.arrow_downward,
-            'Move widget down',
-            'down',
-            0,
-            1,
-          ),
-          _move(
-            context,
-            ref,
-            Icons.arrow_forward,
-            'Move widget right',
-            'right',
-            1,
-            0,
-            enabled: tile.column + tile.columns < viewport.columns,
-          ),
-          PopupMenuButton<DashboardWidgetSize>(
-            key: ValueKey('dashboard-size-${instance.id}'),
-            tooltip: appTranslate(context, 'Resize widget'),
-            icon: const Icon(Icons.aspect_ratio_outlined),
-            onSelected: (value) =>
-                save(() => controller.resizeTile(instance.id, viewport, value)),
-            itemBuilder: (context) => [
-              for (final size in permittedSizes)
-                PopupMenuItem(
-                  value: size,
-                  child: Row(
-                    children: [
-                      if (size == current) const Icon(Icons.check, size: 16),
-                      Text('${size.columns} × ${size.rows}'),
-                    ],
+              child: Semantics(
+                label: appTranslate(context, 'Hold to drag widget'),
+                child: Tooltip(
+                  message: appTranslate(context, 'Hold to drag widget'),
+                  child: SizedBox(
+                    key: ValueKey('dashboard-drag-${instance.id}'),
+                    width: 44,
+                    height: 44,
+                    child: const Icon(Icons.drag_indicator),
                   ),
                 ),
-            ],
-          ),
-        ],
+              ),
+            ),
+            _move(
+              context,
+              ref,
+              Icons.arrow_back,
+              'Move widget left',
+              'left',
+              -1,
+              0,
+              enabled: tile.column > 0,
+            ),
+            _move(
+              context,
+              ref,
+              Icons.arrow_upward,
+              'Move widget up',
+              'up',
+              0,
+              -1,
+              enabled: tile.row > 0,
+            ),
+            _move(
+              context,
+              ref,
+              Icons.arrow_downward,
+              'Move widget down',
+              'down',
+              0,
+              1,
+            ),
+            _move(
+              context,
+              ref,
+              Icons.arrow_forward,
+              'Move widget right',
+              'right',
+              1,
+              0,
+              enabled: tile.column + tile.columns < viewport.columns,
+            ),
+            PopupMenuButton<DashboardWidgetSize>(
+              key: ValueKey('dashboard-size-${instance.id}'),
+              tooltip: appTranslate(context, 'Resize widget'),
+              icon: const Icon(Icons.aspect_ratio_outlined),
+              onSelected: (value) => save(
+                () => controller.resizeTile(instance.id, viewport, value),
+              ),
+              itemBuilder: (context) => [
+                for (final size in permittedSizes)
+                  PopupMenuItem(
+                    value: size,
+                    child: Row(
+                      children: [
+                        if (size == current) const Icon(Icons.check, size: 16),
+                        Text('${size.columns} × ${size.rows}'),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -296,7 +335,7 @@ class _TileEditBar extends ConsumerWidget {
   }) => IconButton(
     key: ValueKey('dashboard-move-$action-${instance.id}'),
     tooltip: appTranslate(context, label),
-    visualDensity: VisualDensity.compact,
+    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
     iconSize: 19,
     onPressed: enabled
         ? () => save(
