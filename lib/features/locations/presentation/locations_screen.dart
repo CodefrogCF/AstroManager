@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/errors/app_error_message.dart';
 import '../application/observing_locations_controller.dart';
 import '../domain/models/observing_location.dart';
+import '../domain/models/iana_time_zones.dart';
 import '../../light_pollution/presentation/light_pollution_location_panel.dart';
 import '../../site_comparison/presentation/observing_site_comparison_panel.dart';
 
@@ -334,7 +335,8 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
   late final TextEditingController _latitudeController;
   late final TextEditingController _longitudeController;
   late final TextEditingController _elevationController;
-  late final TextEditingController _timeZoneController;
+  late String _selectedTimeZone;
+  late final TextEditingController _timeZoneSearchController;
 
   bool _locating = false;
 
@@ -358,9 +360,8 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
       text: location?.elevationMeters.toString() ?? '0',
     );
 
-    _timeZoneController = TextEditingController(
-      text: location?.timeZone ?? 'Etc/UTC',
-    );
+    _selectedTimeZone = location?.timeZone ?? 'Etc/UTC';
+    _timeZoneSearchController = TextEditingController(text: _selectedTimeZone);
   }
 
   @override
@@ -369,7 +370,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
     _latitudeController.dispose();
     _longitudeController.dispose();
     _elevationController.dispose();
-    _timeZoneController.dispose();
+    _timeZoneSearchController.dispose();
     super.dispose();
   }
 
@@ -430,6 +431,14 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
   }
 
   void _save() {
+    // Filtering the menu is not a selection. Never persist a typed value or
+    // silently use an old selection while different filter text is visible.
+    if (_timeZoneSearchController.text.trim() != _selectedTimeZone) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: AppText('Select a time zone from the list.')),
+      );
+      return;
+    }
     if (_formKey.currentState?.validate() != true) {
       return;
     }
@@ -439,7 +448,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
       latitude: _parseNumber(_latitudeController.text)!,
       longitude: _parseNumber(_longitudeController.text)!,
       elevationMeters: _parseNumber(_elevationController.text)!,
-      timeZone: _timeZoneController.text.trim(),
+      timeZone: _selectedTimeZone,
     );
 
     try {
@@ -539,22 +548,33 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
 
                 const SizedBox(height: 12),
 
-                TextFormField(
+                // Filterable selection, not free text: a valid IANA identifier
+                // must be picked from the same database used by validation.
+                DropdownMenu<String>(
                   key: const ValueKey('location-timezone'),
-                  controller: _timeZoneController,
-                  decoration: localizeDecoration(
+                  initialSelection: _selectedTimeZone,
+                  controller: _timeZoneSearchController,
+                  label: AppText('IANA time zone'),
+                  helperText: appTranslate(
                     context,
-                    const InputDecoration(
-                      labelText: 'IANA time zone',
-                      hintText: 'Europe/Zurich',
-                      helperText: 'Use the time zone of the observing site.',
-                    ),
+                    'Use the time zone of the observing site.',
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Enter a time zone.';
+                  enableFilter: true,
+                  enableSearch: true,
+                  requestFocusOnTap: true,
+                  menuHeight: 300,
+                  expandedInsets: EdgeInsets.zero,
+                  dropdownMenuEntries: [
+                    for (final identifier in IanaTimeZones.all)
+                      DropdownMenuEntry<String>(
+                        value: identifier,
+                        label: identifier,
+                      ),
+                  ],
+                  onSelected: (value) {
+                    if (value != null) {
+                      setState(() => _selectedTimeZone = value);
                     }
-                    return null;
                   },
                 ),
 

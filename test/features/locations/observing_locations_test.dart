@@ -382,13 +382,48 @@ void main() {
       '8.21',
     );
 
+    expect(find.byKey(const ValueKey('location-timezone')), findsOneWidget);
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(repository.locations, hasLength(1));
 
     expect(repository.locations.first.name, 'Test Observatory');
+    expect(repository.locations.first.timeZone, 'Etc/UTC');
 
     expect(repository.locations.first.isDefault, isTrue);
+  });
+
+  testWidgets('time zone editor uses only selectable IANA identifiers', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(body: Center(child: LocationEditorDialog())),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final menu = find.byKey(const ValueKey('location-timezone'));
+    expect(menu, findsOneWidget);
+    expect(
+      find.descendant(of: menu, matching: find.byType(TextField)),
+      findsOneWidget,
+    );
+    // There is no editable TextFormField for the time zone.
+    expect(
+      find.descendant(of: menu, matching: find.byType(TextFormField)),
+      findsNothing,
+    );
+    await tester.ensureVisible(menu);
+    await tester.tap(menu);
+    await tester.pumpAndSettle();
+    final filter = find.descendant(of: menu, matching: find.byType(TextField));
+    await tester.enterText(filter, 'Europe/Zurich');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Europe/Zurich').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Europe/Zurich'), findsWidgets);
   });
 }

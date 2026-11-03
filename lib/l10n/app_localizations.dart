@@ -2947,6 +2947,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resize widget'**
   String get dashboard057;
+
+  /// No description provided for @dashboardWeather01.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum cloud cover (%)'**
+  String get dashboardWeather01;
+
+  /// No description provided for @dashboardWeather02.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum clear duration (hours)'**
+  String get dashboardWeather02;
+
+  /// No description provided for @dashboardWeather03.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud limit'**
+  String get dashboardWeather03;
+
+  /// No description provided for @dashboardWeather04.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum clear'**
+  String get dashboardWeather04;
+
+  /// No description provided for @dashboardWeather05.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud cover'**
+  String get dashboardWeather05;
+
+  /// No description provided for @dashboardWeather06.
+  ///
+  /// In en, this message translates to:
+  /// **'clear'**
+  String get dashboardWeather06;
+
+  /// No description provided for @dashboardWeather07.
+  ///
+  /// In en, this message translates to:
+  /// **'covered'**
+  String get dashboardWeather07;
+
+  /// No description provided for @dashboardWeather08.
+  ///
+  /// In en, this message translates to:
+  /// **'Stale forecast'**
+  String get dashboardWeather08;
+
+  /// No description provided for @dashboardWeather09.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline cache'**
+  String get dashboardWeather09;
+
+  /// No description provided for @dashboardWeather10.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating'**
+  String get dashboardWeather10;
+
+  /// No description provided for @dashboardWeather11.
+  ///
+  /// In en, this message translates to:
+  /// **'No astronomical darkness'**
+  String get dashboardWeather11;
+
+  /// No description provided for @dashboardWeather12.
+  ///
+  /// In en, this message translates to:
+  /// **'No forecast coverage'**
+  String get dashboardWeather12;
+
+  /// No description provided for @dashboardWeather13.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather forecast unavailable. Check your connection.'**
+  String get dashboardWeather13;
+
+  /// No description provided for @dashboardWeather14.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast refresh failed; cached data shown.'**
+  String get dashboardWeather14;
+
+  /// No description provided for @dashboardWeather15.
+  ///
+  /// In en, this message translates to:
+  /// **'Astronomical darkness'**
+  String get dashboardWeather15;
+
+  /// No description provided for @dashboardWeather16.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast coverage'**
+  String get dashboardWeather16;
+
+  /// No description provided for @dashboardWeather17.
+  ///
+  /// In en, this message translates to:
+  /// **'remaining'**
+  String get dashboardWeather17;
+
+  /// No description provided for @dashboardWeather18.
+  ///
+  /// In en, this message translates to:
+  /// **'Qualifying clear hours'**
+  String get dashboardWeather18;
+
+  /// No description provided for @dashboardWeather19.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest clear period'**
+  String get dashboardWeather19;
+
+  /// No description provided for @dashboardWeather20.
+  ///
+  /// In en, this message translates to:
+  /// **'Average cloud cover'**
+  String get dashboardWeather20;
+
+  /// No description provided for @dashboardWeather21.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud trend'**
+  String get dashboardWeather21;
+
+  /// No description provided for @dashboardWeather22.
+  ///
+  /// In en, this message translates to:
+  /// **'improving'**
+  String get dashboardWeather22;
+
+  /// No description provided for @dashboardWeather23.
+  ///
+  /// In en, this message translates to:
+  /// **'stable'**
+  String get dashboardWeather23;
+
+  /// No description provided for @dashboardWeather24.
+  ///
+  /// In en, this message translates to:
+  /// **'worsening'**
+  String get dashboardWeather24;
+
+  /// No description provided for @dashboardWeather25.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown'**
+  String get dashboardWeather25;
+
+  /// No description provided for @dashboardWeather26.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast incomplete: uncovered hours are unknown, not clear.'**
+  String get dashboardWeather26;
+
+  /// No description provided for @dashboardWeather27.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Night Planner'**
+  String get dashboardWeather27;
+
+  /// No description provided for @dashboardWeatherTimeZoneSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a time zone from the list.'**
+  String get dashboardWeatherTimeZoneSelect;
 }
 
 class _AppLocalizationsDelegate

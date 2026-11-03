@@ -1531,4 +1531,92 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboard057 => 'Widgetgröße ändern';
+
+  @override
+  String get dashboardWeather01 => 'Maximale Bewölkung (%)';
+
+  @override
+  String get dashboardWeather02 => 'Minimale Klarphase (Stunden)';
+
+  @override
+  String get dashboardWeather03 => 'Wolkengrenze';
+
+  @override
+  String get dashboardWeather04 => 'Minimale Klarphase';
+
+  @override
+  String get dashboardWeather05 => 'Bewölkung';
+
+  @override
+  String get dashboardWeather06 => 'klar';
+
+  @override
+  String get dashboardWeather07 => 'abgedeckt';
+
+  @override
+  String get dashboardWeather08 => 'Veraltete Prognose';
+
+  @override
+  String get dashboardWeather09 => 'Offline-Zwischenspeicher';
+
+  @override
+  String get dashboardWeather10 => 'Wird aktualisiert';
+
+  @override
+  String get dashboardWeather11 => 'Keine astronomische Dunkelheit';
+
+  @override
+  String get dashboardWeather12 => 'Keine Prognosedaten';
+
+  @override
+  String get dashboardWeather13 =>
+      'Wetterprognose nicht verfügbar. Verbindung prüfen.';
+
+  @override
+  String get dashboardWeather14 =>
+      'Aktualisierung fehlgeschlagen; zwischengespeicherte Daten werden angezeigt.';
+
+  @override
+  String get dashboardWeather15 => 'Astronomische Dunkelheit';
+
+  @override
+  String get dashboardWeather16 => 'Prognoseabdeckung';
+
+  @override
+  String get dashboardWeather17 => 'verbleibend';
+
+  @override
+  String get dashboardWeather18 => 'Geeignete klare Stunden';
+
+  @override
+  String get dashboardWeather19 => 'Längste Klarphase';
+
+  @override
+  String get dashboardWeather20 => 'Durchschnittliche Bewölkung';
+
+  @override
+  String get dashboardWeather21 => 'Bewölkungstrend';
+
+  @override
+  String get dashboardWeather22 => 'Bessert sich';
+
+  @override
+  String get dashboardWeather23 => 'Stabil';
+
+  @override
+  String get dashboardWeather24 => 'Verschlechtert sich';
+
+  @override
+  String get dashboardWeather25 => 'Unbekannt';
+
+  @override
+  String get dashboardWeather26 =>
+      'Unvollständige Prognose: Fehlende Stunden sind unbekannt, nicht klar.';
+
+  @override
+  String get dashboardWeather27 => 'Nachtplaner öffnen';
+
+  @override
+  String get dashboardWeatherTimeZoneSelect =>
+      'Bitte eine Zeitzone aus der Liste auswählen.';
 }

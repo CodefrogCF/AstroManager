@@ -1515,4 +1515,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard057 => 'Resize widget';
+
+  @override
+  String get dashboardWeather01 => 'Maximum cloud cover (%)';
+
+  @override
+  String get dashboardWeather02 => 'Minimum clear duration (hours)';
+
+  @override
+  String get dashboardWeather03 => 'Cloud limit';
+
+  @override
+  String get dashboardWeather04 => 'Minimum clear';
+
+  @override
+  String get dashboardWeather05 => 'Cloud cover';
+
+  @override
+  String get dashboardWeather06 => 'clear';
+
+  @override
+  String get dashboardWeather07 => 'covered';
+
+  @override
+  String get dashboardWeather08 => 'Stale forecast';
+
+  @override
+  String get dashboardWeather09 => 'Offline cache';
+
+  @override
+  String get dashboardWeather10 => 'Updating';
+
+  @override
+  String get dashboardWeather11 => 'No astronomical darkness';
+
+  @override
+  String get dashboardWeather12 => 'No forecast coverage';
+
+  @override
+  String get dashboardWeather13 =>
+      'Weather forecast unavailable. Check your connection.';
+
+  @override
+  String get dashboardWeather14 =>
+      'Forecast refresh failed; cached data shown.';
+
+  @override
+  String get dashboardWeather15 => 'Astronomical darkness';
+
+  @override
+  String get dashboardWeather16 => 'Forecast coverage';
+
+  @override
+  String get dashboardWeather17 => 'remaining';
+
+  @override
+  String get dashboardWeather18 => 'Qualifying clear hours';
+
+  @override
+  String get dashboardWeather19 => 'Longest clear period';
+
+  @override
+  String get dashboardWeather20 => 'Average cloud cover';
+
+  @override
+  String get dashboardWeather21 => 'Cloud trend';
+
+  @override
+  String get dashboardWeather22 => 'improving';
+
+  @override
+  String get dashboardWeather23 => 'stable';
+
+  @override
+  String get dashboardWeather24 => 'worsening';
+
+  @override
+  String get dashboardWeather25 => 'unknown';
+
+  @override
+  String get dashboardWeather26 =>
+      'Forecast incomplete: uncovered hours are unknown, not clear.';
+
+  @override
+  String get dashboardWeather27 => 'Open Night Planner';
+
+  @override
+  String get dashboardWeatherTimeZoneSelect =>
+      'Select a time zone from the list.';
 }

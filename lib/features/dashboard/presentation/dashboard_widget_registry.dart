@@ -7,6 +7,7 @@ import '../../../l10n/app_text.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../domain/dashboard_layout.dart';
 import 'widgets/dashboard_widget_state.dart';
+import 'widgets/seven_night_weather_widget.dart';
 
 /// Metadata and rendering are registered together, independent of the grid.
 /// A widget's Consumer subtree is constructed only while its instance is visible.
@@ -135,13 +136,26 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
         DashboardWidgetSize(4, 1),
         DashboardWidgetSize(4, 2),
       ],
-      builder: (_, ref, environment, instance) =>
-          const DashboardWidgetStateView<Object>(
-            state: DashboardLoadState.unavailable(
-              'Seven-night forecast widget is not yet available.',
-            ),
-            dataBuilder: _unusedData,
-          ),
+      settings: const [
+        DashboardWidgetSetting(
+          key: 'maxCloudPercent',
+          label: 'Maximum cloud cover (%)',
+          type: DashboardSettingType.choice,
+          defaultValue: '30',
+          choices: ['10', '20', '30', '40', '50', '60', '70', '80'],
+        ),
+        DashboardWidgetSetting(
+          key: 'minClearHours',
+          label: 'Minimum clear duration (hours)',
+          type: DashboardSettingType.choice,
+          defaultValue: '2',
+          choices: ['1', '2', '3', '4'],
+        ),
+      ],
+      builder: (_, ref, environment, instance) => SevenNightWeatherWidget(
+        location: environment.location,
+        instance: instance,
+      ),
     ),
     DashboardWidgetDefinition(
       typeId: 'top-targets',
