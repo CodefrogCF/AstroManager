@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -86,10 +87,10 @@ class _AstroManagerShellState extends State<AstroManagerShell> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(_destinations[selectedIndex].label),
+            title: AppText(_destinations[selectedIndex].label),
             leading: !isDesktop && isSettings
                 ? IconButton(
-                    tooltip: 'Back to previous section',
+                    tooltip: appTranslate(context, 'Back to previous section'),
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () => _navigateTo(_lastMainIndex),
                   )
@@ -97,7 +98,7 @@ class _AstroManagerShellState extends State<AstroManagerShell> {
             actions: [
               if (!isDesktop && !isSettings)
                 IconButton(
-                  tooltip: 'Open settings',
+                  tooltip: appTranslate(context, 'Open settings'),
                   icon: const Icon(Icons.settings_outlined),
                   onPressed: () => _navigateTo(_settingsIndex),
                 ),
@@ -119,7 +120,7 @@ class _AstroManagerShellState extends State<AstroManagerShell> {
                           NavigationRailDestination(
                             icon: Icon(item.icon),
                             selectedIcon: Icon(item.selectedIcon),
-                            label: Text(item.label),
+                            label: AppText(item.label),
                           ),
                       ],
                     ),
@@ -140,7 +141,7 @@ class _AstroManagerShellState extends State<AstroManagerShell> {
                       NavigationDestination(
                         icon: Icon(item.icon),
                         selectedIcon: Icon(item.selectedIcon),
-                        label: item.label,
+                        label: appTranslate(context, item.label),
                       ),
                   ],
                 ),

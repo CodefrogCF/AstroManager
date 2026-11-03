@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -78,7 +79,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Unable to save night plan: $error')),
+      SnackBar(content: AppText('Unable to save night plan: $error')),
     );
   }
 
@@ -103,19 +104,19 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
       final remove = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Project unavailable'),
-          content: Text(
+          title: const AppText('Project unavailable'),
+          content: AppText(
             'The saved project "${existing.projectName}" is no longer '
             'available. This block can be removed without changing other plans.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Keep'),
+              child: const AppText('Keep'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete block'),
+              child: const AppText('Delete block'),
             ),
           ],
         ),
@@ -260,15 +261,15 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                       targets: targets,
                     ),
               icon: const Icon(Icons.add),
-              label: const Text('Schedule target'),
+              label: const AppText('Schedule target'),
             ),
             if (forecastEligible && available.isEmpty)
               OutlinedButton.icon(
                 onPressed: () => setState(() => _weatherRequested = true),
                 icon: const Icon(Icons.cloud_outlined),
-                label: const Text('Show weather'),
+                label: const AppText('Show weather'),
               ),
-            const Text('Timeline zoom'),
+            const AppText('Timeline zoom'),
             SizedBox(
               width: 140,
               child: Slider(
@@ -280,7 +281,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                 onChanged: (value) => setState(() => _pixelsPerHour = value),
               ),
             ),
-            Text(
+            AppText(
               '${timeline.duration.inHours} h · ${widget.location.timeZone}',
             ),
           ],
@@ -290,7 +291,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
           spacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(
+            AppText(
               'Minimum target altitude: ${_minimumTargetAltitude.toStringAsFixed(0)}°',
             ),
             SizedBox(
@@ -315,19 +316,19 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
           children: [
             FilterChip(
               key: const ValueKey('night-terrain-toggle'),
-              label: const Text('Use terrain horizon'),
+              label: const AppText('Use terrain horizon'),
               selected: _terrainEnabled,
               onSelected: (enabled) =>
                   setState(() => _terrainEnabled = enabled),
             ),
-            const Text('Azimuth step'),
+            const AppText('Azimuth step'),
             DropdownButton<int>(
               key: const ValueKey('night-terrain-azimuth-step'),
               value: _terrainAzimuthStep,
               items: [5, 10, 15, 30]
                   .map(
                     (step) =>
-                        DropdownMenuItem(value: step, child: Text('$step°')),
+                        DropdownMenuItem(value: step, child: AppText('$step°')),
                   )
                   .toList(),
               onChanged: (step) {
@@ -336,7 +337,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                 }
               },
             ),
-            const Text('Range'),
+            const AppText('Range'),
             DropdownButton<int>(
               key: const ValueKey('night-terrain-range'),
               value: _terrainRangeMeters,
@@ -344,7 +345,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                   .map(
                     (range) => DropdownMenuItem(
                       value: range,
-                      child: Text('${range ~/ 1000} km'),
+                      child: AppText('${range ~/ 1000} km'),
                     ),
                   )
                   .toList(),
@@ -354,7 +355,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                 }
               },
             ),
-            const Text('Radial step'),
+            const AppText('Radial step'),
             DropdownButton<int>(
               key: const ValueKey('night-terrain-distance-step'),
               value: _terrainDistanceStepMeters,
@@ -362,7 +363,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                   .map(
                     (step) => DropdownMenuItem(
                       value: step,
-                      child: Text('${step ~/ 1000} km'),
+                      child: AppText('${step ~/ 1000} km'),
                     ),
                   )
                   .toList(),
@@ -381,31 +382,31 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
               child: Column(
                 children: [
                   LinearProgressIndicator(),
-                  Text(
+                  AppText(
                     'Calculating terrain horizon (online fetch or local cache)…',
                   ),
                 ],
               ),
             ),
           if (terrainState?.hasError ?? false)
-            const Text(
+            const AppText(
               'Terrain elevation unavailable. Existing geometric visibility remains active. '
               'Try again when connected; previous night plans are not affected.',
             ),
           if (terrainProfile != null) ...[
             const SizedBox(height: 8),
             TerrainHorizonChart(profile: terrainProfile),
-            Text(
+            AppText(
               'Elevation source: ${terrainProfile.sourceId} · '
               '${terrainProfile.knownBearings}/${terrainProfile.bearings.length} bearings covered · '
               'profile ${terrainProfile.createdAtUtc.toIso8601String()} UTC.',
             ),
-            Text(
+            AppText(
               'Terrain obstruction reduces visible time for $terrainObstructedTargets '
               'of ${visible.length} displayed target(s).',
             ),
             if (!terrainProfile.isComplete)
-              const Text(
+              const AppText(
                 'Incomplete DEM coverage: visibility is uncertain at missing bearings.',
               ),
             TextButton.icon(
@@ -426,10 +427,10 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                 }
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh terrain profile'),
+              label: const AppText('Refresh terrain profile'),
             ),
           ],
-          const Text(
+          const AppText(
             'Approximate terrain-only horizon: buildings, trees and small obstacles '
             'are excluded. This is not a guaranteed line-of-sight prediction.',
           ),
@@ -438,12 +439,14 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
         if (available.isEmpty)
           const Padding(
             padding: EdgeInsets.all(8),
-            child: Text(
+            child: AppText(
               'Create an imaging project with a target to schedule observing blocks.',
             ),
           ),
         if (projects.expand((p) => p.targetIds).toSet().length > 12)
-          const Text('Displaying the first 12 linked target altitude tracks.'),
+          const AppText(
+            'Displaying the first 12 linked target altitude tracks.',
+          ),
         const SizedBox(height: 8),
         NightTimelineChart(
           timeline: timeline,
@@ -467,36 +470,38 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
         ),
         const SizedBox(height: 8),
         if (conflicts.isNotEmpty)
-          Text(
+          AppText(
             'Schedule conflict: ${conflicts.length} overlapping block(s) highlighted in red.',
             key: const ValueKey('night-plan-conflict'),
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
-        Text(
+        AppText(
           'Altitude curves show geometric target height. Visibility windows are '
           'above ${_minimumTargetAltitude.toStringAsFixed(0)}° in astronomical darkness'
           '${terrainProfile == null ? ' (unobstructed mathematical horizon).' : ' and above the sampled terrain horizon.'}',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         if (forecastEligible && forecast == null)
-          const Text('Weather forecast available on request.')
+          const AppText('Weather forecast available on request.')
         else if (!forecastEligible)
-          const Text(
+          const AppText(
             'Weather: no forecast for this date (outside the supported future window).',
           )
         else if (forecast?.isLoading ?? false)
-          const Text('Loading weather forecast…')
+          const AppText('Loading weather forecast…')
         else if (forecast?.hasError ?? false)
-          const Text('Weather unavailable; observation planning works offline.')
+          const AppText(
+            'Weather unavailable; observation planning works offline.',
+          )
         else if (snapshot != null)
-          Text(
+          AppText(
             'Weather: ${snapshot.forecast.provider.name} · '
             '${snapshot.isStaleAt(now, policy) ? 'STALE cached data' : 'current forecast'}'
             ' · fetched ${snapshot.forecast.fetchedAtUtc.toIso8601String()} UTC.',
           ),
         const SizedBox(height: 8),
         if (blocks.isNotEmpty)
-          Text(
+          AppText(
             'Tap a scheduled bar to edit or remove it. Adjacent blocks do not conflict.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
@@ -523,21 +528,21 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AppText(
               'Interactive night timeline',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 6),
-            const Text(
+            const AppText(
               'Local noon → next local noon · scroll horizontally to inspect the full night.',
             ),
             projects.when(
               loading: () => const LinearProgressIndicator(),
-              error: (error, stack) => Text('Projects unavailable: $error'),
+              error: (error, stack) => AppText('Projects unavailable: $error'),
               data: (items) => blocks.when(
                 loading: () => const LinearProgressIndicator(),
                 error: (error, stack) =>
-                    Text('Saved schedule unavailable: $error'),
+                    AppText('Saved schedule unavailable: $error'),
                 data: (planned) => _content(
                   timeline,
                   items,

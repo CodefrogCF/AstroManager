@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -121,16 +122,16 @@ GoRouter createAppRouter({String? initialLocation}) {
     ],
     errorBuilder: (context, state) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Page not found')),
+        appBar: AppBar(title: const AppText('Page not found')),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('The requested page does not exist.'),
+              const AppText('The requested page does not exist.'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => context.go(AppRoutes.dashboard),
-                child: const Text('Go to Dashboard'),
+                child: const AppText('Go to Dashboard'),
               ),
             ],
           ),

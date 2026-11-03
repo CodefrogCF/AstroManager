@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -85,21 +87,21 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
           _categoryIcon(object.category),
           color: theme.colorScheme.primary,
         ),
-        title: Text(object.displayTitle),
+        title: AppText(object.displayTitle),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (object.commonNames.isNotEmpty)
-              Text(
+              AppText(
                 object.commonNames,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-            Text(
+            AppText(
               '${object.category.label} · '
               '${object.constellation.isEmpty ? "—" : object.constellation}',
             ),
-            Text(
+            AppText(
               '${object.rightAscensionText} · '
               '${object.declinationText}',
             ),
@@ -126,19 +128,19 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   'Celestial Object Catalog',
                   style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
 
-                Text(
+                AppText(
                   'Find suitable celestial targets.',
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 8),
 
-                const Text(
+                const AppText(
                   'Search Messier, NGC and IC objects, '
                   'common names and other identifiers.',
                 ),
@@ -150,7 +152,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                       key: const ValueKey('open-sky-atlas'),
                       onPressed: () => context.push(AppRoutes.atlas),
                       icon: const Icon(Icons.public),
-                      label: const Text('Sky atlas'),
+                      label: const AppText('Sky atlas'),
                     ),
                     FilledButton.icon(
                       key: const ValueKey('open-discovery'),
@@ -159,7 +161,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                       icon: Icon(
                         _showDiscovery ? Icons.list : Icons.auto_awesome,
                       ),
-                      label: Text(
+                      label: AppText(
                         _showDiscovery
                             ? 'Browse catalog'
                             : 'Discover recommended targets',
@@ -176,22 +178,25 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                   TextField(
                     key: const ValueKey('catalog-search'),
                     controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search celestial objects',
-                      hintText: 'M31, NGC 224, Andromeda...',
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: _searchController.text.isEmpty
-                          ? null
-                          : IconButton(
-                              tooltip: 'Clear search',
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _query = '');
-                                _debounce?.cancel();
-                                _search();
-                              },
-                            ),
+                    decoration: localizeDecoration(
+                      context,
+                      InputDecoration(
+                        labelText: 'Search celestial objects',
+                        hintText: 'M31, NGC 224, Andromeda...',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _searchController.text.isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: appTranslate(context, 'Clear search'),
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _query = '');
+                                  _debounce?.cancel();
+                                  _search();
+                                },
+                              ),
+                      ),
                     ),
                     onChanged: (value) {
                       setState(() {});
@@ -207,19 +212,22 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                     ),
                     initialValue: _category?.name ?? 'all',
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Object category',
-                      prefixIcon: Icon(Icons.filter_list),
+                    decoration: localizeDecoration(
+                      context,
+                      const InputDecoration(
+                        labelText: 'Object category',
+                        prefixIcon: Icon(Icons.filter_list),
+                      ),
                     ),
                     items: [
                       const DropdownMenuItem(
                         value: 'all',
-                        child: Text('All categories'),
+                        child: AppText('All categories'),
                       ),
                       for (final category in CelestialCategory.values)
                         DropdownMenuItem(
                           value: category.name,
-                          child: Text(category.label),
+                          child: AppText(category.label),
                         ),
                     ],
                     onChanged: _onCategoryChanged,
@@ -235,7 +243,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                           children: [
                             CircularProgressIndicator(),
                             SizedBox(height: 12),
-                            Text('Loading celestial catalog...'),
+                            AppText('Loading celestial catalog...'),
                           ],
                         ),
                       ),
@@ -244,7 +252,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                     error: (error, stackTrace) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AppText(
                           appErrorMessage(error),
                           style: TextStyle(color: theme.colorScheme.error),
                         ),
@@ -254,7 +262,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                             ref.invalidate(celestialCatalogProvider);
                           },
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
+                          label: const AppText('Retry'),
                         ),
                       ],
                     ),
@@ -262,7 +270,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                     data: (view) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AppText(
                           '${view.totalObjects} catalog objects '
                           'available offline',
                           style: theme.textTheme.titleMedium,
@@ -270,7 +278,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
 
                         const SizedBox(height: 8),
 
-                        Text(
+                        AppText(
                           '${view.results.length} results shown '
                           '(maximum 80)',
                           style: theme.textTheme.bodySmall,
@@ -282,7 +290,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
                           const Card(
                             child: Padding(
                               padding: EdgeInsets.all(24),
-                              child: Text(
+                              child: AppText(
                                 'No matching celestial objects. '
                                 'Try another name or catalog number.',
                               ),
@@ -293,7 +301,7 @@ class _TargetsScreenState extends ConsumerState<TargetsScreen> {
 
                         const SizedBox(height: 24),
 
-                        Text(
+                        AppText(
                           'Source: OpenNGC · CC BY-SA 4.0\n'
                           'Equatorial coordinates: J2000\n'
                           'Magnitude: Johnson V, '

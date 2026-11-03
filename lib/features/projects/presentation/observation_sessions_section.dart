@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,7 +30,7 @@ class _ObservationSessionsSectionState
   void _error(Object error) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Session operation failed: $error')),
+        SnackBar(content: AppText('Session operation failed: $error')),
       );
     }
   }
@@ -58,19 +60,19 @@ class _ObservationSessionsSectionState
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete observation session?'),
-        content: const Text(
+        title: const AppText('Delete observation session?'),
+        content: const AppText(
           'The session and its attached images will be deleted.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const AppText('Cancel'),
           ),
           FilledButton(
             key: const ValueKey('session-delete-confirm'),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const AppText('Delete'),
           ),
         ],
       ),
@@ -122,14 +124,14 @@ class _ObservationSessionsSectionState
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(image.fileName),
+        title: AppText(image.fileName),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700, maxHeight: 500),
           child: FutureBuilder<Uint8List>(
             future: future,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return Text('Unable to open image: ${snapshot.error}');
+                return AppText('Unable to open image: ${snapshot.error}');
               }
               if (!snapshot.hasData) return const CircularProgressIndicator();
               return Image.memory(snapshot.data!, fit: BoxFit.contain);
@@ -139,7 +141,7 @@ class _ObservationSessionsSectionState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: const AppText('Close'),
           ),
         ],
       ),
@@ -180,7 +182,7 @@ class _ObservationSessionsSectionState
         Row(
           children: [
             Expanded(
-              child: Text(
+              child: AppText(
                 'Observation sessions',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
@@ -189,7 +191,7 @@ class _ObservationSessionsSectionState
               key: const ValueKey('session-add'),
               onPressed: _busy ? null : () => _edit(),
               icon: const Icon(Icons.add),
-              label: const Text('Add session'),
+              label: const AppText('Add session'),
             ),
           ],
         ),
@@ -199,14 +201,16 @@ class _ObservationSessionsSectionState
             data.isEmpty
                 ? const Padding(
                     padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('No observation sessions recorded yet.'),
+                    child: AppText('No observation sessions recorded yet.'),
                   )
                 : Column(
                     children: [
                       for (final session in data) _sessionCard(session),
                     ],
                   ),
-          AsyncError(:final error) => Text('Unable to load sessions: $error'),
+          AsyncError(:final error) => AppText(
+            'Unable to load sessions: $error',
+          ),
           _ => const Padding(
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
@@ -224,34 +228,34 @@ class _ObservationSessionsSectionState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AppText(
               _date(session),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            Text(
+            AppText(
               'Exposure: ${session.exposureSeconds}s × ${session.frameCount} '
               '(accepted ${session.acceptedFrames}, rejected ${session.rejectedFrames})',
             ),
-            Text(
+            AppText(
               'Usable integration: '
               '${IntegrationTimeFormatter.format(IntegrationTimeCalculator.acceptedSeconds(session))}',
               key: ValueKey('session-integration-${session.id}'),
             ),
-            Text('Location: ${session.locationName ?? 'Not recorded'}'),
-            Text(
+            AppText('Location: ${session.locationName ?? 'Not recorded'}'),
+            AppText(
               'Camera: ${session.cameraName ?? 'Not recorded'} · '
               'Optics: ${session.opticName ?? 'Not recorded'} · '
               'Mount: ${session.mountName ?? 'Not recorded'}',
             ),
-            Text(
+            AppText(
               'ISO: ${session.iso ?? '—'} · Gain: ${session.gain ?? '—'} · '
               'Aperture: ${session.apertureFNumber ?? '—'} · Bin: ${session.binning}',
             ),
             if (session.filterName.isNotEmpty)
-              Text('Filter: ${session.filterName}'),
+              AppText('Filter: ${session.filterName}'),
             if (session.sensorTemperatureC != null)
-              Text('Sensor: ${session.sensorTemperatureC}°C'),
-            if (session.notes.isNotEmpty) Text(session.notes),
+              AppText('Sensor: ${session.sensorTemperatureC}°C'),
+            if (session.notes.isNotEmpty) AppText(session.notes),
             Wrap(
               spacing: 4,
               children: [
@@ -259,19 +263,19 @@ class _ObservationSessionsSectionState
                   key: ValueKey('session-edit-${session.id}'),
                   onPressed: _busy ? null : () => _edit(session),
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit'),
+                  label: const AppText('Edit'),
                 ),
                 TextButton.icon(
                   key: ValueKey('session-attach-${session.id}'),
                   onPressed: _busy ? null : () => _attach(session),
                   icon: const Icon(Icons.image_outlined),
-                  label: const Text('Attach image'),
+                  label: const AppText('Attach image'),
                 ),
                 TextButton.icon(
                   key: ValueKey('session-delete-${session.id}'),
                   onPressed: _busy ? null : () => _remove(session),
                   icon: const Icon(Icons.delete_outline),
-                  label: const Text('Delete'),
+                  label: const AppText('Delete'),
                 ),
               ],
             ),
@@ -281,13 +285,13 @@ class _ObservationSessionsSectionState
                 children: [
                   for (final image in data)
                     InputChip(
-                      label: Text(image.fileName),
+                      label: AppText(image.fileName),
                       onPressed: () => _show(image),
                       onDeleted: () => _removeImage(image),
                     ),
                 ],
               ),
-              AsyncError(:final error) => Text('Images unavailable: $error'),
+              AsyncError(:final error) => AppText('Images unavailable: $error'),
               _ => const SizedBox.shrink(),
             },
           ],

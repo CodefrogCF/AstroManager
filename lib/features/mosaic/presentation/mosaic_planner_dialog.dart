@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 
 import '../../atlas/domain/sky_atlas_models.dart';
@@ -134,7 +135,7 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
       error = e.toString();
     }
     return AlertDialog(
-      title: const Text('Mosaic planner'),
+      title: const AppText('Mosaic planner'),
       content: SizedBox(
         width: 590,
         child: SingleChildScrollView(
@@ -145,12 +146,15 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                 key: const ValueKey('mosaic-target'),
                 initialValue: _targetId,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Project target'),
+                decoration: localizeDecoration(
+                  context,
+                  const InputDecoration(labelText: 'Project target'),
+                ),
                 items: [
                   for (final t in widget.targets)
                     DropdownMenuItem(
                       value: t.id,
-                      child: Text(
+                      child: AppText(
                         t.displayTitle,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -162,12 +166,15 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                 key: ValueKey('mosaic-profile-$_profileId'),
                 initialValue: _profileId,
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Imaging setup'),
+                decoration: localizeDecoration(
+                  context,
+                  const InputDecoration(labelText: 'Imaging setup'),
+                ),
                 items: [
                   for (final p in widget.equipment.profiles)
                     DropdownMenuItem(
                       value: p.id,
-                      child: Text(p.name, overflow: TextOverflow.ellipsis),
+                      child: AppText(p.name, overflow: TextOverflow.ellipsis),
                     ),
                 ],
                 onChanged: (value) {
@@ -185,8 +192,9 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Center RA (°)',
+                      decoration: localizeDecoration(
+                        context,
+                        const InputDecoration(labelText: 'Center RA (°)'),
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -200,8 +208,9 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                         decimal: true,
                         signed: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Center Dec (°)',
+                      decoration: localizeDecoration(
+                        context,
+                        const InputDecoration(labelText: 'Center Dec (°)'),
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -214,10 +223,13 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                     child: DropdownButtonFormField<int>(
                       key: const ValueKey('mosaic-rows'),
                       initialValue: _rows,
-                      decoration: const InputDecoration(labelText: 'Rows'),
+                      decoration: localizeDecoration(
+                        context,
+                        const InputDecoration(labelText: 'Rows'),
+                      ),
                       items: [
                         for (var i = 1; i <= 10; i++)
-                          DropdownMenuItem(value: i, child: Text('$i')),
+                          DropdownMenuItem(value: i, child: AppText('$i')),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -231,10 +243,13 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                     child: DropdownButtonFormField<int>(
                       key: const ValueKey('mosaic-columns'),
                       initialValue: _columns,
-                      decoration: const InputDecoration(labelText: 'Columns'),
+                      decoration: localizeDecoration(
+                        context,
+                        const InputDecoration(labelText: 'Columns'),
+                      ),
                       items: [
                         for (var i = 1; i <= 10; i++)
-                          DropdownMenuItem(value: i, child: Text('$i')),
+                          DropdownMenuItem(value: i, child: AppText('$i')),
                       ],
                       onChanged: (value) {
                         if (value != null) {
@@ -246,7 +261,7 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                 ],
               ),
               const SizedBox(height: 10),
-              Text('Panel overlap ${_overlap.round()}%'),
+              AppText('Panel overlap ${_overlap.round()}%'),
               Slider(
                 key: const ValueKey('mosaic-overlap'),
                 value: _overlap,
@@ -255,7 +270,7 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                 divisions: 80,
                 onChanged: (v) => setState(() => _overlap = v),
               ),
-              Text('Rotation ${_rotation.round()}° clockwise'),
+              AppText('Rotation ${_rotation.round()}° clockwise'),
               Slider(
                 key: const ValueKey('mosaic-rotation'),
                 value: _rotation,
@@ -265,7 +280,7 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                 onChanged: (v) => setState(() => _rotation = v),
               ),
               if (preview != null) ...[
-                Text(
+                AppText(
                   '${preview.panels.length} panels · '
                   '${preview.widthDegrees.toStringAsFixed(2)}° × '
                   '${preview.heightDegrees.toStringAsFixed(2)}° total',
@@ -285,13 +300,13 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                   ),
                 ),
                 ExpansionTile(
-                  title: const Text('Panel pointing coordinates'),
+                  title: const AppText('Panel pointing coordinates'),
                   children: [
                     for (final p in preview.panels)
                       ListTile(
                         dense: true,
-                        title: Text(p.label),
-                        subtitle: Text(
+                        title: AppText(p.label),
+                        subtitle: AppText(
                           'RA ${p.center.raDegrees.toStringAsFixed(5)}° · '
                           'Dec ${p.center.decDegrees.toStringAsFixed(5)}°',
                         ),
@@ -299,16 +314,16 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
                   ],
                 ),
               ] else
-                Text(
+                AppText(
                   error ?? 'Invalid mosaic configuration',
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               if (_validation != null)
-                Text(
+                AppText(
                   _validation!,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
-              const Text(
+              const AppText(
                 'ICRS/J2000 planning geometry; account separately for '
                 'field rotation, distortion, framing margins and mount limits.',
               ),
@@ -319,12 +334,12 @@ class _MosaicPlannerDialogState extends State<MosaicPlannerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
         FilledButton(
           key: const ValueKey('mosaic-save'),
           onPressed: preview == null ? null : _save,
-          child: const Text('Save mosaic'),
+          child: const AppText('Save mosaic'),
         ),
       ],
     );

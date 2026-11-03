@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -108,11 +109,11 @@ class _TargetCoordinatesPanelState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: Theme.of(context).textTheme.bodySmall),
+          AppText(title, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.titleMedium),
+          AppText(value, style: Theme.of(context).textTheme.titleMedium),
           if (subtitle != null)
-            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
+            AppText(subtitle, style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
@@ -167,7 +168,7 @@ class _TargetCoordinatesPanelState
       children: [
         const SizedBox(height: 16),
 
-        Text(
+        AppText(
           'Calculated position',
           style: Theme.of(context).textTheme.titleMedium,
         ),
@@ -208,7 +209,7 @@ class _TargetCoordinatesPanelState
         const Divider(),
         const SizedBox(height: 12),
 
-        Text(
+        AppText(
           'Mean equatorial coordinates of date',
           style: Theme.of(context).textTheme.titleSmall,
         ),
@@ -239,7 +240,7 @@ class _TargetCoordinatesPanelState
 
         const Divider(),
         const SizedBox(height: 12),
-        Text(
+        AppText(
           'Moonlight conditions',
           style: Theme.of(context).textTheme.titleMedium,
         ),
@@ -265,7 +266,7 @@ class _TargetCoordinatesPanelState
           ],
         ),
         const SizedBox(height: 12),
-        Text(
+        AppText(
           'Angular separation includes lunar topocentric parallax. '
           'Brightness and skyglow depend on atmospheric conditions; '
           'separation alone is not a suitability rating.',
@@ -280,7 +281,7 @@ class _TargetCoordinatesPanelState
           localDate: observingNightDate,
         ),
         const SizedBox(height: 20),
-        Text(
+        AppText(
           'Geometric position using mean sidereal time. '
           'Atmospheric refraction, local obstructions, '
           'nutation and proper motion are not included.',
@@ -296,7 +297,7 @@ class _TargetCoordinatesPanelState
       future: _locations,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Text(
+          return AppText(
             'Unable to load observing locations: '
             '${snapshot.error}',
           );
@@ -314,7 +315,7 @@ class _TargetCoordinatesPanelState
         if (locations.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text(
+            child: AppText(
               'Add an observing location in Settings '
               'to calculate altitude and azimuth.',
             ),
@@ -337,7 +338,7 @@ class _TargetCoordinatesPanelState
           key: const ValueKey('target-coordinates-panel'),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AppText(
               'Observing coordinates',
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -348,13 +349,16 @@ class _TargetCoordinatesPanelState
               key: ValueKey('coordinate-location-${location.id}'),
               initialValue: location.id,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Observing location',
-                prefixIcon: Icon(Icons.place_outlined),
+              decoration: localizeDecoration(
+                context,
+                const InputDecoration(
+                  labelText: 'Observing location',
+                  prefixIcon: Icon(Icons.place_outlined),
+                ),
               ),
               items: [
                 for (final entry in locations)
-                  DropdownMenuItem(value: entry.id, child: Text(entry.name)),
+                  DropdownMenuItem(value: entry.id, child: AppText(entry.name)),
               ],
               onChanged: (id) {
                 setState(() {
@@ -365,7 +369,7 @@ class _TargetCoordinatesPanelState
 
             const SizedBox(height: 8),
 
-            Text(
+            AppText(
               '${location.latitude.toStringAsFixed(4)}° '
               'latitude · '
               '${location.longitude.toStringAsFixed(4)}° '
@@ -375,7 +379,7 @@ class _TargetCoordinatesPanelState
 
             const SizedBox(height: 16),
 
-            Text(
+            AppText(
               _formattedUtc(_utc),
               style: Theme.of(context).textTheme.titleSmall,
             ),
@@ -389,17 +393,17 @@ class _TargetCoordinatesPanelState
                 OutlinedButton.icon(
                   onPressed: _chooseDate,
                   icon: const Icon(Icons.calendar_month),
-                  label: const Text('UTC date'),
+                  label: const AppText('UTC date'),
                 ),
                 OutlinedButton.icon(
                   onPressed: _chooseTime,
                   icon: const Icon(Icons.schedule),
-                  label: const Text('UTC time'),
+                  label: const AppText('UTC time'),
                 ),
                 TextButton.icon(
                   onPressed: _useCurrentTime,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Now'),
+                  label: const AppText('Now'),
                 ),
               ],
             ),

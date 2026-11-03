@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -257,7 +259,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
       if (!mounted) return;
       setState(() => _favorites = before);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not save favorite: $error')),
+        SnackBar(content: AppText('Could not save favorite: $error')),
       );
       return;
     }
@@ -278,7 +280,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
       width: 235,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Text(title), const SizedBox(height: 5), child],
+        children: [AppText(title), const SizedBox(height: 5), child],
       ),
     );
   }
@@ -325,24 +327,24 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             Row(
               children: [
                 CircleAvatar(
-                  child: Text(window.score.score.round().toString()),
+                  child: AppText(window.score.score.round().toString()),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AppText(
                         object.displayTitle,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       if (object.commonNames.isNotEmpty)
-                        Text(
+                        AppText(
                           object.commonNames,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      Text(
+                      AppText(
                         '${object.category.label} · ${object.constellation} · '
                         '${object.visualMagnitude == null ? 'V mag unknown' : 'V mag ${object.visualMagnitude!.toStringAsFixed(1)}'}',
                       ),
@@ -364,17 +366,17 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
+            AppText(
               '${_time(window.startUtc, site)} – ${_time(window.endUtc, site)}',
               key: ValueKey('window-time-${object.id}'),
             ),
-            Text(
+            AppText(
               '${window.duration.inMinutes} min · '
               'Best altitude ${window.bestAltitudeDegrees?.toStringAsFixed(1) ?? 'unknown'}° · '
               '$warnings',
             ),
             if (window.isProvisional)
-              const Text('Provisional recommendation · incomplete inputs'),
+              const AppText('Provisional recommendation · incomplete inputs'),
             OutlinedButton.icon(
               key: ValueKey('details-recommendation-${object.id}'),
               onPressed: () => context.push(
@@ -382,38 +384,42 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                 extra: object,
               ),
               icon: const Icon(Icons.info_outline),
-              label: const Text('Target details'),
+              label: const AppText('Target details'),
             ),
             OutlinedButton.icon(
               key: ValueKey('atlas-recommendation-${object.id}'),
               onPressed: () => context.push(AppRoutes.atlas, extra: object),
               icon: const Icon(Icons.public),
-              label: const Text('View in sky atlas'),
+              label: const AppText('View in sky atlas'),
             ),
             ExpansionTile(
               key: ValueKey('score-details-${object.id}'),
               tilePadding: EdgeInsets.zero,
-              title: Text('Why ${window.score.score.toStringAsFixed(0)}/100?'),
+              title: AppText(
+                'Why ${window.score.score.toStringAsFixed(0)}/100?',
+              ),
               children: [
                 for (final factor in SuitabilityFactor.values)
                   if (window.score.factors.containsKey(factor))
                     ListTile(
                       dense: true,
-                      title: Text(
+                      title: AppText(
                         '${factor.label}: '
                         '${window.score.factors[factor]!.rawScore?.toStringAsFixed(0) ?? 'unknown'}/100',
                       ),
-                      subtitle: Text(window.score.factors[factor]!.explanation),
-                      trailing: Text(
+                      subtitle: AppText(
+                        window.score.factors[factor]!.explanation,
+                      ),
+                      trailing: AppText(
                         '+${window.score.factors[factor]!.contribution.toStringAsFixed(1)}',
                       ),
                     ),
                 if (window.score.constraints.isNotEmpty)
                   for (final reason in window.score.constraints)
-                    ListTile(dense: true, title: Text(reason)),
+                    ListTile(dense: true, title: AppText(reason)),
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Text(window.explanation),
+                  child: AppText(window.explanation),
                 ),
               ],
             ),
@@ -434,8 +440,8 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
     if (_initialError != null) {
       return Column(
         children: [
-          Text('Could not initialize discovery: $_initialError'),
-          OutlinedButton(onPressed: _initialize, child: const Text('Retry')),
+          AppText('Could not initialize discovery: $_initialError'),
+          OutlinedButton(onPressed: _initialize, child: const AppText('Retry')),
         ],
       );
     }
@@ -443,7 +449,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Text(
+          child: AppText(
             'No observing location. Add one in Settings to discover targets.',
           ),
         ),
@@ -455,12 +461,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
       key: const ValueKey('target-discovery-panel'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           'Recommended astrophotography targets',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 6),
-        const Text(
+        const AppText(
           'Ranked for your observing night. Only continuous dark, '
           'visible windows meeting the minimum duration are recommended.',
         ),
@@ -477,7 +483,10 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                 initialValue: _locationId,
                 items: [
                   for (final value in _locations)
-                    DropdownMenuItem(value: value.id, child: Text(value.name)),
+                    DropdownMenuItem(
+                      value: value.id,
+                      child: AppText(value.name),
+                    ),
                 ],
                 onChanged: (value) {
                   setState(() => _locationId = value);
@@ -491,7 +500,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                 key: const ValueKey('discovery-date'),
                 onPressed: _pickDate,
                 icon: const Icon(Icons.calendar_today),
-                label: Text(_dateText()),
+                label: AppText(_dateText()),
               ),
             ),
             _control(
@@ -503,12 +512,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                 items: [
                   const DropdownMenuItem(
                     value: 'none',
-                    child: Text('No setup selected'),
+                    child: AppText('No setup selected'),
                   ),
                   for (final profile in profiles)
                     DropdownMenuItem(
                       value: profile.id,
-                      child: Text(profile.name),
+                      child: AppText(profile.name),
                     ),
                 ],
                 onChanged: (value) {
@@ -526,12 +535,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                 items: [
                   const DropdownMenuItem(
                     value: 'all',
-                    child: Text('All categories'),
+                    child: AppText('All categories'),
                   ),
                   for (final category in CelestialCategory.values)
                     DropdownMenuItem(
                       value: category.name,
-                      child: Text(category.label),
+                      child: AppText(category.label),
                     ),
                 ],
                 onChanged: (value) {
@@ -553,7 +562,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                   for (final minutes in [30, 60, 90, 120, 180])
                     DropdownMenuItem(
                       value: minutes,
-                      child: Text('$minutes minutes'),
+                      child: AppText('$minutes minutes'),
                     ),
                 ],
                 onChanged: (value) {
@@ -567,7 +576,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
               title: 'Minimum target altitude',
               child: Column(
                 children: [
-                  Text('${_minimumAltitude.toStringAsFixed(0)}°'),
+                  AppText('${_minimumAltitude.toStringAsFixed(0)}°'),
                   Slider(
                     key: const ValueKey('discovery-altitude'),
                     min: 0,
@@ -587,9 +596,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
         TextField(
           key: const ValueKey('discovery-search'),
           controller: _search,
-          decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            labelText: 'Find targets by name or catalog identifier',
+          decoration: localizeDecoration(
+            context,
+            const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              labelText: 'Find targets by name or catalog identifier',
+            ),
           ),
           onChanged: _scheduleSearch,
         ),
@@ -603,11 +615,13 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
                 unawaited(_recompute());
               },
             ),
-            const Text('Favorites only'),
+            const AppText('Favorites only'),
             const Spacer(),
             IconButton(
-              tooltip:
-                  'Recalculate recommendations (weather cache policy applies)',
+              tooltip: appTranslate(
+                context,
+                'Recalculate recommendations (weather cache policy applies)',
+              ),
               onPressed: _loading
                   ? null
                   : () {
@@ -619,12 +633,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
           ],
         ),
         const SizedBox(height: 6),
-        Text(
+        AppText(
           _forecastLabel(_weather, _weatherError),
           key: const ValueKey('discovery-weather-status'),
         ),
         if (_weatherError != null)
-          Text(
+          AppText(
             'Forecast detail: $_weatherError',
             style: Theme.of(context).textTheme.bodySmall,
           ),
@@ -632,11 +646,11 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
         if (_loading)
           const LinearProgressIndicator(key: ValueKey('discovery-loading')),
         if (_searchError != null) ...[
-          Text('Recommendation error: $_searchError'),
-          OutlinedButton(onPressed: _recompute, child: const Text('Retry')),
+          AppText('Recommendation error: $_searchError'),
+          OutlinedButton(onPressed: _recompute, child: const AppText('Retry')),
         ],
         if (!_loading && _searchError == null) ...[
-          Text(
+          AppText(
             '${_ranked.length} ranked targets · '
             '$_candidatesConsidered catalog candidates evaluated',
             key: const ValueKey('discovery-results-count'),
@@ -645,7 +659,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             const Card(
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: Text(
+                child: AppText(
                   'No matching observable windows. Try another date, '
                   'a lower altitude, a shorter session or another target.',
                 ),
@@ -654,7 +668,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
           for (final item in _ranked) _recommendationCard(item, site),
         ],
         const SizedBox(height: 8),
-        Text(
+        AppText(
           'Catalog: OpenNGC · Weather: Open-Meteo where available. '
           'Scores are heuristic, not guaranteed imaging outcomes. '
           'A maximum of 24 candidates is evaluated per search.',

@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,7 +19,7 @@ class AppPreferencesSection extends ConsumerWidget {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(appErrorMessage(error))));
+          .showSnackBar(SnackBar(content: AppText(appErrorMessage(error))));
     }
   }
 
@@ -30,9 +31,12 @@ class AppPreferencesSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Application preferences', style: theme.textTheme.headlineSmall),
+        AppText(
+          'Application preferences',
+          style: theme.textTheme.headlineSmall,
+        ),
         const SizedBox(height: 8),
-        Text(
+        AppText(
           'Configure measurement units and time display.',
           style: theme.textTheme.bodyMedium,
         ),
@@ -48,7 +52,7 @@ class AppPreferencesSection extends ConsumerWidget {
           error: (error, stackTrace) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              AppText(
                 appErrorMessage(error),
                 style: TextStyle(color: theme.colorScheme.error),
               ),
@@ -60,7 +64,7 @@ class AppPreferencesSection extends ConsumerWidget {
                     onPressed: () {
                       ref.invalidate(appPreferencesProvider);
                     },
-                    child: const Text('Retry'),
+                    child: const AppText('Retry'),
                   ),
                   TextButton(
                     onPressed: () => _execute(
@@ -69,7 +73,7 @@ class AppPreferencesSection extends ConsumerWidget {
                           .read(appPreferencesProvider.notifier)
                           .restoreDefaults(),
                     ),
-                    child: const Text('Restore defaults'),
+                    child: const AppText('Restore defaults'),
                   ),
                 ],
               ),
@@ -82,18 +86,21 @@ class AppPreferencesSection extends ConsumerWidget {
                 key: ValueKey('units-${values.units.name}'),
                 initialValue: values.units,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Measurement units',
-                  prefixIcon: Icon(Icons.straighten),
+                decoration: localizeDecoration(
+                  context,
+                  const InputDecoration(
+                    labelText: 'Measurement units',
+                    prefixIcon: Icon(Icons.straighten),
+                  ),
                 ),
                 items: const [
                   DropdownMenuItem(
                     value: MeasurementUnits.metric,
-                    child: Text('Metric (km, m, °C)'),
+                    child: AppText('Metric (km, m, °C)'),
                   ),
                   DropdownMenuItem(
                     value: MeasurementUnits.imperial,
-                    child: Text('Imperial (mi, ft, °F)'),
+                    child: AppText('Imperial (mi, ft, °F)'),
                   ),
                 ],
                 onChanged: (value) async {
@@ -114,22 +121,25 @@ class AppPreferencesSection extends ConsumerWidget {
                 key: ValueKey('clock-${values.clockFormat.name}'),
                 initialValue: values.clockFormat,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Time format',
-                  prefixIcon: Icon(Icons.schedule),
+                decoration: localizeDecoration(
+                  context,
+                  const InputDecoration(
+                    labelText: 'Time format',
+                    prefixIcon: Icon(Icons.schedule),
+                  ),
                 ),
                 items: const [
                   DropdownMenuItem(
                     value: ClockFormat.system,
-                    child: Text('Follow system'),
+                    child: AppText('Follow system'),
                   ),
                   DropdownMenuItem(
                     value: ClockFormat.hour24,
-                    child: Text('24-hour clock'),
+                    child: AppText('24-hour clock'),
                   ),
                   DropdownMenuItem(
                     value: ClockFormat.hour12,
-                    child: Text('12-hour clock (AM/PM)'),
+                    child: AppText('12-hour clock (AM/PM)'),
                   ),
                 ],
                 onChanged: (value) async {
@@ -146,14 +156,40 @@ class AppPreferencesSection extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              const ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.language),
-                title: Text('Language'),
-                subtitle: Text(
-                  'System default - full localization '
-                  'planned for v1.0.0.',
+              DropdownButtonFormField<LanguagePreference>(
+                key: ValueKey('language-${values.language.name}'),
+                initialValue: values.language,
+                isExpanded: true,
+                decoration: localizeDecoration(
+                  context,
+                  InputDecoration(
+                    labelText: appTranslate(context, 'Language'),
+                    prefixIcon: const Icon(Icons.language),
+                  ),
                 ),
+                items: const [
+                  DropdownMenuItem(
+                    value: LanguagePreference.system,
+                    child: AppText('System default'),
+                  ),
+                  DropdownMenuItem(
+                    value: LanguagePreference.english,
+                    child: AppText('English'),
+                  ),
+                  DropdownMenuItem(
+                    value: LanguagePreference.german,
+                    child: AppText('German'),
+                  ),
+                ],
+                onChanged: (language) async {
+                  if (language == null) return;
+                  await _execute(
+                    context,
+                    () => ref
+                        .read(appPreferencesProvider.notifier)
+                        .setLanguage(language),
+                  );
+                },
               ),
 
               const SizedBox(height: 12),
@@ -166,7 +202,7 @@ class AppPreferencesSection extends ConsumerWidget {
                       .restoreDefaults(),
                 ),
                 icon: const Icon(Icons.restart_alt),
-                label: const Text('Restore defaults'),
+                label: const AppText('Restore defaults'),
               ),
             ],
           ),

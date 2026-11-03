@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -107,7 +108,10 @@ class _EquipmentEditorDialogState extends State<EquipmentEditorDialog> {
         key: ValueKey(keyName),
         controller: controller,
         keyboardType: TextInputType.numberWithOptions(decimal: !integer),
-        decoration: InputDecoration(labelText: label),
+        decoration: localizeDecoration(
+          context,
+          InputDecoration(labelText: label),
+        ),
         validator: integer
             ? _positiveInteger
             : (value) => _positiveNumber(value, max: max),
@@ -149,7 +153,7 @@ class _EquipmentEditorDialogState extends State<EquipmentEditorDialog> {
     final isMount = widget.kind == EquipmentKind.mount;
 
     return AlertDialog(
-      title: Text(
+      title: AppText(
         widget.item == null
             ? 'Add ${widget.kind.label}'
             : 'Edit ${widget.kind.label}',
@@ -166,9 +170,12 @@ class _EquipmentEditorDialogState extends State<EquipmentEditorDialog> {
                   key: const ValueKey('equipment-name'),
                   controller: _name,
                   maxLength: 120,
-                  decoration: const InputDecoration(
-                    labelText: 'Equipment name',
-                    hintText: 'e.g. Sony a7 II',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Equipment name',
+                      hintText: 'e.g. Sony a7 II',
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -237,9 +244,9 @@ class _EquipmentEditorDialogState extends State<EquipmentEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(onPressed: _save, child: const AppText('Save')),
       ],
     );
   }
@@ -326,7 +333,7 @@ class _OpticalProfileEditorDialogState
     final inventory = widget.inventory;
 
     return AlertDialog(
-      title: Text(
+      title: AppText(
         widget.profile == null
             ? 'Create Optical Profile'
             : 'Edit Optical Profile',
@@ -343,9 +350,12 @@ class _OpticalProfileEditorDialogState
                   key: const ValueKey('profile-name'),
                   controller: _name,
                   maxLength: 120,
-                  decoration: const InputDecoration(
-                    labelText: 'Profile name',
-                    hintText: 'e.g. Wide-field setup',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Profile name',
+                      hintText: 'e.g. Wide-field setup',
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -361,12 +371,15 @@ class _OpticalProfileEditorDialogState
                   key: const ValueKey('profile-camera'),
                   initialValue: _cameraId,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Camera'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Camera'),
+                  ),
                   items: [
                     for (final camera in inventory.cameras)
                       DropdownMenuItem(
                         value: camera.id,
-                        child: Text(camera.name),
+                        child: AppText(camera.name),
                       ),
                   ],
                   onChanged: (value) {
@@ -382,14 +395,15 @@ class _OpticalProfileEditorDialogState
                   key: const ValueKey('profile-optic'),
                   initialValue: _opticId,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Lens or telescope',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Lens or telescope'),
                   ),
                   items: [
                     for (final optic in inventory.optics)
                       DropdownMenuItem(
                         value: optic.id,
-                        child: Text('${optic.name} (${optic.kind.label})'),
+                        child: AppText('${optic.name} (${optic.kind.label})'),
                       ),
                   ],
                   onChanged: (value) {
@@ -405,18 +419,19 @@ class _OpticalProfileEditorDialogState
                   key: const ValueKey('profile-mount'),
                   initialValue: _mountId ?? '',
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Mount (optional)',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Mount (optional)'),
                   ),
                   items: [
                     const DropdownMenuItem(
                       value: '',
-                      child: Text('No mount selected'),
+                      child: AppText('No mount selected'),
                     ),
                     for (final mount in inventory.mounts)
                       DropdownMenuItem(
                         value: mount.id,
-                        child: Text(mount.name),
+                        child: AppText(mount.name),
                       ),
                   ],
                   onChanged: (value) {
@@ -434,9 +449,12 @@ class _OpticalProfileEditorDialogState
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Optical multiplier',
-                    helperText: '1.0 = native, 0.8 = reducer, 2.0 = Barlow',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Optical multiplier',
+                      helperText: '1.0 = native, 0.8 = reducer, 2.0 = Barlow',
+                    ),
                   ),
                   validator: (value) {
                     final factor = double.tryParse(
@@ -461,9 +479,9 @@ class _OpticalProfileEditorDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(onPressed: _save, child: const AppText('Save')),
       ],
     );
   }

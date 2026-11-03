@@ -31,6 +31,8 @@ class SkyAtlasController extends ChangeNotifier {
   MosaicFootprint? _mosaic;
   SkyAtlasProjectionMode _projectionMode = SkyAtlasProjectionMode.detail;
   SkyDomeOverlay? _dome;
+  // null: Aladin native controls follow responsive default (hidden on phones).
+  bool? _showAladinControls;
 
   SkyAtlasPosition get position => _position;
   double get fieldOfViewDegrees => _fieldOfViewDegrees;
@@ -43,6 +45,7 @@ class SkyAtlasController extends ChangeNotifier {
   MosaicFootprint? get mosaic => _mosaic;
   SkyAtlasProjectionMode get projectionMode => _projectionMode;
   SkyDomeOverlay? get dome => _dome;
+  bool? get showAladinControls => _showAladinControls;
 
   String get stateJson => SkyAtlasProtocol.state(
     position: _position,
@@ -53,6 +56,7 @@ class SkyAtlasController extends ChangeNotifier {
     mosaic: _mosaic,
     projectionMode: _projectionMode,
     dome: _dome,
+    showAladinControls: _showAladinControls,
   );
 
   void _validate() {
@@ -65,6 +69,7 @@ class SkyAtlasController extends ChangeNotifier {
       mosaic: _mosaic,
       projectionMode: _projectionMode,
       dome: _dome,
+      showAladinControls: _showAladinControls,
     );
   }
 
@@ -119,6 +124,13 @@ class SkyAtlasController extends ChangeNotifier {
 
   void setCameraFrame(CameraFramingFootprint? frame) {
     _cameraFrame = frame;
+    _revision++;
+    notifyListeners();
+  }
+
+  void setShowAladinControls(bool? value) {
+    if (_showAladinControls == value) return;
+    _showAladinControls = value;
     _revision++;
     notifyListeners();
   }

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -248,14 +250,14 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
               ListTile(
                 key: const ValueKey('target-new-project'),
                 leading: const Icon(Icons.add),
-                title: const Text('Create a new planned project'),
+                title: const AppText('Create a new planned project'),
                 onTap: () => Navigator.pop(context, ''),
               ),
               for (final project in projects)
                 ListTile(
                   key: ValueKey('target-project-${project.id}'),
-                  title: Text(project.title),
-                  subtitle: Text(
+                  title: AppText(project.title),
+                  subtitle: AppText(
                     project.targetIds.contains(object.id)
                         ? 'Already associated'
                         : 'Add this target to the project',
@@ -287,13 +289,13 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
       if (!mounted) return;
       ref.invalidate(plannedProjectsListProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Target saved to planned projects.')),
+        const SnackBar(content: AppText('Target saved to planned projects.')),
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Unable to save project: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: AppText('Unable to save project: $error')),
+      );
     }
   }
 
@@ -303,7 +305,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
+          AppText(title, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 10),
           child,
         ],
@@ -315,22 +317,22 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
     spacing: 18,
     runSpacing: 8,
     children: [
-      Text('Type: ${object.category.label} (${object.sourceType})'),
-      Text(
+      AppText('Type: ${object.category.label} (${object.sourceType})'),
+      AppText(
         'Constellation: ${object.constellation.isEmpty ? 'Unknown' : object.constellation}',
       ),
-      Text('RA J2000: ${object.rightAscensionText}'),
-      Text('Dec J2000: ${object.declinationText}'),
-      Text(
+      AppText('RA J2000: ${object.rightAscensionText}'),
+      AppText('Dec J2000: ${object.declinationText}'),
+      AppText(
         'V magnitude: ${object.visualMagnitude?.toStringAsFixed(2) ?? 'Unknown'}',
       ),
-      Text(
+      AppText(
         'Major axis: ${object.majorAxisArcmin == null ? 'Unknown' : '${object.majorAxisArcmin}′'}',
       ),
-      Text(
+      AppText(
         'Minor axis: ${object.minorAxisArcmin == null ? 'Unknown' : '${object.minorAxisArcmin}′'}',
       ),
-      if (object.aliases.isNotEmpty) Text('Identifiers: ${object.aliases}'),
+      if (object.aliases.isNotEmpty) AppText('Identifiers: ${object.aliases}'),
     ],
   );
 
@@ -339,7 +341,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        const AppText(
           'Geometric altitude over the observing night; shaded periods have astronomical darkness.',
         ),
         const SizedBox(height: 8),
@@ -355,14 +357,14 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        Text(
+        AppText(
           '${_local(visibility.periodStartUtc)} → ${_local(visibility.periodEndUtc)}',
         ),
-        Text(
+        AppText(
           'Usable above 30°: ${visibility.totalVisibleDuration.inMinutes} minutes',
         ),
         if (visibility.bestTimeUtc != null)
-          Text(
+          AppText(
             'Highest usable altitude: ${visibility.bestAltitudeDegrees!.toStringAsFixed(1)}° at ${_local(visibility.bestTimeUtc!)}',
           ),
       ],
@@ -376,20 +378,20 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
       spacing: 16,
       runSpacing: 10,
       children: [
-        Text('Phase: ${position.phase.label}'),
-        Text(
+        AppText('Phase: ${position.phase.label}'),
+        AppText(
           'Illuminated: ${(position.illuminationFraction * 100).toStringAsFixed(0)}%',
         ),
-        Text(
+        AppText(
           'Altitude: ${position.horizontal.altitudeDegrees.toStringAsFixed(1)}°',
         ),
-        Text(
+        AppText(
           'Azimuth: ${position.horizontal.azimuthDegrees?.toStringAsFixed(1) ?? 'Undefined'}°',
         ),
-        Text(
+        AppText(
           'Moon–target separation: ${moon.targetSeparationDegrees.toStringAsFixed(1)}°',
         ),
-        Text('Evaluated at ${_local(position.utc)}'),
+        AppText('Evaluated at ${_local(position.utc)}'),
       ],
     );
   }
@@ -397,7 +399,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
   Widget _weatherInfo(TargetDetailAnalysisResult analysis) {
     final snapshot = _weather;
     if (snapshot == null) {
-      return Text(
+      return AppText(
         _weatherError == null
             ? 'No weather forecast available. Any suitability score is provisional.'
             : 'Weather unavailable / offline: $_weatherError. Scores are provisional.',
@@ -418,28 +420,30 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           '${snapshot.forecast.provider.name} · ${stale ? 'STALE, not current' : snapshot.origin.name}',
         ),
-        Text(
+        AppText(
           'Retrieved: ${_local(snapshot.forecast.fetchedAtUtc)} · '
           'Issue time: ${_local(snapshot.forecast.issuedAtUtc)}'
           '${snapshot.forecast.issuedAtIsEstimated ? ' (estimated)' : ''}',
         ),
         if (hour == null)
-          const Text('No forecast hour covers the selected observing period.'),
+          const AppText(
+            'No forecast hour covers the selected observing period.',
+          ),
         if (hour != null) ...[
-          Text('Forecast hour: ${_local(hour.timeUtc)}'),
-          Text(
+          AppText('Forecast hour: ${_local(hour.timeUtc)}'),
+          AppText(
             'Cloud: ${cloud == null ? 'Unknown' : '${cloud.toStringAsFixed(0)}%'} · '
             'Precipitation: ${precipitation == null ? 'Unknown' : '${precipitation.toStringAsFixed(1)} mm/h'} · '
             'Wind: ${wind == null ? 'Unknown' : '${wind.toStringAsFixed(1)} m/s'}',
           ),
         ],
         if (snapshot.refreshError != null)
-          Text('Last refresh failed: ${snapshot.refreshError}'),
+          AppText('Last refresh failed: ${snapshot.refreshError}'),
         if (stale)
-          const Text(
+          const AppText(
             'Outdated forecasts are not treated as favorable conditions.',
           ),
       ],
@@ -449,7 +453,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
   Widget _scoreInfo(TargetDetailAnalysisResult analysis) {
     final windows = analysis.recommendations.rankedWindows;
     if (windows.isEmpty) {
-      return Text(
+      return AppText(
         analysis.recommendations.excludedTargets[_object!.id] ??
             'No qualifying dark visibility window for this location and date.',
       );
@@ -458,17 +462,17 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           '${best.score.score.toStringAsFixed(0)}/100'
           '${best.isProvisional ? ' · Provisional (incomplete inputs)' : ''}',
           key: const ValueKey('target-suitability-score'),
           style: Theme.of(context).textTheme.headlineSmall,
         ),
-        Text(
+        AppText(
           'Recommended: ${_local(best.startUtc)} – ${_local(best.endUtc)} '
           '(${best.duration.inMinutes} min)',
         ),
-        Text(
+        AppText(
           'Weather coverage: ${best.weatherStatus.name} · '
           '${(best.weatherTimeCoverage * 100).toStringAsFixed(0)}% time',
         ),
@@ -476,24 +480,24 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
           if (best.score.factors.containsKey(factor))
             ListTile(
               dense: true,
-              title: Text(
+              title: AppText(
                 '${factor.label}: '
                 '${best.score.factors[factor]!.rawScore?.toStringAsFixed(0) ?? 'Unknown'}/100',
               ),
-              subtitle: Text(best.score.factors[factor]!.explanation),
-              trailing: Text(
+              subtitle: AppText(best.score.factors[factor]!.explanation),
+              trailing: AppText(
                 '+${best.score.factors[factor]!.contribution.toStringAsFixed(1)}',
               ),
             ),
-        for (final constraint in best.score.constraints) Text(constraint),
-        Text(best.explanation),
+        for (final constraint in best.score.constraints) AppText(constraint),
+        AppText(best.explanation),
       ],
     );
   }
 
   Widget _equipmentInfo(TargetDetailAnalysisResult analysis) {
     if (analysis.equipment.isEmpty) {
-      return const Text(
+      return const AppText(
         'No valid camera + optic profiles. Add an imaging setup in Equipment.',
       );
     }
@@ -503,8 +507,8 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
         for (final suggestion in analysis.equipment.take(8))
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text(suggestion.profile.name),
-            subtitle: Text(
+            title: AppText(suggestion.profile.name),
+            subtitle: AppText(
               '${suggestion.metrics.horizontalFovDegrees.toStringAsFixed(2)}° × '
               '${suggestion.metrics.verticalFovDegrees.toStringAsFixed(2)}° · '
               '${suggestion.description}',
@@ -517,7 +521,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
               unawaited(_recalculate());
             },
           ),
-        const Text(
+        const AppText(
           'FoV fit is a conservative 0° orientation estimate; check rotation in Sky Atlas.',
         ),
       ],
@@ -529,16 +533,16 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
     final object = _object;
     final analysis = _analysis;
     return Scaffold(
-      appBar: AppBar(title: Text(object?.displayTitle ?? 'Target details')),
+      appBar: AppBar(title: AppText(object?.displayTitle ?? 'Target details')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (object != null) ...[
-            Text(
+            AppText(
               object.displayTitle,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            if (object.commonNames.isNotEmpty) Text(object.commonNames),
+            if (object.commonNames.isNotEmpty) AppText(object.commonNames),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -547,13 +551,13 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
                 OutlinedButton.icon(
                   key: const ValueKey('details-open-atlas'),
                   icon: const Icon(Icons.public),
-                  label: const Text('View in sky atlas'),
+                  label: const AppText('View in sky atlas'),
                   onPressed: () => context.push(AppRoutes.atlas, extra: object),
                 ),
                 FilledButton.icon(
                   key: const ValueKey('details-save-project'),
                   icon: const Icon(Icons.bookmark_add_outlined),
-                  label: const Text('Save as project'),
+                  label: const AppText('Save as project'),
                   onPressed: _saveProject,
                 ),
               ],
@@ -572,14 +576,15 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
                       key: const ValueKey('details-location'),
                       isExpanded: true,
                       initialValue: _locationId,
-                      decoration: const InputDecoration(
-                        labelText: 'Observing location',
+                      decoration: localizeDecoration(
+                        context,
+                        const InputDecoration(labelText: 'Observing location'),
                       ),
                       items: [
                         for (final location in _locations)
                           DropdownMenuItem(
                             value: location.id,
-                            child: Text(
+                            child: AppText(
                               location.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -595,7 +600,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
                   OutlinedButton.icon(
                     key: const ValueKey('details-date'),
                     icon: const Icon(Icons.calendar_month),
-                    label: Text(
+                    label: AppText(
                       '${_date.year}-${_date.month.toString().padLeft(2, '0')}-'
                       '${_date.day.toString().padLeft(2, '0')}',
                     ),
@@ -607,19 +612,20 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
                       key: const ValueKey('details-optics'),
                       isExpanded: true,
                       initialValue: _profileId ?? 'none',
-                      decoration: const InputDecoration(
-                        labelText: 'Imaging setup',
+                      decoration: localizeDecoration(
+                        context,
+                        const InputDecoration(labelText: 'Imaging setup'),
                       ),
                       items: [
                         const DropdownMenuItem(
                           value: 'none',
-                          child: Text('No setup selected'),
+                          child: AppText('No setup selected'),
                         ),
                         for (final profile
                             in _equipment?.profiles ?? <OpticalProfile>[])
                           DropdownMenuItem(
                             value: profile.id,
-                            child: Text(
+                            child: AppText(
                               profile.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -642,14 +648,17 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
               child: LinearProgressIndicator(),
             ),
           if (_error != null) ...[
-            Text(
+            AppText(
               _error!,
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
-            OutlinedButton(onPressed: _initialize, child: const Text('Retry')),
+            OutlinedButton(
+              onPressed: _initialize,
+              child: const AppText('Retry'),
+            ),
           ],
           if (object != null && _locations.isEmpty && !_busy)
-            const Text(
+            const AppText(
               'Add an observing location in Settings to calculate visibility and weather.',
             ),
           if (analysis != null && !_busy) ...[
@@ -659,11 +668,11 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     '${analysis.solar.astronomicalDarkness.length} astronomical darkness interval(s)',
                   ),
                   for (final interval in analysis.solar.astronomicalDarkness)
-                    Text(
+                    AppText(
                       '${_local(interval.startUtc)} – ${_local(interval.endUtc)}',
                     ),
                   const SizedBox(height: 10),
@@ -681,7 +690,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
           if (object != null)
             const Padding(
               padding: EdgeInsets.all(12),
-              child: Text(
+              child: AppText(
                 'Source: OpenNGC (CC BY-SA 4.0). Positions are geometric planning estimates;'
                 ' local terrain and atmospheric refraction are not modeled.',
               ),

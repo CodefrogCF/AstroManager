@@ -9,11 +9,13 @@ class AppPreferences {
     required this.units,
     required this.clockFormat,
     required this.language,
+    this.onboardingCompleted = false,
   });
 
   final MeasurementUnits units;
   final ClockFormat clockFormat;
   final LanguagePreference language;
+  final bool onboardingCompleted;
 
   static const defaults = AppPreferences(
     units: MeasurementUnits.metric,
@@ -25,11 +27,13 @@ class AppPreferences {
     MeasurementUnits? units,
     ClockFormat? clockFormat,
     LanguagePreference? language,
+    bool? onboardingCompleted,
   }) {
     return AppPreferences(
       units: units ?? this.units,
       clockFormat: clockFormat ?? this.clockFormat,
       language: language ?? this.language,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
     );
   }
 
@@ -38,6 +42,7 @@ class AppPreferences {
     'units': units.name,
     'clockFormat': clockFormat.name,
     'language': language.name,
+    'onboardingCompleted': onboardingCompleted,
   };
 
   factory AppPreferences.fromJson(Map<String, dynamic> json) {
@@ -57,6 +62,7 @@ class AppPreferences {
         json['language'],
         'language',
       ),
+      onboardingCompleted: json['onboardingCompleted'] == true,
     );
   }
 
@@ -77,8 +83,10 @@ class AppPreferences {
       other is AppPreferences &&
       other.units == units &&
       other.clockFormat == clockFormat &&
-      other.language == language;
+      other.language == language &&
+      other.onboardingCompleted == onboardingCompleted;
 
   @override
-  int get hashCode => Object.hash(units, clockFormat, language);
+  int get hashCode =>
+      Object.hash(units, clockFormat, language, onboardingCompleted);
 }

@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -235,7 +236,7 @@ class _ObservationSessionEditorDialogState
       decimal: true,
       signed: true,
     ),
-    decoration: InputDecoration(labelText: label),
+    decoration: localizeDecoration(context, InputDecoration(labelText: label)),
     validator: (text) =>
         _numericValidator(text, integer: integer, optional: optional),
   );
@@ -251,13 +252,13 @@ class _ObservationSessionEditorDialogState
     key: ValueKey(keyName),
     isExpanded: true,
     initialValue: selectedId ?? '__none__',
-    decoration: InputDecoration(labelText: label),
+    decoration: localizeDecoration(context, InputDecoration(labelText: label)),
     items: [
-      const DropdownMenuItem(value: '__none__', child: Text('Not selected')),
+      const DropdownMenuItem(value: '__none__', child: AppText('Not selected')),
       if (selectedId != null && !options.any((item) => item.id == selectedId))
         DropdownMenuItem(
           value: selectedId,
-          child: Text(
+          child: AppText(
             '${oldName ?? selectedId} (unavailable)',
             overflow: TextOverflow.ellipsis,
           ),
@@ -265,7 +266,7 @@ class _ObservationSessionEditorDialogState
       for (final item in options)
         DropdownMenuItem(
           value: item.id,
-          child: Text(item.name, overflow: TextOverflow.ellipsis),
+          child: AppText(item.name, overflow: TextOverflow.ellipsis),
         ),
     ],
     onChanged: (value) => onChanged(value == '__none__' ? null : value),
@@ -279,7 +280,7 @@ class _ObservationSessionEditorDialogState
         ref.watch(equipmentProvider).value ??
         EquipmentInventory(items: [], profiles: []);
     return AlertDialog(
-      title: Text(
+      title: AppText(
         widget.session == null
             ? 'New observation session'
             : 'Edit observation session',
@@ -301,7 +302,7 @@ class _ObservationSessionEditorDialogState
                       key: const ValueKey('session-date'),
                       onPressed: _pickDate,
                       icon: const Icon(Icons.event),
-                      label: Text(
+                      label: AppText(
                         '${_wallClock.year}-${_wallClock.month.toString().padLeft(2, '0')}-${_wallClock.day.toString().padLeft(2, '0')}',
                       ),
                     ),
@@ -309,7 +310,7 @@ class _ObservationSessionEditorDialogState
                       key: const ValueKey('session-time'),
                       onPressed: _pickTime,
                       icon: const Icon(Icons.schedule),
-                      label: Text(_clock.format(context)),
+                      label: AppText(_clock.format(context)),
                     ),
                   ],
                 ),
@@ -318,26 +319,27 @@ class _ObservationSessionEditorDialogState
                   key: const ValueKey('session-location'),
                   isExpanded: true,
                   initialValue: _locationId ?? '__none__',
-                  decoration: const InputDecoration(
-                    labelText: 'Observing location',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Observing location'),
                   ),
                   items: [
                     const DropdownMenuItem(
                       value: '__none__',
-                      child: Text('Not selected (UTC)'),
+                      child: AppText('Not selected (UTC)'),
                     ),
                     if (_locationId != null &&
                         !locations.any((item) => item.id == _locationId))
                       DropdownMenuItem(
                         value: _locationId,
-                        child: Text(
+                        child: AppText(
                           '${widget.session?.locationName ?? _locationId} (unavailable)',
                         ),
                       ),
                     for (final location in locations)
                       DropdownMenuItem(
                         value: location.id,
-                        child: Text(
+                        child: AppText(
                           location.name,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -356,7 +358,7 @@ class _ObservationSessionEditorDialogState
                     }
                   }),
                 ),
-                Text(
+                AppText(
                   'Time zone: $_zoneId (saved with UTC offset)',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
@@ -418,7 +420,7 @@ class _ObservationSessionEditorDialogState
                   'session-rejected',
                   integer: true,
                 ),
-                const Text('Use either ISO or gain; leave the other empty.'),
+                const AppText('Use either ISO or gain; leave the other empty.'),
                 Row(
                   children: [
                     Expanded(
@@ -464,7 +466,10 @@ class _ObservationSessionEditorDialogState
                 ),
                 TextFormField(
                   controller: _filter,
-                  decoration: const InputDecoration(labelText: 'Filter'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Filter'),
+                  ),
                 ),
                 _number(
                   'Sensor temperature (°C)',
@@ -475,12 +480,15 @@ class _ObservationSessionEditorDialogState
                 TextFormField(
                   controller: _notes,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Session notes'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Session notes'),
+                  ),
                 ),
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 10),
-                    child: Text(
+                    child: AppText(
                       _error!,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
@@ -495,12 +503,12 @@ class _ObservationSessionEditorDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
         FilledButton(
           key: const ValueKey('session-save'),
           onPressed: _save,
-          child: const Text('Save session'),
+          child: const AppText('Save session'),
         ),
       ],
     );

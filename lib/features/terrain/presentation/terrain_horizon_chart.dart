@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 
 import '../domain/terrain_horizon.dart';
@@ -16,7 +18,7 @@ class TerrainHorizonChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Terrain horizon (degrees above horizontal)'),
+        const AppText('Terrain horizon (degrees above horizontal)'),
         const SizedBox(height: 4),
         SizedBox(
           height: 156,
@@ -34,11 +36,11 @@ class TerrainHorizonChart extends StatelessWidget {
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('N · 0°'),
-            Text('E · 90°'),
-            Text('S · 180°'),
-            Text('W · 270°'),
-            Text('N · 360°'),
+            AppText('N · 0°'),
+            AppText('E · 90°'),
+            AppText('S · 180°'),
+            AppText('W · 270°'),
+            AppText('N · 360°'),
           ],
         ),
       ],

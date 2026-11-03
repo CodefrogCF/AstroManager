@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -34,9 +35,9 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
 
   void _error(Object error) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Project operation failed: $error')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: AppText('Project operation failed: $error')),
+    );
   }
 
   Future<void> _update(PlannedImagingProject project) async {
@@ -75,19 +76,19 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete project?'),
-        content: Text(
+        title: const AppText('Delete project?'),
+        content: AppText(
           'Permanently delete "${_project.title}" and its target associations?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const AppText('Cancel'),
           ),
           FilledButton(
             key: const ValueKey('project-delete-confirm'),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const AppText('Delete'),
           ),
         ],
       ),
@@ -124,7 +125,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
       },
     );
     return Scaffold(
-      appBar: AppBar(title: Text(_project.title)),
+      appBar: AppBar(title: AppText(_project.title)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -133,12 +134,12 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Chip(label: Text(_project.status.label)),
+              Chip(label: AppText(_project.status.label)),
               OutlinedButton.icon(
                 key: const ValueKey('project-edit'),
                 onPressed: _busy ? null : _edit,
                 icon: const Icon(Icons.edit_outlined),
-                label: const Text('Edit'),
+                label: const AppText('Edit'),
               ),
               OutlinedButton.icon(
                 key: const ValueKey('project-archive'),
@@ -148,7 +149,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                       ? Icons.unarchive_outlined
                       : Icons.archive_outlined,
                 ),
-                label: Text(
+                label: AppText(
                   _project.status == ImagingProjectStatus.archived
                       ? 'Restore'
                       : 'Archive',
@@ -158,7 +159,7 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
                 key: const ValueKey('project-delete'),
                 onPressed: _busy ? null : _delete,
                 icon: const Icon(Icons.delete_outline),
-                label: const Text('Delete'),
+                label: const AppText('Delete'),
               ),
             ],
           ),
@@ -167,31 +168,36 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           if (_project.description.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
-              child: Text(_project.description),
+              child: AppText(_project.description),
             ),
-          Text('Imaging plan', style: Theme.of(context).textTheme.titleLarge),
+          AppText(
+            'Imaging plan',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           ProjectIntegrationProgress(project: _project),
-          Text(
+          AppText(
             'Imaging goal: ${_project.imagingGoal.isEmpty ? 'Not specified' : _project.imagingGoal}',
           ),
-          Text('Observing date: ${_project.observingDate ?? 'Not scheduled'}'),
-          Text('Location: ${_project.locationId ?? 'Not assigned'}'),
-          Text(
+          AppText(
+            'Observing date: ${_project.observingDate ?? 'Not scheduled'}',
+          ),
+          AppText('Location: ${_project.locationId ?? 'Not assigned'}'),
+          AppText(
             'Imaging setup: ${_project.opticalProfileId == null ? 'Not assigned' : profile ?? '${_project.opticalProfileId} (profile unavailable)'}',
           ),
           if (_project.windowStartUtc != null)
-            Text(
+            AppText(
               'Window: ${_project.windowStartUtc!.toLocal()} – '
               '${_project.windowEndUtc?.toLocal() ?? 'Not specified'}',
             ),
           const SizedBox(height: 18),
-          Text(
+          AppText(
             'Celestial targets',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           if (_project.targetIds.isEmpty)
-            const Text(
+            const AppText(
               'No targets assigned. Use Edit to add a catalog target.',
             ),
           for (final id in _project.targetIds)
@@ -199,17 +205,17 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               future: _findTarget(id),
               builder: (context, snapshot) => ListTile(
                 leading: const Icon(Icons.auto_awesome_outlined),
-                title: Text(snapshot.data?.displayTitle ?? id),
+                title: AppText(snapshot.data?.displayTitle ?? id),
                 subtitle: snapshot.hasError
-                    ? const Text(
+                    ? const AppText(
                         'Catalog unavailable — saved identifier retained',
                       )
                     : snapshot.connectionState == ConnectionState.done &&
                           snapshot.data == null
-                    ? const Text(
+                    ? const AppText(
                         'Catalog object not found — reference retained',
                       )
-                    : Text(id),
+                    : AppText(id),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(
                   AppRoutes.targetDetails(id),
@@ -222,11 +228,11 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
           const SizedBox(height: 18),
           ObservationSessionsSection(projectId: _project.id),
           const SizedBox(height: 18),
-          Text('Notes', style: Theme.of(context).textTheme.titleLarge),
-          Text(_project.notes.isEmpty ? 'No notes yet.' : _project.notes),
+          AppText('Notes', style: Theme.of(context).textTheme.titleLarge),
+          AppText(_project.notes.isEmpty ? 'No notes yet.' : _project.notes),
           const SizedBox(height: 18),
-          Text('Created: ${_project.createdAtUtc.toLocal()}'),
-          Text('Last updated: ${_project.updatedAtUtc.toLocal()}'),
+          AppText('Created: ${_project.createdAtUtc.toLocal()}'),
+          AppText('Last updated: ${_project.updatedAtUtc.toLocal()}'),
         ],
       ),
     );

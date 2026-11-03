@@ -81,3 +81,17 @@ In **Settings**, choose Codefrog Light, Codefrog Dark, Astronomy Night or system
 | Old data is not visible after reinstall | Restore a recent `.ambackup` file; local app/browser storage is not automatically synchronized. |
 
 For physical limitations, source conditions and credits see [Data sources and limitations](data-sources.md).
+
+## First-run guide and language
+
+When the app is first opened, its dashboard offers a short optional setup guide. Choose a language (system default, English or German), add an observing location, and optionally configure your imaging equipment. You may skip any step; no account or registration is needed. Location permissions are only requested if you select **Use current location** in the location editor. An observing site can also be entered entirely manually. Restart the guide from **Settings → Open the setup guide**.
+
+Change the interface language later under **Settings → Application preferences → Language**. The language setting persists offline and is included in application preferences backups. Some scientific identifiers, catalog names, third-party dataset credits and numerical units intentionally remain unchanged in translation.
+
+## Atlas control visibility on phones
+
+The mobile Sky Atlas shows the sky first and puts AstroManager's View, Setup, Frame, and Info controls into a collapsible sheet. The Aladin Lite widget toolbar is hidden on narrow viewports to avoid controls overlapping the sky or AstroManager's sheet. Open **Info → Use Aladin controls** to show it again. On wider screens this option is next to the atlas mode selector. The compact attribution label and full data-source credits always remain accessible.
+
+## Accessibility
+
+Flutter screen labels and tooltips use the selected language. Standard UI text follows platform text scaling; dialogs and the onboarding guide are scrollable. Theme text colors were checked for readable light, dark and red astronomy-night contrast. Sky-map imagery, some dense altitude charts and third-party embedded elements have accessibility limitations; a screen reader cannot describe every graphical pixel.

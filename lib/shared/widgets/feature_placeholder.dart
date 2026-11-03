@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_text.dart';
+
 class FeaturePlaceholder extends StatelessWidget {
   const FeaturePlaceholder({
     required this.title,
@@ -28,13 +30,13 @@ class FeaturePlaceholder extends StatelessWidget {
                 color: theme.colorScheme.primary,
               ),
               const SizedBox(height: 20),
-              Text(
+              AppText(
                 title,
                 style: theme.textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              Text(
+              AppText(
                 description,
                 style: theme.textTheme.bodyLarge,
                 textAlign: TextAlign.center,

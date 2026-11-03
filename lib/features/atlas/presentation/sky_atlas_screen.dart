@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -281,7 +283,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
           return locations.when(
             loading: () => const LinearProgressIndicator(),
             error: (error, stack) =>
-                Text('Observing sites unavailable: $error'),
+                AppText('Observing sites unavailable: $error'),
             data: (items) {
               if (!identical(_lastProviderLocations, items)) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -308,7 +310,9 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (_locations.isEmpty)
-          const Text('Add an observing location to display the local horizon.'),
+          const AppText(
+            'Add an observing location to display the local horizon.',
+          ),
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 8,
@@ -321,15 +325,18 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                   key: ValueKey('dome-site-${_locationId ?? 'none'}'),
                   initialValue: site?.id,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Observing location',
-                    isDense: true,
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Observing location',
+                      isDense: true,
+                    ),
                   ),
                   items: [
                     for (final entry in _locations)
                       DropdownMenuItem(
                         value: entry.id,
-                        child: Text(
+                        child: AppText(
                           entry.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -343,16 +350,16 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                   },
                 ),
               ),
-            Text(utc.length >= 16 ? '${utc.substring(0, 16)} UTC' : utc),
+            AppText(utc.length >= 16 ? '${utc.substring(0, 16)} UTC' : utc),
             OutlinedButton(
               key: const ValueKey('dome-date'),
               onPressed: _pickDomeDate,
-              child: const Text('UTC date'),
+              child: const AppText('UTC date'),
             ),
             OutlinedButton(
               key: const ValueKey('dome-time'),
               onPressed: _pickDomeTime,
-              child: const Text('UTC time'),
+              child: const AppText('UTC time'),
             ),
             OutlinedButton(
               key: const ValueKey('dome-now'),
@@ -360,7 +367,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 setState(() => _observationUtc = DateTime.now().toUtc());
                 _refreshDome();
               },
-              child: const Text('Now'),
+              child: const AppText('Now'),
             ),
           ],
         ),
@@ -368,7 +375,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 8,
           children: [
-            const Text('Minimum altitude'),
+            const AppText('Minimum altitude'),
             SizedBox(
               width: 140,
               child: Slider(
@@ -383,8 +390,8 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 },
               ),
             ),
-            Text('${_minimumAltitude.round()}°'),
-            const Text('Green: horizon · Yellow: minimum altitude'),
+            AppText('${_minimumAltitude.round()}°'),
+            const AppText('Green: horizon · Yellow: minimum altitude'),
           ],
         ),
       ],
@@ -582,7 +589,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
 
   Widget _framingControls(EquipmentInventory inventory) {
     if (inventory.profiles.isEmpty) {
-      return const Text(
+      return const AppText(
         'Create a camera + optic profile in Equipment to enable framing.',
       );
     }
@@ -609,22 +616,25 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 initialValue: inventory.profiles.any((p) => p.id == _profileId)
                     ? _profileId
                     : null,
-                decoration: const InputDecoration(
-                  labelText: 'Imaging setup',
-                  isDense: true,
+                decoration: localizeDecoration(
+                  context,
+                  const InputDecoration(
+                    labelText: 'Imaging setup',
+                    isDense: true,
+                  ),
                 ),
                 items: [
                   for (final profile in inventory.profiles)
                     DropdownMenuItem(
                       value: profile.id,
-                      child: Text(profile.name),
+                      child: AppText(profile.name),
                     ),
                 ],
                 onChanged: _changeProfile,
               ),
             ),
             if (frame != null) ...[
-              Text(
+              AppText(
                 'Sensor ${frame.horizontalFovDegrees.toStringAsFixed(2)}° × '
                 '${frame.verticalFovDegrees.toStringAsFixed(2)}°',
               ),
@@ -632,19 +642,19 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 key: const ValueKey('frame-use-atlas-center'),
                 onPressed: () => _setFrameCenter(_controller.position),
                 icon: const Icon(Icons.center_focus_weak),
-                label: const Text('Frame at atlas center'),
+                label: const AppText('Frame at atlas center'),
               ),
               OutlinedButton.icon(
                 key: const ValueKey('frame-save'),
                 onPressed: _saveFrame,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Save frame'),
+                label: const AppText('Save frame'),
               ),
               OutlinedButton.icon(
                 key: const ValueKey('frame-restore'),
                 onPressed: _readSaved,
                 icon: const Icon(Icons.restore),
-                label: const Text('Restore'),
+                label: const AppText('Restore'),
               ),
             ],
           ],
@@ -654,7 +664,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
             children: [
-              Text('Rotation ${_rotation.round()}°'),
+              AppText('Rotation ${_rotation.round()}°'),
               SizedBox(
                 width: 180,
                 child: Slider(
@@ -667,33 +677,33 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 ),
               ),
               IconButton(
-                tooltip: 'Move framing west',
+                tooltip: appTranslate(context, 'Move framing west'),
                 onPressed: () => _moveFrame(east: -1),
                 icon: const Icon(Icons.arrow_back),
               ),
               IconButton(
-                tooltip: 'Move framing east',
+                tooltip: appTranslate(context, 'Move framing east'),
                 onPressed: () => _moveFrame(east: 1),
                 icon: const Icon(Icons.arrow_forward),
               ),
               IconButton(
-                tooltip: 'Move framing north',
+                tooltip: appTranslate(context, 'Move framing north'),
                 onPressed: () => _moveFrame(north: 1),
                 icon: const Icon(Icons.arrow_upward),
               ),
               IconButton(
-                tooltip: 'Move framing south',
+                tooltip: appTranslate(context, 'Move framing south'),
                 onPressed: () => _moveFrame(north: -1),
                 icon: const Icon(Icons.arrow_downward),
               ),
-              Text(
+              AppText(
                 'Center ${_framingCenter!.raDegrees.toStringAsFixed(3)}° RA / '
                 '${_framingCenter!.decDegrees.toStringAsFixed(3)}° Dec',
               ),
             ],
           ),
           if (sizeDegrees != null && sizeDegrees > frame.diagonalFovDegrees)
-            const Text(
+            const AppText(
               'Target exceeds the camera field of view.',
               key: ValueKey('frame-too-small'),
               style: TextStyle(color: Colors.orange),
@@ -701,21 +711,23 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
           else if (sizeDegrees != null &&
               shortest != null &&
               sizeDegrees > shortest)
-            const Text('Target may require rotation or a wider field of view.'),
+            const AppText(
+              'Target may require rotation or a wider field of view.',
+            ),
         ],
         if (_controller.mosaic != null)
-          Text(
+          AppText(
             '${_controller.mosaic!.panels.length} mosaic panels · '
             '${_controller.mosaic!.widthDegrees.toStringAsFixed(2)}° × '
             '${_controller.mosaic!.heightDegrees.toStringAsFixed(2)}°',
             key: const ValueKey('atlas-mosaic-summary'),
           ),
         if (_controller.mosaic != null)
-          const Text(
+          const AppText(
             'Atlas framing adjustments are previews; edit the project mosaic to save them.',
           ),
         if (_feedback != null)
-          Text(_feedback!, key: const ValueKey('frame-feedback')),
+          AppText(_feedback!, key: const ValueKey('frame-feedback')),
       ],
     );
   }
@@ -730,7 +742,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
         return inventory.when(
           loading: () => const LinearProgressIndicator(),
           error: (error, stackTrace) =>
-              Text('Unable to load imaging equipment: $error'),
+              AppText('Unable to load imaging equipment: $error'),
           data: (value) {
             if (!identical(_inventory, value)) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -762,12 +774,12 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Data sources'),
+        title: const AppText('Data sources'),
         content: const SelectableText(_atlasCredits),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: const AppText('Close'),
           ),
         ],
       ),
@@ -836,13 +848,13 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                     children: [
                       _atlasOverlayButton(
                         key: const ValueKey('atlas-mobile-back'),
-                        tooltip: 'Back',
+                        tooltip: appTranslate(context, 'Back'),
                         icon: Icons.arrow_back,
                         onPressed: () => Navigator.maybePop(context),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
+                        child: AppText(
                           widget.target?.displayTitle ?? 'Sky Atlas',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -855,7 +867,10 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                       ),
                       _atlasOverlayButton(
                         key: const ValueKey('atlas-mobile-info'),
-                        tooltip: 'Data sources & credits',
+                        tooltip: appTranslate(
+                          context,
+                          'Data sources & credits',
+                        ),
                         icon: Icons.info_outline,
                         onPressed: _showAtlasCredits,
                       ),
@@ -873,7 +888,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                         horizontal: 12,
                         vertical: 7,
                       ),
-                      child: Text(
+                      child: AppText(
                         isDome
                             ? 'Dome'
                             : '${controller.fieldOfViewDegrees.toStringAsFixed(1)}° FOV',
@@ -900,7 +915,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                           horizontal: 6,
                           vertical: 4,
                         ),
-                        child: Text(
+                        child: AppText(
                           'DSS2 · CDS · OpenNGC',
                           style: TextStyle(fontSize: 10),
                         ),
@@ -950,7 +965,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                                 _mobileSheetController.size < 0.3,
                           ),
                           leading: const Icon(Icons.tune),
-                          title: Text(
+                          title: AppText(
                             isDome
                                 ? 'Dome · $setupName'
                                 : '${controller.fieldOfViewDegrees.toStringAsFixed(1)}° · $setupName',
@@ -962,7 +977,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                         ExpansionTile(
                           key: const ValueKey('atlas-mobile-view-section'),
                           leading: const Icon(Icons.visibility_outlined),
-                          title: const Text('View'),
+                          title: const AppText('View'),
                           onExpansionChanged: (expanded) {
                             if (expanded) _setMobileControlsExpanded(true);
                           },
@@ -976,7 +991,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                         ExpansionTile(
                           key: const ValueKey('atlas-mobile-setup-section'),
                           leading: const Icon(Icons.camera_alt_outlined),
-                          title: const Text('Setup'),
+                          title: const AppText('Setup'),
                           onExpansionChanged: (expanded) {
                             if (expanded) _setMobileControlsExpanded(true);
                           },
@@ -990,7 +1005,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                         ExpansionTile(
                           key: const ValueKey('atlas-mobile-frame-section'),
                           leading: const Icon(Icons.crop_free),
-                          title: const Text('Frame'),
+                          title: const AppText('Frame'),
                           onExpansionChanged: (expanded) {
                             if (expanded) _setMobileControlsExpanded(true);
                           },
@@ -1004,7 +1019,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                         ExpansionTile(
                           key: const ValueKey('atlas-mobile-details-section'),
                           leading: const Icon(Icons.info_outline),
-                          title: const Text('Info'),
+                          title: const AppText('Info'),
                           onExpansionChanged: (expanded) {
                             if (expanded) _setMobileControlsExpanded(true);
                           },
@@ -1014,12 +1029,27 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  AppText(
                                     'RA ${controller.position.raDegrees.toStringAsFixed(4)}°  '
                                     'Dec ${controller.position.decDegrees.toStringAsFixed(4)}°',
                                   ),
                                   const SizedBox(height: 10),
-                                  const Text(
+                                  SwitchListTile.adaptive(
+                                    key: const ValueKey(
+                                      'atlas-aladin-controls',
+                                    ),
+                                    contentPadding: EdgeInsets.zero,
+                                    title: const AppText('Use Aladin controls'),
+                                    subtitle: const AppText(
+                                      'The AstroManager controls remain available.',
+                                    ),
+                                    value:
+                                        _controller.showAladinControls ?? false,
+                                    onChanged: (value) => _controller
+                                        .setShowAladinControls(value),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const AppText(
                                     _atlasCredits,
                                     key: ValueKey('atlas-attribution'),
                                     style: TextStyle(fontSize: 12),
@@ -1066,13 +1096,13 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
           children: [
             ChoiceChip(
               key: const ValueKey('atlas-mode-detail'),
-              label: const Text('Atlas'),
+              label: const AppText('Atlas'),
               selected: !isDome,
               onSelected: (_) => _switchMode(SkyAtlasProjectionMode.detail),
             ),
             ChoiceChip(
               key: const ValueKey('atlas-mode-dome'),
-              label: const Text('Dome'),
+              label: const AppText('Dome'),
               selected: isDome,
               onSelected: (_) => _switchMode(SkyAtlasProjectionMode.skyDome),
             ),
@@ -1087,14 +1117,14 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
               for (final fov in [0.5, 1.0, 3.0, 10.0, 30.0])
                 ChoiceChip(
                   key: ValueKey('atlas-fov-$fov'),
-                  label: Text('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
+                  label: AppText('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
                   selected: _controller.fieldOfViewDegrees == fov,
                   onSelected: (_) => _controller.setFieldOfView(fov),
                 ),
               if (widget.target != null)
                 IconButton(
                   key: const ValueKey('atlas-recenter'),
-                  tooltip: 'Center target',
+                  tooltip: appTranslate(context, 'Center target'),
                   onPressed: () => _selectTarget(widget.target!),
                   icon: const Icon(Icons.center_focus_strong),
                 ),
@@ -1108,10 +1138,10 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
 
   Widget _mobileSetupControls(EquipmentInventory? inventory) {
     if (inventory == null) {
-      return const Text('Setup unavailable');
+      return const AppText('Setup unavailable');
     }
     if (inventory.profiles.isEmpty) {
-      return const Text('Create an imaging setup in Equipment.');
+      return const AppText('Create an imaging setup in Equipment.');
     }
     final frame = _controller.cameraFrame;
     return Column(
@@ -1123,19 +1153,22 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
               ? _profileId
               : null,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Setup', isDense: true),
+          decoration: localizeDecoration(
+            context,
+            const InputDecoration(labelText: 'Setup', isDense: true),
+          ),
           items: [
             for (final profile in inventory.profiles)
               DropdownMenuItem(
                 value: profile.id,
-                child: Text(profile.name, overflow: TextOverflow.ellipsis),
+                child: AppText(profile.name, overflow: TextOverflow.ellipsis),
               ),
           ],
           onChanged: _changeProfile,
         ),
         if (frame != null) ...[
           const SizedBox(height: 6),
-          Text(
+          AppText(
             '${frame.horizontalFovDegrees.toStringAsFixed(2)}° × '
             '${frame.verticalFovDegrees.toStringAsFixed(2)}°',
           ),
@@ -1143,7 +1176,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
             key: const ValueKey('frame-use-atlas-center'),
             onPressed: () => _setFrameCenter(_controller.position),
             icon: const Icon(Icons.center_focus_weak),
-            label: const Text('Center frame'),
+            label: const AppText('Center frame'),
           ),
         ],
       ],
@@ -1152,7 +1185,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
 
   Widget _mobileFrameControls() {
     final frame = _controller.cameraFrame;
-    if (frame == null) return const Text('Select a setup first.');
+    if (frame == null) return const AppText('Select a setup first.');
     final sizeDegrees = (widget.target?.majorAxisArcmin ?? 0) / 60;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1162,19 +1195,19 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
           children: [
             IconButton.outlined(
               key: const ValueKey('frame-save'),
-              tooltip: 'Save frame',
+              tooltip: appTranslate(context, 'Save frame'),
               onPressed: _saveFrame,
               icon: const Icon(Icons.save_outlined),
             ),
             IconButton.outlined(
               key: const ValueKey('frame-restore'),
-              tooltip: 'Restore frame',
+              tooltip: appTranslate(context, 'Restore frame'),
               onPressed: _readSaved,
               icon: const Icon(Icons.restore),
             ),
             IconButton.outlined(
               key: const ValueKey('frame-use-atlas-center-mobile'),
-              tooltip: 'Frame at atlas center',
+              tooltip: appTranslate(context, 'Frame at atlas center'),
               onPressed: () => _setFrameCenter(_controller.position),
               icon: const Icon(Icons.center_focus_weak),
             ),
@@ -1182,7 +1215,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
         ),
         Row(
           children: [
-            Text('Rot ${_rotation.round()}°'),
+            AppText('Rot ${_rotation.round()}°'),
             Expanded(
               child: Slider(
                 key: const ValueKey('frame-rotation'),
@@ -1199,40 +1232,40 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
           spacing: 8,
           children: [
             IconButton(
-              tooltip: 'Move frame west',
+              tooltip: appTranslate(context, 'Move frame west'),
               onPressed: () => _moveFrame(east: -1),
               icon: const Icon(Icons.arrow_back),
             ),
             IconButton(
-              tooltip: 'Move frame east',
+              tooltip: appTranslate(context, 'Move frame east'),
               onPressed: () => _moveFrame(east: 1),
               icon: const Icon(Icons.arrow_forward),
             ),
             IconButton(
-              tooltip: 'Move frame north',
+              tooltip: appTranslate(context, 'Move frame north'),
               onPressed: () => _moveFrame(north: 1),
               icon: const Icon(Icons.arrow_upward),
             ),
             IconButton(
-              tooltip: 'Move frame south',
+              tooltip: appTranslate(context, 'Move frame south'),
               onPressed: () => _moveFrame(north: -1),
               icon: const Icon(Icons.arrow_downward),
             ),
           ],
         ),
         if (sizeDegrees > frame.diagonalFovDegrees)
-          const Text(
+          const AppText(
             'Target exceeds frame',
             key: ValueKey('frame-too-small'),
             style: TextStyle(color: Colors.orange),
           ),
         if (_controller.mosaic != null)
-          Text(
+          AppText(
             '${_controller.mosaic!.panels.length} mosaic panels',
             key: const ValueKey('atlas-mosaic-summary'),
           ),
         if (_feedback != null)
-          Text(_feedback!, key: const ValueKey('frame-feedback')),
+          AppText(_feedback!, key: const ValueKey('frame-feedback')),
       ],
     );
   }
@@ -1250,7 +1283,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     final isDome = controller.projectionMode == SkyAtlasProjectionMode.skyDome;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: AppText(
           target == null ? 'Sky Atlas' : 'Sky Atlas · ${target.displayTitle}',
         ),
       ),
@@ -1264,16 +1297,30 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
               children: [
                 ChoiceChip(
                   key: const ValueKey('atlas-mode-detail'),
-                  label: const Text('Detail atlas'),
+                  label: const AppText('Detail atlas'),
                   selected: !isDome,
                   onSelected: (_) => _switchMode(SkyAtlasProjectionMode.detail),
                 ),
                 ChoiceChip(
                   key: const ValueKey('atlas-mode-dome'),
-                  label: const Text('Sky dome'),
+                  label: const AppText('Sky dome'),
                   selected: isDome,
                   onSelected: (_) =>
                       _switchMode(SkyAtlasProjectionMode.skyDome),
+                ),
+                Tooltip(
+                  message: appTranslate(context, 'Use Aladin controls'),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const AppText('Use Aladin controls'),
+                      Switch.adaptive(
+                        key: const ValueKey('atlas-aladin-controls-desktop'),
+                        value: controller.showAladinControls ?? true,
+                        onChanged: controller.setShowAladinControls,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -1284,13 +1331,13 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 runSpacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Text(
+                  AppText(
                     'RA ${controller.position.raDegrees.toStringAsFixed(4)}°',
                   ),
-                  Text(
+                  AppText(
                     'Dec ${controller.position.decDegrees.toStringAsFixed(4)}°',
                   ),
-                  Text(
+                  AppText(
                     'FOV ${controller.fieldOfViewDegrees.toStringAsFixed(2)}°',
                   ),
                   if (target != null)
@@ -1298,12 +1345,14 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                       key: const ValueKey('atlas-recenter'),
                       onPressed: () => _selectTarget(target),
                       icon: const Icon(Icons.center_focus_strong),
-                      label: const Text('Center target'),
+                      label: const AppText('Center target'),
                     ),
                   for (final fov in [0.5, 1.0, 3.0, 10.0, 30.0])
                     ChoiceChip(
                       key: ValueKey('atlas-fov-$fov'),
-                      label: Text('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
+                      label: AppText(
+                        '${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°',
+                      ),
                       selected: controller.fieldOfViewDegrees == fov,
                       onSelected: (_) => controller.setFieldOfView(fov),
                     ),
@@ -1330,7 +1379,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
               ),
             ),
             const SizedBox(height: 5),
-            const Text(
+            const AppText(
               'DSS2 Color: Digitized Sky Survey (STScI/NASA), colour HiPS by CDS. '
               'HiPS mirror: ESA. Viewer: Aladin Lite (CDS). '
               'Object catalog: OpenNGC (CC BY-SA 4.0).',
@@ -1389,7 +1438,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                       const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
+                        child: AppText(
                           message,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1412,20 +1461,20 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 children: [
                   const Icon(Icons.cloud_off_outlined, size: 40),
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     controller.status == SkyAtlasStatus.unsupported
                         ? 'Embedded sky atlas unsupported'
                         : 'Sky atlas unavailable',
                   ),
                   const SizedBox(height: 8),
-                  Text(controller.error ?? 'Unknown atlas error'),
+                  AppText(controller.error ?? 'Unknown atlas error'),
                   const SizedBox(height: 12),
                   if (controller.status == SkyAtlasStatus.error)
                     FilledButton.icon(
                       key: const ValueKey('atlas-retry'),
                       onPressed: _retry,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
+                      label: const AppText('Retry'),
                     ),
                 ],
               ),

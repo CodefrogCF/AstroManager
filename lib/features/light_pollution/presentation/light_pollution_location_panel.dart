@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,7 +38,7 @@ class _LightPollutionLocationPanelState
               const Icon(Icons.nightlight_outlined, size: 18),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: AppText(
                   'Light pollution',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
@@ -46,11 +47,11 @@ class _LightPollutionLocationPanelState
                 OutlinedButton(
                   key: ValueKey('night-lights-${widget.site.id}'),
                   onPressed: () => setState(() => _enabled = true),
-                  child: const Text('Check satellite data'),
+                  child: const AppText('Check satellite data'),
                 )
               else
                 IconButton(
-                  tooltip: 'Refresh satellite data',
+                  tooltip: appTranslate(context, 'Refresh satellite data'),
                   onPressed: () async {
                     try {
                       await ref
@@ -67,7 +68,7 @@ class _LightPollutionLocationPanelState
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Refresh unavailable: $error'),
+                            content: AppText('Refresh unavailable: $error'),
                           ),
                         );
                       }
@@ -80,7 +81,7 @@ class _LightPollutionLocationPanelState
           if (display != null)
             display.when(
               loading: () => const LinearProgressIndicator(),
-              error: (error, _) => Text(
+              error: (error, _) => AppText(
                 'Night-light data unavailable: $error',
                 key: const ValueKey('light-pollution-error'),
               ),
@@ -94,7 +95,7 @@ class _LightPollutionLocationPanelState
   Widget _details(LightPollutionSnapshot snapshot) {
     final reading = snapshot.reading;
     if (reading == null) {
-      return const Text(
+      return const AppText(
         'No valid night-light data at this location. '
         'No darkness classification is inferred.',
       );
@@ -103,37 +104,37 @@ class _LightPollutionLocationPanelState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           '${reading.kindLabel}: ${reading.value.toStringAsFixed(2)} ${reading.unit}',
           key: const ValueKey('light-pollution-value'),
         ),
-        Text(
+        AppText(
           'Dataset: ${reading.datasetDate.year}-${reading.datasetDate.month.toString().padLeft(2, '0')} '
           '· ${reading.sourceName}',
         ),
         if (reading.sourceCatalogUpdatedAt != null)
-          Text(
+          AppText(
             'Source catalogue updated: '
             '${reading.sourceCatalogUpdatedAt!.year}-'
             '${reading.sourceCatalogUpdatedAt!.month.toString().padLeft(2, '0')}-'
             '${reading.sourceCatalogUpdatedAt!.day.toString().padLeft(2, '0')} '
             '(not the acquisition date)',
           ),
-        Text(reading.description),
+        AppText(reading.description),
         if (score != null)
-          Text(
+          AppText(
             'Relative night-light indicator: ${score.toStringAsFixed(0)}/100 '
             '(higher = less upward radiance; not SQM/Bortle)',
           ),
         if (snapshot.fromCache)
-          Text(
+          AppText(
             snapshot.isStale
                 ? 'Old cached reading — source refresh failed.'
                 : 'Locally cached result.',
           ),
         if (snapshot.refreshError != null)
-          const Text('Online refresh failed; showing a cached reading.'),
-        const Text(
+          const AppText('Online refresh failed; showing a cached reading.'),
+        const AppText(
           'Upward radiance is not a sky brightness measurement. '
           'Nearby lights, terrain, cloud, snow and atmospheric scattering '
           'can change actual observing conditions.',

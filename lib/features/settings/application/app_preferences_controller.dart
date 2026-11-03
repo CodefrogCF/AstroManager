@@ -40,6 +40,9 @@ class AppPreferencesController extends AsyncNotifier<AppPreferences> {
     return _update((current) => current.copyWith(language: value));
   }
 
+  Future<void> completeOnboarding() =>
+      _update((current) => current.copyWith(onboardingCompleted: true));
+
   Future<void> _update(AppPreferences Function(AppPreferences) change) async {
     if (_saving) return;
 

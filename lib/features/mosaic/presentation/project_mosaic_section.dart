@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,7 +73,7 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
       return;
     }
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+        .showSnackBar(SnackBar(content: AppText(message)));
   }
 
   Future<CelestialObject?> _target(String id) async {
@@ -144,19 +146,19 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete mosaic plan?'),
-        content: const Text(
+        title: const AppText('Delete mosaic plan?'),
+        content: const AppText(
           'This removes only the mosaic composition, not the project.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const AppText('Cancel'),
           ),
           FilledButton(
             key: const ValueKey('mosaic-delete-confirm'),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const AppText('Delete'),
           ),
         ],
       ),
@@ -235,15 +237,16 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           'Mosaic composition',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         if (_busy) const LinearProgressIndicator(),
-        if (_error != null) Text('Mosaic data unavailable: $_error'),
+        if (_error != null) AppText('Mosaic data unavailable: $_error'),
         equipment.when(
           loading: () => const LinearProgressIndicator(),
-          error: (error, stack) => Text('Imaging setups unavailable: $error'),
+          error: (error, stack) =>
+              AppText('Imaging setups unavailable: $error'),
           data: (inventory) {
             MosaicFootprint? footprint;
             String? geometryError;
@@ -258,16 +261,16 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (footprint != null)
-                  Text(
+                  AppText(
                     '${_plan!.rows} × ${_plan!.columns} panels · '
                     '${_plan!.overlapPercent.toStringAsFixed(0)}% overlap · '
                     '${footprint.widthDegrees.toStringAsFixed(2)}° × '
                     '${footprint.heightDegrees.toStringAsFixed(2)}°',
                   ),
                 if (_plan == null)
-                  const Text('No mosaic planned for this project.'),
+                  const AppText('No mosaic planned for this project.'),
                 if (geometryError != null)
-                  Text(
+                  AppText(
                     'Mosaic requires an available, valid optical setup: $geometryError',
                   ),
                 Wrap(
@@ -278,7 +281,7 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
                       key: const ValueKey('mosaic-edit'),
                       onPressed: _busy ? null : () => _edit(inventory),
                       icon: const Icon(Icons.grid_on),
-                      label: Text(
+                      label: AppText(
                         _plan == null ? 'Create mosaic' : 'Edit mosaic',
                       ),
                     ),
@@ -287,13 +290,13 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
                         key: const ValueKey('mosaic-atlas'),
                         onPressed: _busy ? null : () => _atlas(inventory),
                         icon: const Icon(Icons.public),
-                        label: const Text('View in atlas'),
+                        label: const AppText('View in atlas'),
                       ),
                       OutlinedButton.icon(
                         key: const ValueKey('mosaic-export'),
                         onPressed: _busy ? null : () => _export(inventory),
                         icon: const Icon(Icons.file_download_outlined),
-                        label: const Text('Export coordinates'),
+                        label: const AppText('Export coordinates'),
                       ),
                     ],
                     if (_plan != null)
@@ -301,7 +304,7 @@ class _ProjectMosaicSectionState extends ConsumerState<ProjectMosaicSection> {
                         key: const ValueKey('mosaic-delete'),
                         onPressed: _busy ? null : _delete,
                         icon: const Icon(Icons.delete_outline),
-                        label: const Text('Remove mosaic'),
+                        label: const AppText('Remove mosaic'),
                       ),
                   ],
                 ),

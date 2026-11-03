@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,7 +23,7 @@ class ProjectIntegrationProgress extends ConsumerWidget {
         key: ValueKey('project-integration-${project.id}'),
         summary: IntegrationTimeCalculator.forProject(project, data),
       ),
-      AsyncError(:final error) => Text('Integration unavailable: $error'),
+      AsyncError(:final error) => AppText('Integration unavailable: $error'),
       _ => const LinearProgressIndicator(),
     };
   }
@@ -40,21 +41,21 @@ class _IntegrationProgressDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           'Usable integration: $achieved',
           key: const ValueKey('project-integration-accepted'),
         ),
-        Text(
+        AppText(
           'Sessions: ${summary.sessionCount} · '
           'Accepted frames: ${summary.acceptedFrames} · '
           'Rejected frames excluded: ${summary.rejectedFrames}',
         ),
         if (!summary.hasTarget)
-          const Text(
+          const AppText(
             'No integration target set; all usable time is still tracked.',
           ),
         if (summary.hasTarget) ...[
-          Text(
+          AppText(
             'Goal: $target · Progress: '
             '${summary.progressPercent!.toStringAsFixed(1)}%',
             key: const ValueKey('project-integration-percent'),
@@ -66,7 +67,7 @@ class _IntegrationProgressDetails extends StatelessWidget {
             minHeight: 8,
           ),
           const SizedBox(height: 4),
-          Text(
+          AppText(
             summary.targetReached
                 ? 'Integration target reached.'
                 : 'Remaining: ${IntegrationTimeFormatter.format(summary.remainingSeconds!)}',
@@ -95,7 +96,7 @@ class ProjectIntegrationListSummary extends ConsumerWidget {
           final formatted = IntegrationTimeFormatter.format(
             summary.acceptedSeconds,
           );
-          return Text(
+          return AppText(
             summary.hasTarget
                 ? 'Integration: $formatted / '
                       '${IntegrationTimeFormatter.format(summary.targetSeconds)} '
@@ -105,8 +106,8 @@ class ProjectIntegrationListSummary extends ConsumerWidget {
           );
         },
       ),
-      AsyncError() => const Text('Integration unavailable'),
-      _ => const Text('Loading integration…'),
+      AsyncError() => const AppText('Integration unavailable'),
+      _ => const AppText('Loading integration…'),
     };
   }
 }

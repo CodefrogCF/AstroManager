@@ -125,6 +125,7 @@ abstract final class SkyAtlasProtocol {
     MosaicFootprint? mosaic,
     SkyAtlasProjectionMode projectionMode = SkyAtlasProjectionMode.detail,
     SkyDomeOverlay? dome,
+    bool? showAladinControls,
     required SkyAtlasPosition position,
     required double fieldOfViewDegrees,
     required List<SkyAtlasMarker> markers,
@@ -150,6 +151,7 @@ abstract final class SkyAtlasProtocol {
           ? 'dome'
           : 'detail',
       'dome': dome?.toJson(),
+      'showAladinControls': showAladinControls,
     });
   }
 

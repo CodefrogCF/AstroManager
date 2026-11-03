@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -49,8 +50,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 155, child: Text(label)),
-          Expanded(child: Text(value)),
+          SizedBox(width: 155, child: AppText(label)),
+          Expanded(child: AppText(value)),
         ],
       ),
     );
@@ -70,7 +71,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(heading, style: Theme.of(context).textTheme.titleMedium),
+            AppText(heading, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             _eventRow(dawnLabel, events.morning, events.state),
             _eventRow(duskLabel, events.evening, events.state),
@@ -97,8 +98,8 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 135, child: Text(label)),
-          Expanded(child: Text(value)),
+          SizedBox(width: 135, child: AppText(label)),
+          Expanded(child: AppText(value)),
         ],
       ),
     );
@@ -135,12 +136,12 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        Text(
+        AppText(
           'Solar events · ${_dateText(day.localDate)}',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 8),
-        Text(
+        AppText(
           'Local time: ${location.timeZone} · '
           'Civil day: ${day.civilDayLength.inHours} h',
         ),
@@ -176,12 +177,12 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           'Astronomical dusk',
         ),
         const SizedBox(height: 16),
-        Text(
+        AppText(
           'Astronomical darkness · observing night',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 6),
-        const Text(
+        const AppText(
           'Sun below −18°; evaluated from local noon through the following '
           'local noon. Intervals can span midnight.',
         ),
@@ -190,7 +191,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           const Card(
             child: Padding(
               padding: EdgeInsets.all(16),
-              child: Text('No astronomical darkness during this night.'),
+              child: AppText('No astronomical darkness during this night.'),
             ),
           ),
         for (final interval in darkness)
@@ -201,23 +202,23 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     '${SolarEvents.formatLocal(interval.startLocal, includeDate: true)} '
                     '– ${SolarEvents.formatLocal(interval.endLocal, includeDate: true)}',
                   ),
                   const SizedBox(height: 4),
-                  Text('Duration: ${interval.duration.inMinutes} minutes'),
+                  AppText('Duration: ${interval.duration.inMinutes} minutes'),
                 ],
               ),
             ),
           ),
         const SizedBox(height: 20),
-        Text(
+        AppText(
           'Lunar conditions · observing night',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 6),
-        Text(
+        AppText(
           'Moon position at ${SolarEvents.formatLocal(localMidnight, includeDate: true)}',
         ),
         const SizedBox(height: 10),
@@ -228,27 +229,27 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Moon phase: ${moon.phase.label}'),
+                AppText('Moon phase: ${moon.phase.label}'),
                 const SizedBox(height: 6),
-                Text(
+                AppText(
                   'Illumination: ${(moon.illuminationFraction * 100).toStringAsFixed(1)}%',
                 ),
                 const SizedBox(height: 6),
-                Text(
+                AppText(
                   'Moon altitude: ${moon.horizontal.altitudeDegrees.toStringAsFixed(1)}°',
                 ),
                 const SizedBox(height: 6),
-                Text(
+                AppText(
                   moon.horizontal.azimuthDegrees == null
                       ? 'Moon azimuth: undefined'
                       : 'Moon azimuth: ${moon.horizontal.azimuthDegrees!.toStringAsFixed(1)}°',
                 ),
                 const SizedBox(height: 6),
-                Text(
+                AppText(
                   'Distance: ${moon.distanceKilometers.toStringAsFixed(0)} km',
                 ),
                 const Divider(height: 22),
-                const Text('Moonrise / moonset · noon-to-noon window'),
+                const AppText('Moonrise / moonset · noon-to-noon window'),
                 const SizedBox(height: 8),
                 _lunarEventRow(
                   'Moonrise',
@@ -261,7 +262,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Text(
+        AppText(
           'Solar positions are approximate. Sunrise/sunset assumes an '
           'unobstructed sea-level horizon and standard refraction. '
           'Mountain ridges, weather and artificial light are not included.',
@@ -276,7 +277,9 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(20),
-          child: Text('Add an observing location in Settings to plan a night.'),
+          child: AppText(
+            'Add an observing location in Settings to plan a night.',
+          ),
         ),
       );
     }
@@ -298,13 +301,19 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           key: ValueKey('planner-site-${current.id}'),
           initialValue: current.id,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'Observing location',
-            prefixIcon: Icon(Icons.place_outlined),
+          decoration: localizeDecoration(
+            context,
+            const InputDecoration(
+              labelText: 'Observing location',
+              prefixIcon: Icon(Icons.place_outlined),
+            ),
           ),
           items: [
             for (final location in locations)
-              DropdownMenuItem(value: location.id, child: Text(location.name)),
+              DropdownMenuItem(
+                value: location.id,
+                child: AppText(location.name),
+              ),
           ],
           onChanged: (value) => setState(() => _selectedLocationId = value),
         ),
@@ -318,11 +327,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
               key: const ValueKey('planner-date'),
               onPressed: _pickDate,
               icon: const Icon(Icons.calendar_month),
-              label: Text(_dateText(_date)),
+              label: AppText(_dateText(_date)),
             ),
             TextButton(
               onPressed: () => setState(() => _date = DateTime.now()),
-              child: const Text('Today'),
+              child: const AppText('Today'),
             ),
           ],
         ),
@@ -343,23 +352,24 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   'Night Planner',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
-                const Text('Plan your upcoming astrophotography sessions.'),
+                const AppText('Plan your upcoming astrophotography sessions.'),
                 const SizedBox(height: 20),
                 locations.when(
-                  loading: () => const Text('Loading observing locations...'),
+                  loading: () =>
+                      const AppText('Loading observing locations...'),
                   error: (error, stackTrace) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Unable to load observing locations: $error'),
+                      AppText('Unable to load observing locations: $error'),
                       TextButton(
                         onPressed: () =>
                             ref.invalidate(observingLocationsProvider),
-                        child: const Text('Retry'),
+                        child: const AppText('Retry'),
                       ),
                     ],
                   ),

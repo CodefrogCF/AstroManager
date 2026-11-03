@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,7 +33,7 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
       return;
     }
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+        .showSnackBar(SnackBar(content: AppText(message)));
   }
 
   Future<void> _export() async {
@@ -68,26 +70,26 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
       showDialog<BackupRestoreMode>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Restore AstroManager backup?'),
+          title: const AppText('Restore AstroManager backup?'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Created: ${preview.createdAtUtc.toLocal()}'),
-                Text(
+                AppText('Created: ${preview.createdAtUtc.toLocal()}'),
+                AppText(
                   '${preview.totalRows} records · '
                   '${preview.imageCount} images',
                 ),
                 if (!preview.includesImages)
                   const Padding(
                     padding: EdgeInsets.only(top: 8),
-                    child: Text(
+                    child: AppText(
                       'This backup does not include image attachments.',
                     ),
                   ),
                 const SizedBox(height: 12),
-                const Text(
+                const AppText(
                   'Merge retains existing records and rejects '
                   'duplicate identifiers. Replace removes all existing '
                   'user data before restoring the backup.',
@@ -98,17 +100,17 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: const AppText('Cancel'),
             ),
             OutlinedButton(
               onPressed: () =>
                   Navigator.pop(dialogContext, BackupRestoreMode.merge),
-              child: const Text('Merge (no overwrites)'),
+              child: const AppText('Merge (no overwrites)'),
             ),
             FilledButton(
               onPressed: () =>
                   Navigator.pop(dialogContext, BackupRestoreMode.replace),
-              child: const Text('Replace all data…'),
+              child: const AppText('Replace all data…'),
             ),
           ],
         ),
@@ -118,8 +120,8 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete all current AstroManager data?'),
-        content: const Text(
+        title: const AppText('Delete all current AstroManager data?'),
+        content: const AppText(
           'This will replace existing locations, equipment, imaging '
           'projects, sessions, night plans and preferences. '
           'It cannot be undone. Export your current data first.',
@@ -127,11 +129,11 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Keep current data'),
+            child: const AppText('Keep current data'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete and restore'),
+            child: const AppText('Delete and restore'),
           ),
         ],
       ),
@@ -212,12 +214,12 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
+      AppText(
         'Backup & restore',
         style: Theme.of(context).textTheme.headlineSmall,
       ),
       const SizedBox(height: 8),
-      const Text(
+      const AppText(
         'Portable .ambackup files contain a ZIP archive and work '
         'offline. Backups are not encrypted; store them securely. '
         'Older .zip backups can also be restored. '
@@ -226,8 +228,10 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
       CheckboxListTile(
         contentPadding: EdgeInsets.zero,
         key: const ValueKey('backup-include-images'),
-        title: const Text('Include session images'),
-        subtitle: const Text('Larger file; attachments stay outside SQLite.'),
+        title: const AppText('Include session images'),
+        subtitle: const AppText(
+          'Larger file; attachments stay outside SQLite.',
+        ),
         value: _includeImages,
         onChanged: _busy
             ? null
@@ -241,13 +245,13 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
             key: const ValueKey('backup-export'),
             onPressed: _busy ? null : _export,
             icon: const Icon(Icons.archive_outlined),
-            label: const Text('Export backup'),
+            label: const AppText('Export backup'),
           ),
           OutlinedButton.icon(
             key: const ValueKey('backup-restore'),
             onPressed: _busy ? null : _import,
             icon: const Icon(Icons.unarchive_outlined),
-            label: const Text('Restore backup'),
+            label: const AppText('Restore backup'),
           ),
         ],
       ),

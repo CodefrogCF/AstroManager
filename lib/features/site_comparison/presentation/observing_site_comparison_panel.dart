@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -267,7 +268,7 @@ class _ObservingSiteComparisonPanelState
                 const Icon(Icons.compare_arrows),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
+                  child: AppText(
                     'Compare observing sites',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
@@ -275,13 +276,13 @@ class _ObservingSiteComparisonPanelState
                 TextButton(
                   key: const ValueKey('site-comparison-expand'),
                   onPressed: () => setState(() => _expanded = !_expanded),
-                  child: Text(_expanded ? 'Hide' : 'Compare'),
+                  child: AppText(_expanded ? 'Hide' : 'Compare'),
                 ),
               ],
             ),
             if (_expanded) ...[
               const SizedBox(height: 12),
-              const Text(
+              const AppText(
                 'Choose at least two sites, one project target, and '
                 'a common local calendar date. Weather and terrain data '
                 'are requested only when you run the comparison.',
@@ -294,7 +295,7 @@ class _ObservingSiteComparisonPanelState
                   for (final site in widget.sites)
                     FilterChip(
                       key: ValueKey('compare-site-${site.id}'),
-                      label: Text(site.name),
+                      label: AppText(site.name),
                       selected: _selectedSites.any(
                         (entry) => entry.id == site.id,
                       ),
@@ -322,11 +323,11 @@ class _ObservingSiteComparisonPanelState
                     key: const ValueKey('compare-date'),
                     onPressed: _busy ? null : _pickDate,
                     icon: const Icon(Icons.calendar_month),
-                    label: Text(_dateLabel),
+                    label: AppText(_dateLabel),
                   ),
                   FilterChip(
                     key: const ValueKey('compare-terrain'),
-                    label: const Text('Terrain horizon'),
+                    label: const AppText('Terrain horizon'),
                     selected: _terrain,
                     onSelected: _busy
                         ? null
@@ -334,7 +335,7 @@ class _ObservingSiteComparisonPanelState
                   ),
                   FilterChip(
                     key: const ValueKey('compare-nightlights'),
-                    label: const Text('Satellite night lights'),
+                    label: const AppText('Satellite night lights'),
                     selected: _nightLights,
                     onSelected: _busy
                         ? null
@@ -345,12 +346,12 @@ class _ObservingSiteComparisonPanelState
               if (_busy) ...[
                 const SizedBox(height: 10),
                 const LinearProgressIndicator(),
-                Text(
+                AppText(
                   'Comparing $_completed / ${_selectedSites.length} locations...',
                 ),
               ],
               if (_error != null)
-                Text(
+                AppText(
                   'Comparison failed: $_error',
                   key: const ValueKey('site-comparison-error'),
                 ),
@@ -365,11 +366,11 @@ class _ObservingSiteComparisonPanelState
   Widget _targetSelector() {
     final asyncTargets = ref.watch(siteComparisonTargetsProvider);
     return asyncTargets.when(
-      loading: () => const Text('Loading project targets...'),
-      error: (error, _) => Text('Project targets unavailable: $error'),
+      loading: () => const AppText('Loading project targets...'),
+      error: (error, _) => AppText('Project targets unavailable: $error'),
       data: (targets) {
         if (targets.isEmpty) {
-          return const Text(
+          return const AppText(
             'Create an imaging project with a catalog target '
             'before comparing sites.',
           );
@@ -385,12 +386,15 @@ class _ObservingSiteComparisonPanelState
               key: ValueKey('compare-target-$targetId'),
               initialValue: targetId,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Project target'),
+              decoration: localizeDecoration(
+                context,
+                const InputDecoration(labelText: 'Project target'),
+              ),
               items: [
                 for (final value in targets)
                   DropdownMenuItem(
                     value: value.id,
-                    child: Text(
+                    child: AppText(
                       value.displayTitle,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -411,10 +415,10 @@ class _ObservingSiteComparisonPanelState
                   ? null
                   : () => _compare(target),
               icon: const Icon(Icons.query_stats),
-              label: const Text('Compare selected sites'),
+              label: const AppText('Compare selected sites'),
             ),
             if (_selectedSites.length < 2)
-              const Text('Select at least two saved locations.'),
+              const AppText('Select at least two saved locations.'),
           ],
         );
       },
@@ -427,16 +431,16 @@ class _ObservingSiteComparisonPanelState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(height: 28),
-        Text(
+        AppText(
           'Comparison for ${report.target.displayTitle} · $_dateLabel',
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        Text(
+        AppText(
           'Leading estimate: ${leader.site.name} '
           '(${leader.score.toStringAsFixed(1)}/100). '
           '${leader.isProvisional ? 'Incomplete data; interpret cautiously.' : 'All requested data sources available.'}',
         ),
-        const Text(
+        const AppText(
           'Heuristic suitability, not a guarantee of visibility or image '
           'quality. Date refers to each site’s local observing night.',
         ),
@@ -449,7 +453,7 @@ class _ObservingSiteComparisonPanelState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     '${result.site.name} · ${result.score.toStringAsFixed(1)}/100'
                     '${result.isProvisional ? ' (provisional)' : ''}',
                     style: Theme.of(context).textTheme.titleMedium,
@@ -457,21 +461,21 @@ class _ObservingSiteComparisonPanelState
                   const SizedBox(height: 4),
                   LinearProgressIndicator(value: result.score / 100),
                   const SizedBox(height: 8),
-                  Text(
+                  AppText(
                     'Darkness: ${result.astronomicalDarkness.inMinutes} min · '
                     'Visible target: ${result.visibleDuration.inMinutes} min · '
                     'Best altitude: ${result.bestAltitudeDegrees == null ? 'n/a' : '${result.bestAltitudeDegrees!.toStringAsFixed(1)}°'}',
                   ),
-                  Text(
+                  AppText(
                     'Geometric visibility: '
                     '${result.geometricVisibleDuration.inMinutes} min · '
                     'Terrain: ${result.terrainKnownFraction == null ? 'not available' : '${(result.terrainKnownFraction! * 100).toStringAsFixed(0)}% DEM bearings available'}',
                   ),
-                  Text(
+                  AppText(
                     'Weather: ${!result.weatherUsable ? 'unavailable or stale' : '${result.weather!.forecast.provider.name} forecast'}',
                   ),
                   if (result.lightPollution?.reading != null)
-                    Text(
+                    AppText(
                       'Night lights: ${result.lightPollution!.reading!.value.toStringAsFixed(2)} '
                       '${result.lightPollution!.reading!.unit} '
                       '(${result.lightPollution!.reading!.sourceName}, '
@@ -479,19 +483,19 @@ class _ObservingSiteComparisonPanelState
                     ),
                   if (result.missingData.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(
+                    AppText(
                       'Missing/uncertain: ${result.missingData.join(' · ')}',
                     ),
                   ],
                   ExpansionTile(
-                    title: const Text('Reasons and scoring details'),
+                    title: const AppText('Reasons and scoring details'),
                     children: [
                       for (final explanation in result.explanations)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 2, 16, 6),
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: Text('• $explanation'),
+                            child: AppText('• $explanation'),
                           ),
                         ),
                     ],

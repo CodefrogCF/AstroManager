@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -196,11 +198,11 @@ class _ObservationAlertsSectionState
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text('Edit alert: ${rule.targetName}'),
+          title: AppText('Edit alert: ${rule.targetName}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Minimum suitability: ${score.toStringAsFixed(0)}/100'),
+              AppText('Minimum suitability: ${score.toStringAsFixed(0)}/100'),
               Slider(
                 key: const ValueKey('alert-edit-score'),
                 min: 0,
@@ -212,14 +214,15 @@ class _ObservationAlertsSectionState
               DropdownButtonFormField<int>(
                 key: const ValueKey('alert-edit-duration'),
                 initialValue: duration,
-                decoration: const InputDecoration(
-                  labelText: 'Minimum duration',
+                decoration: localizeDecoration(
+                  context,
+                  const InputDecoration(labelText: 'Minimum duration'),
                 ),
                 items: [
                   for (final minutes in [15, 30, 60, 90, 120, 180, 240])
                     DropdownMenuItem(
                       value: minutes,
-                      child: Text('$minutes minutes'),
+                      child: AppText('$minutes minutes'),
                     ),
                 ],
                 onChanged: (value) {
@@ -233,7 +236,7 @@ class _ObservationAlertsSectionState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const AppText('Cancel'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(
@@ -248,7 +251,7 @@ class _ObservationAlertsSectionState
                   enabled: rule.enabled,
                 ),
               ),
-              child: const Text('Save'),
+              child: const AppText('Save'),
             ),
           ],
         ),
@@ -308,12 +311,12 @@ class _ObservationAlertsSectionState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           'Observation opportunity alerts',
           style: theme.textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-        const Text(
+        const AppText(
           'Optional forecast-based alerts. Checks run when the app starts, '
           'returns to the foreground or when you tap Check now. '
           'No continuous background monitoring is provided.',
@@ -321,7 +324,7 @@ class _ObservationAlertsSectionState
         if (!supported)
           const Padding(
             padding: EdgeInsets.only(top: 8),
-            child: Text(
+            child: AppText(
               'System notifications are unavailable on this platform. '
               'Alert rules remain editable for Android/iOS.',
             ),
@@ -332,8 +335,10 @@ class _ObservationAlertsSectionState
         else ...[
           SwitchListTile(
             key: const ValueKey('alerts-master-enabled'),
-            title: const Text('Enable opportunity notifications'),
-            subtitle: const Text('Permission is requested only when enabling.'),
+            title: const AppText('Enable opportunity notifications'),
+            subtitle: const AppText(
+              'Permission is requested only when enabling.',
+            ),
             value: state.enabled,
             onChanged: _busy ? null : _setEnabled,
           ),
@@ -341,8 +346,8 @@ class _ObservationAlertsSectionState
             Card(
               child: ListTile(
                 key: ValueKey('alert-rule-${rule.id}'),
-                title: Text(rule.targetName),
-                subtitle: Text(
+                title: AppText(rule.targetName),
+                subtitle: AppText(
                   '${_sites.where((site) => site.id == rule.locationId).map((site) => site.name).firstOrNull ?? '(missing location)'} · '
                   'score ≥ ${rule.minimumScore.toStringAsFixed(0)} · '
                   '${rule.minimumDurationMinutes} min',
@@ -364,7 +369,7 @@ class _ObservationAlertsSectionState
                         ),
                 ),
                 trailing: IconButton(
-                  tooltip: 'Delete alert',
+                  tooltip: appTranslate(context, 'Delete alert'),
                   icon: const Icon(Icons.delete_outline),
                   onPressed: _busy
                       ? null
@@ -379,22 +384,25 @@ class _ObservationAlertsSectionState
               ),
             ),
           const SizedBox(height: 12),
-          Text('New target alert', style: theme.textTheme.titleMedium),
+          AppText('New target alert', style: theme.textTheme.titleMedium),
           Row(
             children: [
               Expanded(
                 child: TextField(
                   key: const ValueKey('alert-target-search'),
                   controller: _search,
-                  decoration: const InputDecoration(
-                    labelText: 'Find target (e.g. M31 or NGC 224)',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Find target (e.g. M31 or NGC 224)',
+                    ),
                   ),
                   onSubmitted: (_) => _searchTargets(),
                 ),
               ),
               IconButton(
                 onPressed: _busy ? null : _searchTargets,
-                tooltip: 'Search catalog',
+                tooltip: appTranslate(context, 'Search catalog'),
                 icon: const Icon(Icons.search),
               ),
             ],
@@ -403,12 +411,15 @@ class _ObservationAlertsSectionState
             key: ValueKey('alert-target-$_targetId'),
             initialValue: _targetId,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Celestial target'),
+            decoration: localizeDecoration(
+              context,
+              const InputDecoration(labelText: 'Celestial target'),
+            ),
             items: [
               for (final target in _targets)
                 DropdownMenuItem(
                   value: target.id,
-                  child: Text(
+                  child: AppText(
                     target.displayTitle,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -422,17 +433,22 @@ class _ObservationAlertsSectionState
             key: ValueKey('alert-location-$_locationId'),
             initialValue: _locationId,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Observing location'),
+            decoration: localizeDecoration(
+              context,
+              const InputDecoration(labelText: 'Observing location'),
+            ),
             items: [
               for (final site in _sites)
-                DropdownMenuItem(value: site.id, child: Text(site.name)),
+                DropdownMenuItem(value: site.id, child: AppText(site.name)),
             ],
             onChanged: _busy
                 ? null
                 : (value) => setState(() => _locationId = value),
           ),
           const SizedBox(height: 8),
-          Text('Minimum suitability: ${_minimumScore.toStringAsFixed(0)}/100'),
+          AppText(
+            'Minimum suitability: ${_minimumScore.toStringAsFixed(0)}/100',
+          ),
           Slider(
             key: const ValueKey('alert-min-score'),
             min: 0,
@@ -446,14 +462,15 @@ class _ObservationAlertsSectionState
           DropdownButtonFormField<int>(
             key: const ValueKey('alert-min-duration'),
             initialValue: _duration,
-            decoration: const InputDecoration(
-              labelText: 'Minimum observation duration',
+            decoration: localizeDecoration(
+              context,
+              const InputDecoration(labelText: 'Minimum observation duration'),
             ),
             items: [
               for (final minutes in [15, 30, 60, 90, 120, 180, 240])
                 DropdownMenuItem(
                   value: minutes,
-                  child: Text('$minutes minutes'),
+                  child: AppText('$minutes minutes'),
                 ),
             ],
             onChanged: _busy
@@ -473,7 +490,7 @@ class _ObservationAlertsSectionState
                 key: const ValueKey('alert-add'),
                 onPressed: _busy ? null : _add,
                 icon: const Icon(Icons.add_alert_outlined),
-                label: const Text('Add alert'),
+                label: const AppText('Add alert'),
               ),
               OutlinedButton.icon(
                 key: const ValueKey('alert-check-now'),
@@ -481,7 +498,7 @@ class _ObservationAlertsSectionState
                     ? null
                     : _check,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Check now'),
+                label: const AppText('Check now'),
               ),
             ],
           ),
@@ -494,7 +511,7 @@ class _ObservationAlertsSectionState
         if (_status != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(_status!),
+            child: AppText(_status!),
           ),
       ],
     );

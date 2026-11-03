@@ -26,6 +26,20 @@
   let tileProbeTimer = null;
   let viewProbeTimer = null;
   let imageryStatus = 'unknown';
+  let aladinControlPreference = null;
+
+  // Null means follow the responsive default: Aladin controls are hidden
+  // on narrow viewports so they do not overlap AstroManager's mobile sheet.
+  function setEmbeddedControls(preference) {
+    aladinControlPreference = preference;
+    const document = root.document;
+    if (!document || !document.documentElement ||
+        !document.documentElement.classList) return;
+    const narrow = Number(root.innerWidth) > 0 && root.innerWidth < 600;
+    const visible = preference === null || preference === undefined
+      ? !narrow : preference;
+    document.documentElement.classList.toggle('astro-hide-aladin-ui', !visible);
+  }
 
 
   function report(type, fields) {
@@ -239,6 +253,10 @@
     if (!['detail', 'dome'].includes(mode)) return false;
     if (!ready) { queued = cmd; return true; }
     try {
+      if (cmd.showAladinControls !== null &&
+          cmd.showAladinControls !== undefined &&
+          typeof cmd.showAladinControls !== 'boolean') return false;
+      setEmbeddedControls(cmd.showAladinControls);
       // The projection changes only when switching modes, not on each pan.
       if (mode !== projectionMode) {
         aladin.setProjection(mode === 'dome' ? 'ZEA' : 'TAN');
@@ -391,6 +409,7 @@
           survey:surveyBase, cooFrame:'ICRS',
           showReticle:true, showFullscreenControl:false,
         });
+        setEmbeddedControls(null);
         aladin.on('positionChanged', scheduleViewReport);
         aladin.on('zoomChanged', scheduleViewReport);
         ready = true;
@@ -405,6 +424,10 @@
       fatal('Sky atlas initialization failed: ' + (error && error.message || error));
     });
   }
+
+  root.addEventListener('resize', function () {
+    if (ready) setEmbeddedControls(aladinControlPreference);
+  });
 
   root.addEventListener('message', function (event) {
     if (event.source !== root.parent || event.origin !== root.location.origin) return;

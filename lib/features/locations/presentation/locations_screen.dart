@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,13 +47,13 @@ class LocationsScreen extends ConsumerWidget {
 
       if (successMessage != null) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(successMessage)));
+            .showSnackBar(SnackBar(content: AppText(successMessage)));
       }
     } catch (error) {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(appErrorMessage(error))));
+          .showSnackBar(SnackBar(content: AppText(appErrorMessage(error))));
     }
   }
 
@@ -64,19 +65,19 @@ class LocationsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete observing location?'),
-        content: Text(
+        title: const AppText('Delete observing location?'),
+        content: AppText(
           'Delete "${location.name}"? '
           'This action cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const AppText('Cancel'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const AppText('Delete'),
           ),
         ],
       ),
@@ -114,19 +115,19 @@ class LocationsScreen extends ConsumerWidget {
                     }
                   },
                   icon: const Icon(Icons.arrow_back),
-                  label: const Text('Back to Settings'),
+                  label: const AppText('Back to Settings'),
                 ),
 
                 const SizedBox(height: 12),
 
-                Text(
+                AppText(
                   'Observing Locations',
                   style: theme.textTheme.headlineMedium,
                 ),
 
                 const SizedBox(height: 8),
 
-                Text(
+                AppText(
                   'Manage observing sites used for '
                   'astronomical calculations, weather '
                   'forecasts and imaging recommendations.',
@@ -138,7 +139,7 @@ class LocationsScreen extends ConsumerWidget {
                 FilledButton.icon(
                   onPressed: () => _showEditor(context, ref),
                   icon: const Icon(Icons.add_location_alt),
-                  label: const Text('Add location'),
+                  label: const AppText('Add location'),
                 ),
 
                 const SizedBox(height: 24),
@@ -154,7 +155,7 @@ class LocationsScreen extends ConsumerWidget {
                   error: (error, stackTrace) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AppText(
                         appErrorMessage(error),
                         style: TextStyle(color: theme.colorScheme.error),
                       ),
@@ -164,7 +165,7 @@ class LocationsScreen extends ConsumerWidget {
                           ref.invalidate(observingLocationsProvider);
                         },
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Retry'),
+                        label: const AppText('Retry'),
                       ),
                     ],
                   ),
@@ -182,9 +183,9 @@ class LocationsScreen extends ConsumerWidget {
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(height: 12),
-                              const Text('No observing locations yet.'),
+                              const AppText('No observing locations yet.'),
                               const SizedBox(height: 8),
-                              const Text(
+                              const AppText(
                                 'Add your first observing '
                                 'location to get started.',
                                 textAlign: TextAlign.center,
@@ -217,21 +218,21 @@ class LocationsScreen extends ConsumerWidget {
                                           ? theme.colorScheme.primary
                                           : null,
                                     ),
-                                    title: Text(location.name),
+                                    title: AppText(location.name),
                                     subtitle: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
+                                        AppText(
                                           '${location.latitude.toStringAsFixed(6)}°, '
                                           '${location.longitude.toStringAsFixed(6)}°',
                                         ),
-                                        Text(
+                                        AppText(
                                           '${location.elevationMeters.toStringAsFixed(1)} m • '
                                           '${location.timeZone}',
                                         ),
                                         if (location.isDefault)
-                                          Text(
+                                          AppText(
                                             'Default observing location',
                                             style: TextStyle(
                                               color: theme.colorScheme.primary,
@@ -246,7 +247,10 @@ class LocationsScreen extends ConsumerWidget {
                                       children: [
                                         if (!location.isDefault)
                                           IconButton(
-                                            tooltip: 'Set as default',
+                                            tooltip: appTranslate(
+                                              context,
+                                              'Set as default',
+                                            ),
                                             icon: const Icon(
                                               Icons.star_outline,
                                             ),
@@ -261,7 +265,10 @@ class LocationsScreen extends ConsumerWidget {
                                             ),
                                           ),
                                         IconButton(
-                                          tooltip: 'Edit location',
+                                          tooltip: appTranslate(
+                                            context,
+                                            'Edit location',
+                                          ),
                                           icon: const Icon(Icons.edit_outlined),
                                           onPressed: () => _showEditor(
                                             context,
@@ -270,7 +277,10 @@ class LocationsScreen extends ConsumerWidget {
                                           ),
                                         ),
                                         IconButton(
-                                          tooltip: 'Delete location',
+                                          tooltip: appTranslate(
+                                            context,
+                                            'Delete location',
+                                          ),
                                           icon: const Icon(
                                             Icons.delete_outline,
                                           ),
@@ -409,7 +419,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(appErrorMessage(error))));
+          .showSnackBar(SnackBar(content: AppText(appErrorMessage(error))));
     } finally {
       if (mounted) {
         setState(() {
@@ -438,7 +448,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
       Navigator.of(context).pop(input);
     } catch (error) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(appErrorMessage(error))));
+          .showSnackBar(SnackBar(content: AppText(appErrorMessage(error))));
     }
   }
 
@@ -450,7 +460,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
     );
 
     return AlertDialog(
-      title: Text(
+      title: AppText(
         widget.location == null
             ? 'Add observing location'
             : 'Edit observing location',
@@ -466,9 +476,12 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                 TextFormField(
                   key: const ValueKey('location-name'),
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Location name',
-                    hintText: 'e.g. Home Observatory',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Location name',
+                      hintText: 'e.g. Home Observatory',
+                    ),
                   ),
                   maxLength: 100,
                   validator: (value) {
@@ -485,9 +498,12 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                   key: const ValueKey('location-latitude'),
                   controller: _latitudeController,
                   keyboardType: numberKeyboard,
-                  decoration: const InputDecoration(
-                    labelText: 'Latitude (degrees)',
-                    hintText: 'e.g. 47.480000',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Latitude (degrees)',
+                      hintText: 'e.g. 47.480000',
+                    ),
                   ),
                   validator: (value) => _validateNumber(value, -90, 90),
                 ),
@@ -498,9 +514,12 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                   key: const ValueKey('location-longitude'),
                   controller: _longitudeController,
                   keyboardType: numberKeyboard,
-                  decoration: const InputDecoration(
-                    labelText: 'Longitude (degrees)',
-                    hintText: 'e.g. 8.210000',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Longitude (degrees)',
+                      hintText: 'e.g. 8.210000',
+                    ),
                   ),
                   validator: (value) => _validateNumber(value, -180, 180),
                 ),
@@ -511,8 +530,9 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                   key: const ValueKey('location-elevation'),
                   controller: _elevationController,
                   keyboardType: numberKeyboard,
-                  decoration: const InputDecoration(
-                    labelText: 'Elevation (meters)',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Elevation (meters)'),
                   ),
                   validator: (value) => _validateNumber(value, -500, 10000),
                 ),
@@ -522,10 +542,13 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                 TextFormField(
                   key: const ValueKey('location-timezone'),
                   controller: _timeZoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'IANA time zone',
-                    hintText: 'Europe/Zurich',
-                    helperText: 'Use the time zone of the observing site.',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'IANA time zone',
+                      hintText: 'Europe/Zurich',
+                      helperText: 'Use the time zone of the observing site.',
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -546,12 +569,12 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.my_location),
-                  label: const Text('Use current location'),
+                  label: const AppText('Use current location'),
                 ),
 
                 const SizedBox(height: 8),
 
-                const Text(
+                const AppText(
                   'GPS coordinates and elevation may be '
                   'approximate. Verify the time zone manually.',
                   textAlign: TextAlign.center,
@@ -564,9 +587,9 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
-        FilledButton(onPressed: _save, child: const Text('Save')),
+        FilledButton(onPressed: _save, child: const AppText('Save')),
       ],
     );
   }

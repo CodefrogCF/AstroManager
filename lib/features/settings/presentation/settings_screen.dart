@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import '../../backup/presentation/backup_settings_section.dart';
 import '../../alerts/presentation/observation_alerts_section.dart';
 
 import 'widgets/app_preferences_section.dart';
+import '../../onboarding/presentation/onboarding_dialog.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -35,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to save theme preference.')),
+        const SnackBar(content: AppText('Unable to save theme preference.')),
       );
     }
   }
@@ -54,11 +56,11 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Appearance', style: theme.textTheme.headlineSmall),
+                AppText('Appearance', style: theme.textTheme.headlineSmall),
 
                 const SizedBox(height: 8),
 
-                Text(
+                AppText(
                   'Choose how AstroManager looks. '
                   'Astronomy night mode is designed for '
                   'use during observing sessions.',
@@ -78,8 +80,8 @@ class SettingsScreen extends ConsumerWidget {
                           vertical: 8,
                         ),
                         leading: Icon(_iconFor(choice)),
-                        title: Text(choice.label),
-                        subtitle: Text(choice.description),
+                        title: AppText(choice.label),
+                        subtitle: AppText(choice.description),
                         selected: selectedTheme == choice,
                         trailing: selectedTheme == choice
                             ? Icon(
@@ -94,7 +96,7 @@ class SettingsScreen extends ConsumerWidget {
 
                 const SizedBox(height: 12),
 
-                Text(
+                AppText(
                   'The selected appearance is saved '
                   'automatically and restored at startup.',
                   style: theme.textTheme.bodySmall,
@@ -105,6 +107,14 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 const AppPreferencesSection(),
+
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  key: const ValueKey('settings-open-onboarding'),
+                  onPressed: () => showAstroOnboarding(context),
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  label: const AppText('Open the setup guide'),
+                ),
 
                 const SizedBox(height: 24),
                 const Divider(),
@@ -120,15 +130,15 @@ class SettingsScreen extends ConsumerWidget {
                 const Divider(),
                 const SizedBox(height: 24),
 
-                Text('Observing', style: theme.textTheme.headlineSmall),
+                AppText('Observing', style: theme.textTheme.headlineSmall),
 
                 const SizedBox(height: 12),
 
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.location_on_outlined),
-                    title: const Text('Observing Locations'),
-                    subtitle: const Text(
+                    title: const AppText('Observing Locations'),
+                    subtitle: const AppText(
                       'Manage coordinates, elevation '
                       'and time zones.',
                     ),

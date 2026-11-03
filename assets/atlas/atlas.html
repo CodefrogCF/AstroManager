@@ -6,6 +6,24 @@
   <title>AstroManager Sky Atlas</title>
   <style>
     html, body, #aladin { height:100%;width:100%;margin:0;overflow:hidden;background:#10151f; }
+    /* Keep the mandatory source attribution visible. Hide only the
+       optional Aladin Lite widgets, never the survey canvas or branding. */
+    .astro-hide-aladin-ui #aladin .aladin-fov,
+    .astro-hide-aladin-ui #aladin .aladin-stack-control,
+    .astro-hide-aladin-ui #aladin .aladin-stack-box,
+    .astro-hide-aladin-ui #aladin .aladin-fullScreen-control,
+    .astro-hide-aladin-ui #aladin .aladin-simbadPointer-control,
+    .astro-hide-aladin-ui #aladin .aladin-projection-control,
+    .astro-hide-aladin-ui #aladin .aladin-grid-control,
+    .astro-hide-aladin-ui #aladin .aladin-settings-control,
+    .astro-hide-aladin-ui #aladin .aladin-share-control,
+    .astro-hide-aladin-ui #aladin .aladin-status-bar,
+    .astro-hide-aladin-ui #aladin .aladin-location,
+    .astro-hide-aladin-ui #aladin .aladin-cooFrame,
+    .astro-hide-aladin-ui #aladin .aladin-selectionMode-control,
+    .astro-hide-aladin-ui #aladin .aladin-colorPicker-control {
+      display: none !important;
+    }
     #warning { position:absolute;z-index:20;top:0;left:0;right:0;display:none;
       background:#38252b;color:#fff;font:14px system-ui;padding:10px; }
   </style>

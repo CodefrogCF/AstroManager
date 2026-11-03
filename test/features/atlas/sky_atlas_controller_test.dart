@@ -16,6 +16,16 @@ void main() {
         ...fields,
       });
 
+  test('Aladin embedded controls are optional in the versioned state', () {
+    final controller = SkyAtlasController(initialPosition: andromeda);
+    addTearDown(controller.dispose);
+    expect(jsonDecode(controller.stateJson)['showAladinControls'], isNull);
+    controller.setShowAladinControls(false);
+    expect(jsonDecode(controller.stateJson)['showAladinControls'], false);
+    controller.setShowAladinControls(true);
+    expect(jsonDecode(controller.stateJson)['showAladinControls'], true);
+  });
+
   test('state contains positions, FoV, and marker overlay', () {
     final controller = SkyAtlasController(
       initialPosition: andromeda,

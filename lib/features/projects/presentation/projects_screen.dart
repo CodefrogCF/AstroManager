@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -51,7 +52,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
   void _report(Object error) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to manage projects: $error')),
+        SnackBar(content: AppText('Unable to manage projects: $error')),
       );
     }
   }
@@ -67,7 +68,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           alignment: WrapAlignment.spaceBetween,
           runSpacing: 8,
           children: [
-            Text(
+            AppText(
               'Astrophotography projects',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
@@ -75,7 +76,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
               spacing: 8,
               children: [
                 IconButton(
-                  tooltip: 'Refresh projects',
+                  tooltip: appTranslate(context, 'Refresh projects'),
                   onPressed: () => ref.invalidate(plannedProjectsListProvider),
                   icon: const Icon(Icons.refresh),
                 ),
@@ -83,7 +84,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   key: const ValueKey('project-create'),
                   onPressed: _saving ? null : _create,
                   icon: const Icon(Icons.add),
-                  label: const Text('New project'),
+                  label: const AppText('New project'),
                 ),
               ],
             ),
@@ -95,14 +96,14 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           children: [
             FilterChip(
               key: const ValueKey('project-filter-active'),
-              label: const Text('Active'),
+              label: const AppText('Active'),
               selected: _filter == null,
               onSelected: (_) => setState(() => _filter = null),
             ),
             for (final status in ImagingProjectStatus.values)
               FilterChip(
                 key: ValueKey('project-filter-${status.name}'),
-                label: Text(status.label),
+                label: AppText(status.label),
                 selected: _filter == status,
                 onSelected: (_) => setState(() => _filter = status),
               ),
@@ -115,10 +116,10 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
           error: (error, stack) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Unable to load projects: $error'),
+              AppText('Unable to load projects: $error'),
               TextButton(
                 onPressed: () => ref.invalidate(plannedProjectsListProvider),
-                child: const Text('Retry'),
+                child: const AppText('Retry'),
               ),
             ],
           ),
@@ -133,7 +134,7 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
             if (visible.isEmpty) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text(
+                child: AppText(
                   'No matching projects. Create one or change the status filter.',
                 ),
               );
@@ -144,11 +145,11 @@ class _ProjectsScreenState extends ConsumerState<ProjectsScreen> {
                   Card(
                     child: ListTile(
                       key: ValueKey('project-${project.id}'),
-                      title: Text(project.title),
+                      title: AppText(project.title),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          AppText(
                             '${project.status.label} · '
                             '${project.targetIds.length} target(s) · '
                             '${project.observingDate ?? 'Unscheduled'}',

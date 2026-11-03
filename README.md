@@ -29,6 +29,14 @@ The Dashboard currently provides a welcome view, not an analytics dashboard.
 
 For screen-by-screen instructions, see the [User guide](docs/user-guide.md).
 
+## Language, first-run setup and accessibility
+
+AstroManager supports English and German. Use **Settings → Application preferences → Language** to follow the device language or select English/Deutsch. The selection is saved offline. On the dashboard, the optional first-run guide introduces language selection, observing sites and equipment. You can skip it at any point and reopen it in Settings. No account is required, and location access is only requested if you explicitly select **Use current location**.
+
+On phones, the sky atlas prioritizes the map. Expand the mobile control panel and open **Info → Use Aladin controls** to show or hide the embedded Aladin Lite buttons. On larger displays, the switch is also available above the atlas. AstroManager's own framing controls and source credits remain available independently. Embedded Aladin controls are hidden by default on narrow screens to prevent overlapping controls.
+
+Native Flutter labels respect system text scaling and screen readers. Some dense plotting and third-party atlas content may still require zooming or direct interaction; verify your device's accessibility settings before observing.
+
 ## Offline and online features
 
 - **Available locally:** bundled target catalog, saved sites/equipment/projects/sessions, astronomical calculations, mosaic geometry, observation plans and cached information.
@@ -50,6 +58,7 @@ Install the Flutter SDK version specified in [`.fvmrc`](.fvmrc) and the platform
 git clone https://github.com/CodefrogCF/AstroManager.git
 cd AstroManager
 flutter pub get
+flutter gen-l10n
 flutter run -d chrome
 ```
 

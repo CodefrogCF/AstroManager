@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/astronomy/solar_events.dart';
@@ -82,7 +84,7 @@ class NightTimelineChart extends StatelessWidget {
           width: 175,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
-            child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis),
+            child: AppText(label, maxLines: 2, overflow: TextOverflow.ellipsis),
           ),
         ),
         SizedBox(
@@ -157,7 +159,7 @@ class NightTimelineChart extends StatelessWidget {
                 left: math.min(timeline.fraction(tick) * _width, _width - 110),
                 top: 4,
                 width: 110,
-                child: Text(
+                child: AppText(
                   _local(tick),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
@@ -256,7 +258,7 @@ class NightTimelineChart extends StatelessWidget {
                     );
                   },
                   child: Center(
-                    child: Text(
+                    child: AppText(
                       'Tap to schedule a target',
                       style: TextStyle(color: palette.onSurfaceVariant),
                     ),

@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -62,18 +63,18 @@ class _TargetVisibilityPanelState extends State<TargetVisibilityPanel> {
       key: const ValueKey('target-visibility-panel'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           'Target visibility · observing night',
           style: textTheme.titleMedium,
         ),
         const SizedBox(height: 6),
-        Text(
+        AppText(
           'Local noon to next noon; Sun below −18°. '
           'Geometric altitude without terrain or atmospheric refraction.',
           style: textTheme.bodySmall,
         ),
         const SizedBox(height: 10),
-        Text('Minimum altitude: ${_minimumAltitude.toStringAsFixed(0)}°'),
+        AppText('Minimum altitude: ${_minimumAltitude.toStringAsFixed(0)}°'),
         Slider(
           key: const ValueKey('target-min-altitude-slider'),
           value: _minimumAltitude,
@@ -83,15 +84,15 @@ class _TargetVisibilityPanelState extends State<TargetVisibilityPanel> {
           label: '${_minimumAltitude.toStringAsFixed(0)}°',
           onChanged: (value) => setState(() => _minimumAltitude = value),
         ),
-        Text(label, style: textTheme.titleSmall),
+        AppText(label, style: textTheme.titleSmall),
         const SizedBox(height: 8),
-        Text(
+        AppText(
           'Available: ${result.totalVisibleDuration.inMinutes} min'
           ' / ${result.totalAllowedDuration.inMinutes} min darkness',
         ),
         if (result.bestTimeUtc != null) ...[
           const SizedBox(height: 8),
-          Text(
+          AppText(
             'Best: ${result.bestAltitudeDegrees!.toStringAsFixed(1)}° '
             'at ${_localTime(result.bestTimeUtc!)}',
             key: const ValueKey('target-visibility-best'),
@@ -100,7 +101,7 @@ class _TargetVisibilityPanelState extends State<TargetVisibilityPanel> {
         if (result.culminations.isNotEmpty) ...[
           const SizedBox(height: 6),
           for (final culmination in result.culminations)
-            Text(
+            AppText(
               'Upper culmination: '
               '${culmination.horizontal.altitudeDegrees.toStringAsFixed(1)}° '
               'at ${_localTime(culmination.utc)}',
@@ -108,12 +109,12 @@ class _TargetVisibilityPanelState extends State<TargetVisibilityPanel> {
         ],
         if (result.visibleIntervals.isNotEmpty) ...[
           const SizedBox(height: 10),
-          Text('Visibility windows', style: textTheme.titleSmall),
+          AppText('Visibility windows', style: textTheme.titleSmall),
           const SizedBox(height: 4),
           for (final window in result.visibleIntervals)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Text(
+              child: AppText(
                 '${_localTime(window.startUtc)} – '
                 '${_localTime(window.endUtc)} '
                 '(${window.duration.inMinutes} min)',

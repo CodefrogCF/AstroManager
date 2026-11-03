@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -135,7 +136,7 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
         const <OpticalProfile>[];
     final knownProfile = profiles.any((profile) => profile.id == _profileId);
     return AlertDialog(
-      title: Text(
+      title: AppText(
         widget.project == null ? 'New imaging project' : 'Edit project',
       ),
       content: SizedBox(
@@ -150,8 +151,9 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                 TextFormField(
                   key: const ValueKey('project-title'),
                   controller: _title,
-                  decoration: const InputDecoration(
-                    labelText: 'Project title *',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Project title *'),
                   ),
                   validator: (text) => (text?.trim().isEmpty ?? true)
                       ? 'Enter a project title.'
@@ -160,21 +162,30 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                 TextFormField(
                   controller: _description,
                   maxLines: 2,
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Description'),
+                  ),
                 ),
                 TextFormField(
                   controller: _goal,
-                  decoration: const InputDecoration(
-                    labelText: 'Imaging goal',
-                    hintText: 'e.g. LRGB mosaic',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Imaging goal',
+                      hintText: 'e.g. LRGB mosaic',
+                    ),
                   ),
                 ),
                 TextFormField(
                   key: const ValueKey('project-integration'),
                   controller: _integrationMinutes,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Planned integration (minutes)',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(
+                      labelText: 'Planned integration (minutes)',
+                    ),
                   ),
                   validator: (value) {
                     final minutes = int.tryParse(value?.trim() ?? '');
@@ -187,12 +198,15 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                 DropdownButtonFormField<ImagingProjectStatus>(
                   key: const ValueKey('project-status'),
                   initialValue: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Status'),
+                  ),
                   items: [
                     for (final status in ImagingProjectStatus.values)
                       DropdownMenuItem(
                         value: status,
-                        child: Text(status.label),
+                        child: AppText(status.label),
                       ),
                   ],
                   onChanged: (status) {
@@ -206,16 +220,19 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                   ),
                   isExpanded: true,
                   initialValue: _profileId ?? '__none__',
-                  decoration: const InputDecoration(labelText: 'Imaging setup'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Imaging setup'),
+                  ),
                   items: [
                     const DropdownMenuItem(
                       value: '__none__',
-                      child: Text('No equipment selected'),
+                      child: AppText('No equipment selected'),
                     ),
                     if (_profileId != null && !knownProfile)
                       DropdownMenuItem(
                         value: _profileId,
-                        child: Text(
+                        child: AppText(
                           'Unavailable profile ($_profileId)',
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -223,7 +240,7 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                     for (final profile in profiles)
                       DropdownMenuItem(
                         value: profile.id,
-                        child: Text(
+                        child: AppText(
                           profile.name,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -238,7 +255,7 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                   spacing: 8,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text(
+                    AppText(
                       _date == null
                           ? 'No date selected'
                           : '${_date!.year}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}',
@@ -246,17 +263,17 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                     OutlinedButton.icon(
                       onPressed: _pickDate,
                       icon: const Icon(Icons.event),
-                      label: const Text('Plan date'),
+                      label: const AppText('Plan date'),
                     ),
                     if (_date != null)
                       TextButton(
                         onPressed: () => setState(() => _date = null),
-                        child: const Text('Clear date'),
+                        child: const AppText('Clear date'),
                       ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
+                AppText(
                   'Catalog targets',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
@@ -265,14 +282,14 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                   children: [
                     for (final target in _targets)
                       InputChip(
-                        label: Text(target),
+                        label: AppText(target),
                         onDeleted: () =>
                             setState(() => _targets.remove(target)),
                       ),
                     ActionChip(
                       key: const ValueKey('project-add-target'),
                       avatar: const Icon(Icons.add, size: 18),
-                      label: const Text('Add target'),
+                      label: const AppText('Add target'),
                       onPressed: _pickTarget,
                     ),
                   ],
@@ -280,7 +297,10 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
                 TextFormField(
                   controller: _notes,
                   maxLines: 3,
-                  decoration: const InputDecoration(labelText: 'Notes'),
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Notes'),
+                  ),
                 ),
               ],
             ),
@@ -290,12 +310,12 @@ class _ProjectEditorDialogState extends ConsumerState<ProjectEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
         FilledButton(
           key: const ValueKey('project-confirm-save'),
           onPressed: _submit,
-          child: const Text('Save project'),
+          child: const AppText('Save project'),
         ),
       ],
     );
@@ -354,7 +374,7 @@ class _ProjectCatalogTargetDialogState
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Add catalog target'),
+    title: const AppText('Add catalog target'),
     content: SizedBox(
       width: 460,
       height: 340,
@@ -363,9 +383,12 @@ class _ProjectCatalogTargetDialogState
           TextField(
             key: const ValueKey('project-catalog-query'),
             controller: _search,
-            decoration: const InputDecoration(
-              labelText: 'Search Messier, NGC, IC or common name',
-              prefixIcon: Icon(Icons.search),
+            decoration: localizeDecoration(
+              context,
+              const InputDecoration(
+                labelText: 'Search Messier, NGC, IC or common name',
+                prefixIcon: Icon(Icons.search),
+              ),
             ),
             onChanged: (value) {
               setState(() {
@@ -379,7 +402,7 @@ class _ProjectCatalogTargetDialogState
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('Catalog unavailable: ${snapshot.error}'),
+                    child: AppText('Catalog unavailable: ${snapshot.error}'),
                   );
                 }
                 if (!snapshot.hasData) {
@@ -390,8 +413,8 @@ class _ProjectCatalogTargetDialogState
                   itemBuilder: (context, index) {
                     final target = snapshot.data![index];
                     return ListTile(
-                      title: Text(target.displayTitle),
-                      subtitle: Text(target.commonNames),
+                      title: AppText(target.displayTitle),
+                      subtitle: AppText(target.commonNames),
                       onTap: () => Navigator.of(context).pop(target),
                     );
                   },
@@ -405,7 +428,7 @@ class _ProjectCatalogTargetDialogState
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Cancel'),
+        child: const AppText('Cancel'),
       ),
     ],
   );

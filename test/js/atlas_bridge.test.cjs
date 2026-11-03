@@ -62,6 +62,28 @@ function command(overrides={}) {
     ...overrides,
   });
 }
+test('Aladin controls are hidden by default on phones and can be restored', async () => {
+  const fx = fixture();
+  const classes = new Set();
+  fx.win.innerWidth = 390;
+  fx.win.document.documentElement = {classList: {
+    toggle(name, active) {
+      if (active) classes.add(name);
+      else classes.delete(name);
+    },
+  }};
+  fx.win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(classes.has('astro-hide-aladin-ui'), true);
+  assert.equal(fx.win.AstroManagerAtlas.receive(command({showAladinControls:true})), true);
+  assert.equal(classes.has('astro-hide-aladin-ui'), false);
+  fx.handlers.resize();
+  assert.equal(classes.has('astro-hide-aladin-ui'), false);
+  assert.equal(fx.win.AstroManagerAtlas.receive(command({showAladinControls:false})), true);
+  assert.equal(classes.has('astro-hide-aladin-ui'), true);
+  assert.equal(fx.win.AstroManagerAtlas.receive(command({showAladinControls:'invalid'})), false);
+});
+
 test('queues valid Flutter state until Aladin has initialized', async () => {
   const {win, commands, messages} = fixture();
   assert.equal(win.AstroManagerAtlas.receive(command()), true);

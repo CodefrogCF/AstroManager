@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:astromanager/l10n/app_text.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -141,7 +143,7 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(20),
-          child: Text(
+          child: AppText(
             'Embedded Aladin Lite is supported on Web, Android, iOS and macOS. '
             'On Windows/Linux, open the AstroManager web app in a browser.',
             textAlign: TextAlign.center,

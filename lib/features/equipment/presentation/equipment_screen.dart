@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,7 +30,7 @@ class EquipmentScreen extends ConsumerWidget {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(appErrorMessage(error))));
+          .showSnackBar(SnackBar(content: AppText(appErrorMessage(error))));
     }
   }
 
@@ -37,16 +38,16 @@ class EquipmentScreen extends ConsumerWidget {
     return await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-            title: const Text('Confirm deletion'),
-            content: Text('Delete "$name"?'),
+            title: const AppText('Confirm deletion'),
+            content: AppText('Delete "$name"?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel'),
+                child: const AppText('Cancel'),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Delete'),
+                child: const AppText('Delete'),
               ),
             ],
           ),
@@ -122,11 +123,11 @@ class EquipmentScreen extends ConsumerWidget {
     return Card(
       child: ListTile(
         leading: Icon(_icon(item.kind)),
-        title: Text(item.name),
-        subtitle: Text('${item.kind.label}\n${_specifications(item)}'),
+        title: AppText(item.name),
+        subtitle: AppText('${item.kind.label}\n${_specifications(item)}'),
         isThreeLine: true,
         trailing: PopupMenuButton<String>(
-          tooltip: 'Equipment actions',
+          tooltip: appTranslate(context, 'Equipment actions'),
           onSelected: (action) async {
             if (action == 'edit') {
               await _editItem(context, ref, kind: item.kind, item: item);
@@ -154,8 +155,8 @@ class EquipmentScreen extends ConsumerWidget {
             }
           },
           itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Edit')),
-            PopupMenuItem(value: 'delete', child: Text('Delete')),
+            PopupMenuItem(value: 'edit', child: AppText('Edit')),
+            PopupMenuItem(value: 'delete', child: AppText('Delete')),
           ],
         ),
       ),
@@ -188,13 +189,13 @@ class EquipmentScreen extends ConsumerWidget {
                 const Icon(Icons.center_focus_strong),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
+                  child: AppText(
                     profile.name,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 PopupMenuButton<String>(
-                  tooltip: 'Profile actions',
+                  tooltip: appTranslate(context, 'Profile actions'),
                   onSelected: (action) async {
                     if (action == 'edit') {
                       await _editProfile(
@@ -230,19 +231,19 @@ class EquipmentScreen extends ConsumerWidget {
                     }
                   },
                   itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    PopupMenuItem(value: 'edit', child: AppText('Edit')),
+                    PopupMenuItem(value: 'delete', child: AppText('Delete')),
                   ],
                 ),
               ],
             ),
 
-            Text(
+            AppText(
               '${camera?.name ?? "Unknown camera"} + '
               '${optic?.name ?? "Unknown optic"}',
             ),
 
-            if (mount != null) Text('Mount: ${mount.name}'),
+            if (mount != null) AppText('Mount: ${mount.name}'),
 
             const SizedBox(height: 12),
             const Divider(),
@@ -294,9 +295,9 @@ class EquipmentScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12)),
+          AppText(label, style: const TextStyle(fontSize: 12)),
           const SizedBox(height: 3),
-          Text(
+          AppText(
             value,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
@@ -319,14 +320,14 @@ class EquipmentScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   'Equipment Inventory',
                   style: theme.textTheme.headlineMedium,
                 ),
 
                 const SizedBox(height: 8),
 
-                Text(
+                AppText(
                   'Manage your imaging equipment and '
                   'create reusable optical setups.',
                   style: theme.textTheme.bodyMedium,
@@ -341,13 +342,13 @@ class EquipmentScreen extends ConsumerWidget {
                   error: (error, stack) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(appErrorMessage(error)),
+                      AppText(appErrorMessage(error)),
                       const SizedBox(height: 12),
                       OutlinedButton(
                         onPressed: () {
                           ref.invalidate(equipmentProvider);
                         },
-                        child: const Text('Retry'),
+                        child: const AppText('Retry'),
                       ),
                     ],
                   ),
@@ -364,7 +365,7 @@ class EquipmentScreen extends ConsumerWidget {
                               onPressed: () =>
                                   _editItem(context, ref, kind: kind),
                               icon: Icon(_icon(kind)),
-                              label: Text('Add ${kind.label}'),
+                              label: AppText('Add ${kind.label}'),
                             ),
                         ],
                       ),
@@ -375,7 +376,7 @@ class EquipmentScreen extends ConsumerWidget {
                         const Card(
                           child: Padding(
                             padding: EdgeInsets.all(24),
-                            child: Text(
+                            child: AppText(
                               'No equipment yet. Add a camera, '
                               'lens, telescope or mount.',
                             ),
@@ -388,7 +389,7 @@ class EquipmentScreen extends ConsumerWidget {
                         )) ...[
                           const SizedBox(height: 12),
 
-                          Text(
+                          AppText(
                             '${kind.label}s',
                             style: theme.textTheme.titleLarge,
                           ),
@@ -404,7 +405,7 @@ class EquipmentScreen extends ConsumerWidget {
                       const Divider(),
                       const SizedBox(height: 20),
 
-                      Text(
+                      AppText(
                         'Optical Profiles',
                         style: theme.textTheme.headlineSmall,
                       ),
@@ -418,13 +419,13 @@ class EquipmentScreen extends ConsumerWidget {
                             ? null
                             : () => _editProfile(context, ref, inventory),
                         icon: const Icon(Icons.add),
-                        label: const Text('Create Optical Profile'),
+                        label: const AppText('Create Optical Profile'),
                       ),
 
                       if (inventory.cameras.isEmpty || inventory.optics.isEmpty)
                         const Padding(
                           padding: EdgeInsets.only(top: 12),
-                          child: Text(
+                          child: AppText(
                             'Add at least one camera and one '
                             'lens or telescope to create a profile.',
                           ),
@@ -438,7 +439,7 @@ class EquipmentScreen extends ConsumerWidget {
                       if (inventory.profiles.isEmpty)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Text('No optical profiles created yet.'),
+                          child: AppText('No optical profiles created yet.'),
                         ),
                     ],
                   ),

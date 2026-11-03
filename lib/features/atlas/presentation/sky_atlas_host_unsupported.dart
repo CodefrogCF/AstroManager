@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 
 import '../application/sky_atlas_controller.dart';
@@ -8,6 +9,6 @@ class AtlasPlatformHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Center(
-    child: Text('Embedded sky atlas is not supported on this platform.'),
+    child: AppText('Embedded sky atlas is not supported on this platform.'),
   );
 }

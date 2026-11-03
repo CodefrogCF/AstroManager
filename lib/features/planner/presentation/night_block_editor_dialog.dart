@@ -1,3 +1,4 @@
+import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
@@ -163,7 +164,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
   Widget build(BuildContext context) {
     final project = widget.projects.firstWhere((p) => p.id == _projectId);
     return AlertDialog(
-      title: Text(
+      title: AppText(
         widget.existing == null
             ? 'Add observation block'
             : 'Edit observation block',
@@ -181,14 +182,18 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                   key: const ValueKey('night-block-project'),
                   initialValue: _projectId,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Imaging project',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Imaging project'),
                   ),
                   items: [
                     for (final p in widget.projects)
                       DropdownMenuItem(
                         value: p.id,
-                        child: Text(p.title, overflow: TextOverflow.ellipsis),
+                        child: AppText(
+                          p.title,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                   ],
                   onChanged: (value) {
@@ -208,14 +213,15 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                   key: ValueKey('night-block-target-${project.id}'),
                   initialValue: _targetId,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Celestial target',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Celestial target'),
                   ),
                   items: [
                     for (final id in project.targetIds)
                       DropdownMenuItem(
                         value: id,
-                        child: Text(
+                        child: AppText(
                           widget.targets[id]?.displayTitle ?? id,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -226,7 +232,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-                Text(
+                AppText(
                   'Start · ${widget.location.timeZone}',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
@@ -235,7 +241,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                   runSpacing: 4,
                   children: [
                     ChoiceChip(
-                      label: const Text('Evening (night date)'),
+                      label: const AppText('Evening (night date)'),
                       selected: !_nextDay,
                       onSelected: (_) => setState(() {
                         _nextDay = false;
@@ -243,7 +249,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                       }),
                     ),
                     ChoiceChip(
-                      label: const Text('Next morning'),
+                      label: const AppText('Next morning'),
                       selected: _nextDay,
                       onSelected: (_) => setState(() {
                         _nextDay = true;
@@ -253,7 +259,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                     OutlinedButton.icon(
                       key: const ValueKey('night-block-start'),
                       icon: const Icon(Icons.schedule),
-                      label: Text(_time.format(context)),
+                      label: AppText(_time.format(context)),
                       onPressed: () async {
                         final value = await showTimePicker(
                           context: context,
@@ -277,14 +283,17 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                     initialValue: _clockCandidates.contains(_foldChoiceUtc)
                         ? _foldChoiceUtc
                         : _clockCandidates.first,
-                    decoration: const InputDecoration(
-                      labelText: 'Repeated hour: choose UTC offset',
+                    decoration: localizeDecoration(
+                      context,
+                      const InputDecoration(
+                        labelText: 'Repeated hour: choose UTC offset',
+                      ),
                     ),
                     items: [
                       for (final candidate in _clockCandidates)
                         DropdownMenuItem<DateTime>(
                           value: candidate,
-                          child: Text(widget.timeline.clockLabel(candidate)),
+                          child: AppText(widget.timeline.clockLabel(candidate)),
                         ),
                     ],
                     onChanged: (value) =>
@@ -294,8 +303,9 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                   key: const ValueKey('night-block-duration'),
                   controller: _minutes,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Duration (minutes)',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Duration (minutes)'),
                   ),
                   validator: (value) {
                     final parsed = int.tryParse(value?.trim() ?? '');
@@ -307,14 +317,15 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                 TextFormField(
                   controller: _notes,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes (optional)',
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Notes (optional)'),
                   ),
                 ),
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(
+                    child: AppText(
                       _error!,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.error,
@@ -322,7 +333,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                     ),
                   ),
                 const SizedBox(height: 8),
-                const Text(
+                const AppText(
                   'Overlapping blocks are flagged on the timeline. '
                   'Times are saved as UTC instants.',
                 ),
@@ -338,16 +349,16 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
             onPressed: () =>
                 Navigator.pop(context, NightPlanDelete(widget.existing!.id)),
             icon: const Icon(Icons.delete_outline),
-            label: const Text('Delete'),
+            label: const AppText('Delete'),
           ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const AppText('Cancel'),
         ),
         FilledButton(
           key: const ValueKey('night-block-save'),
           onPressed: _save,
-          child: const Text('Save block'),
+          child: const AppText('Save block'),
         ),
       ],
     );
