@@ -1813,4 +1813,102 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboardTonight21 => 'Abnehmende Sichel';
+
+  @override
+  String get dashboardActivity01 => 'Aktive Aufnahmeprojekte';
+
+  @override
+  String get dashboardActivity02 =>
+      'Akzeptierte Integrationszeit und Fortschritt des Aufnahmeziels';
+
+  @override
+  String get dashboardActivity03 => 'Letzte Beobachtungssitzungen';
+
+  @override
+  String get dashboardActivity04 =>
+      'Letzte Aufnahmen und akzeptierte Belichtungszeit';
+
+  @override
+  String get dashboardActivity05 => 'Anzahl Projekte';
+
+  @override
+  String get dashboardActivity06 => 'Anzahl Sitzungen';
+
+  @override
+  String get dashboardActivity07 => 'Himmelsatlas anzeigen';
+
+  @override
+  String get dashboardActivity08 => 'Nachtplaner anzeigen';
+
+  @override
+  String get dashboardActivity09 => 'Projekte anzeigen';
+
+  @override
+  String get dashboardActivity10 => 'Sitzungserfassung anzeigen';
+
+  @override
+  String get dashboardActivity11 => 'Ziele anzeigen';
+
+  @override
+  String get dashboardActivity12 => 'Ausrüstung anzeigen';
+
+  @override
+  String get dashboardActivity13 =>
+      'Projektfortschritt konnte nicht geladen werden.';
+
+  @override
+  String get dashboardActivity14 =>
+      'Keine aktiven Aufnahmeprojekte. Erstelle eines unter Projekte.';
+
+  @override
+  String get dashboardActivity15 => 'Akzeptierte Integrationszeit';
+
+  @override
+  String get dashboardActivity16 => 'Integrationsfortschritt';
+
+  @override
+  String get dashboardActivity17 => 'Verbleibend';
+
+  @override
+  String get dashboardActivity18 => 'Kein Integrationsziel festgelegt.';
+
+  @override
+  String get dashboardActivity19 => 'Sitzungen';
+
+  @override
+  String get dashboardActivity20 =>
+      'Letzte Sitzungen konnten nicht geladen werden.';
+
+  @override
+  String get dashboardActivity21 => 'Noch keine Beobachtungssitzungen erfasst.';
+
+  @override
+  String get dashboardActivity22 => 'akzeptierte Aufnahmen';
+
+  @override
+  String get dashboardActivity23 => 'verworfene Aufnahmen';
+
+  @override
+  String get dashboardActivity24 =>
+      'Projekt für die Sitzungserfassung auswählen';
+
+  @override
+  String get dashboardActivity25 => 'Projekte konnten nicht geladen werden.';
+
+  @override
+  String get dashboardActivity26 =>
+      'Keine Projekte vorhanden. Erstelle zuerst ein Projekt.';
+
+  @override
+  String get dashboardActivity27 => 'Beobachtungssitzung gespeichert.';
+
+  @override
+  String get dashboardActivity28 => 'Sitzung konnte nicht gespeichert werden';
+
+  @override
+  String get dashboardActivity29 => 'Sitzung erfassen';
+
+  @override
+  String get dashboardActivity30 =>
+      'Wähle mindestens eine Schnellaktion in den Widget-Einstellungen.';
 }

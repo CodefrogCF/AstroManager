@@ -1,5 +1,42 @@
 // Generated from app_en.arb and app_de.arb; edit those files and regenerate.
 const Map<String, String> appGermanUiStrings = {
+  'Select at least one quick action in widget settings.':
+      'Wähle mindestens eine Schnellaktion in den Widget-Einstellungen.',
+  'Log session': 'Sitzung erfassen',
+  'Could not save session': 'Sitzung konnte nicht gespeichert werden',
+  'Observation session saved.': 'Beobachtungssitzung gespeichert.',
+  'No projects available. Create a project first.':
+      'Keine Projekte vorhanden. Erstelle zuerst ein Projekt.',
+  'Unable to load projects.': 'Projekte konnten nicht geladen werden.',
+  'Choose a project to log a session':
+      'Projekt für die Sitzungserfassung auswählen',
+  'rejected frames': 'verworfene Aufnahmen',
+  'accepted frames': 'akzeptierte Aufnahmen',
+  'Unable to load recent sessions.':
+      'Letzte Sitzungen konnten nicht geladen werden.',
+  'sessions': 'Sitzungen',
+  'No integration goal set.': 'Kein Integrationsziel festgelegt.',
+  'Remaining': 'Verbleibend',
+  'Integration progress': 'Integrationsfortschritt',
+  'Accepted integration': 'Akzeptierte Integrationszeit',
+  'No active imaging projects. Create one in Projects.':
+      'Keine aktiven Aufnahmeprojekte. Erstelle eines unter Projekte.',
+  'Unable to load project progress.':
+      'Projektfortschritt konnte nicht geladen werden.',
+  'Show Equipment': 'Ausrüstung anzeigen',
+  'Show Targets': 'Ziele anzeigen',
+  'Show Session Logging': 'Sitzungserfassung anzeigen',
+  'Show Projects': 'Projekte anzeigen',
+  'Show Night Planner': 'Nachtplaner anzeigen',
+  'Show Sky Atlas': 'Himmelsatlas anzeigen',
+  'Number of sessions': 'Anzahl Sitzungen',
+  'Number of projects': 'Anzahl Projekte',
+  'Recent imaging activity and accepted exposure time':
+      'Letzte Aufnahmen und akzeptierte Belichtungszeit',
+  'Recent Observation Sessions': 'Letzte Beobachtungssitzungen',
+  'Accepted integration time and imaging goal progress':
+      'Akzeptierte Integrationszeit und Fortschritt des Aufnahmeziels',
+  'Active Imaging Projects': 'Aktive Aufnahmeprojekte',
   '1.0 = native, 0.8 = reducer, 2.0 = Barlow':
       '1,0 = nativ, 0,8 = Reducer, 2,0 = Barlow',
   '12-hour clock (AM/PM)': '12-Stunden-Format (AM/PM)',

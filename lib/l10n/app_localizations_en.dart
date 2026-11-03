@@ -1791,4 +1791,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardTonight21 => 'Waning Crescent';
+
+  @override
+  String get dashboardActivity01 => 'Active Imaging Projects';
+
+  @override
+  String get dashboardActivity02 =>
+      'Accepted integration time and imaging goal progress';
+
+  @override
+  String get dashboardActivity03 => 'Recent Observation Sessions';
+
+  @override
+  String get dashboardActivity04 =>
+      'Recent imaging activity and accepted exposure time';
+
+  @override
+  String get dashboardActivity05 => 'Number of projects';
+
+  @override
+  String get dashboardActivity06 => 'Number of sessions';
+
+  @override
+  String get dashboardActivity07 => 'Show Sky Atlas';
+
+  @override
+  String get dashboardActivity08 => 'Show Night Planner';
+
+  @override
+  String get dashboardActivity09 => 'Show Projects';
+
+  @override
+  String get dashboardActivity10 => 'Show Session Logging';
+
+  @override
+  String get dashboardActivity11 => 'Show Targets';
+
+  @override
+  String get dashboardActivity12 => 'Show Equipment';
+
+  @override
+  String get dashboardActivity13 => 'Unable to load project progress.';
+
+  @override
+  String get dashboardActivity14 =>
+      'No active imaging projects. Create one in Projects.';
+
+  @override
+  String get dashboardActivity15 => 'Accepted integration';
+
+  @override
+  String get dashboardActivity16 => 'Integration progress';
+
+  @override
+  String get dashboardActivity17 => 'Remaining';
+
+  @override
+  String get dashboardActivity18 => 'No integration goal set.';
+
+  @override
+  String get dashboardActivity19 => 'sessions';
+
+  @override
+  String get dashboardActivity20 => 'Unable to load recent sessions.';
+
+  @override
+  String get dashboardActivity21 => 'No observation sessions recorded yet.';
+
+  @override
+  String get dashboardActivity22 => 'accepted frames';
+
+  @override
+  String get dashboardActivity23 => 'rejected frames';
+
+  @override
+  String get dashboardActivity24 => 'Choose a project to log a session';
+
+  @override
+  String get dashboardActivity25 => 'Unable to load projects.';
+
+  @override
+  String get dashboardActivity26 =>
+      'No projects available. Create a project first.';
+
+  @override
+  String get dashboardActivity27 => 'Observation session saved.';
+
+  @override
+  String get dashboardActivity28 => 'Could not save session';
+
+  @override
+  String get dashboardActivity29 => 'Log session';
+
+  @override
+  String get dashboardActivity30 =>
+      'Select at least one quick action in widget settings.';
 }

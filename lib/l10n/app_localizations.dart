@@ -3475,6 +3475,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waning Crescent'**
   String get dashboardTonight21;
+
+  /// No description provided for @dashboardActivity01.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Imaging Projects'**
+  String get dashboardActivity01;
+
+  /// No description provided for @dashboardActivity02.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted integration time and imaging goal progress'**
+  String get dashboardActivity02;
+
+  /// No description provided for @dashboardActivity03.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Observation Sessions'**
+  String get dashboardActivity03;
+
+  /// No description provided for @dashboardActivity04.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent imaging activity and accepted exposure time'**
+  String get dashboardActivity04;
+
+  /// No description provided for @dashboardActivity05.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of projects'**
+  String get dashboardActivity05;
+
+  /// No description provided for @dashboardActivity06.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of sessions'**
+  String get dashboardActivity06;
+
+  /// No description provided for @dashboardActivity07.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Sky Atlas'**
+  String get dashboardActivity07;
+
+  /// No description provided for @dashboardActivity08.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Night Planner'**
+  String get dashboardActivity08;
+
+  /// No description provided for @dashboardActivity09.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Projects'**
+  String get dashboardActivity09;
+
+  /// No description provided for @dashboardActivity10.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Session Logging'**
+  String get dashboardActivity10;
+
+  /// No description provided for @dashboardActivity11.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Targets'**
+  String get dashboardActivity11;
+
+  /// No description provided for @dashboardActivity12.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Equipment'**
+  String get dashboardActivity12;
+
+  /// No description provided for @dashboardActivity13.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load project progress.'**
+  String get dashboardActivity13;
+
+  /// No description provided for @dashboardActivity14.
+  ///
+  /// In en, this message translates to:
+  /// **'No active imaging projects. Create one in Projects.'**
+  String get dashboardActivity14;
+
+  /// No description provided for @dashboardActivity15.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted integration'**
+  String get dashboardActivity15;
+
+  /// No description provided for @dashboardActivity16.
+  ///
+  /// In en, this message translates to:
+  /// **'Integration progress'**
+  String get dashboardActivity16;
+
+  /// No description provided for @dashboardActivity17.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get dashboardActivity17;
+
+  /// No description provided for @dashboardActivity18.
+  ///
+  /// In en, this message translates to:
+  /// **'No integration goal set.'**
+  String get dashboardActivity18;
+
+  /// No description provided for @dashboardActivity19.
+  ///
+  /// In en, this message translates to:
+  /// **'sessions'**
+  String get dashboardActivity19;
+
+  /// No description provided for @dashboardActivity20.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load recent sessions.'**
+  String get dashboardActivity20;
+
+  /// No description provided for @dashboardActivity21.
+  ///
+  /// In en, this message translates to:
+  /// **'No observation sessions recorded yet.'**
+  String get dashboardActivity21;
+
+  /// No description provided for @dashboardActivity22.
+  ///
+  /// In en, this message translates to:
+  /// **'accepted frames'**
+  String get dashboardActivity22;
+
+  /// No description provided for @dashboardActivity23.
+  ///
+  /// In en, this message translates to:
+  /// **'rejected frames'**
+  String get dashboardActivity23;
+
+  /// No description provided for @dashboardActivity24.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a project to log a session'**
+  String get dashboardActivity24;
+
+  /// No description provided for @dashboardActivity25.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load projects.'**
+  String get dashboardActivity25;
+
+  /// No description provided for @dashboardActivity26.
+  ///
+  /// In en, this message translates to:
+  /// **'No projects available. Create a project first.'**
+  String get dashboardActivity26;
+
+  /// No description provided for @dashboardActivity27.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation session saved.'**
+  String get dashboardActivity27;
+
+  /// No description provided for @dashboardActivity28.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save session'**
+  String get dashboardActivity28;
+
+  /// No description provided for @dashboardActivity29.
+  ///
+  /// In en, this message translates to:
+  /// **'Log session'**
+  String get dashboardActivity29;
+
+  /// No description provided for @dashboardActivity30.
+  ///
+  /// In en, this message translates to:
+  /// **'Select at least one quick action in widget settings.'**
+  String get dashboardActivity30;
 }
 
 class _AppLocalizationsDelegate

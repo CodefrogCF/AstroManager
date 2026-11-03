@@ -110,9 +110,19 @@ void main() {
     expect(find.byKey(const ValueKey('dashboard-tonight')), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('dashboard-manage')));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(const ValueKey('dashboard-add-observing-site')),
+    // Additional registered widgets can push this option outside the lazily
+    // built portion of the dialog's ListView. Scroll inside the dialog before
+    // interacting with the entry instead of assuming it is already built.
+    final siteOption = find.byKey(
+      const ValueKey('dashboard-add-observing-site'),
     );
+    final dialogList = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(Scrollable),
+    );
+    expect(dialogList, findsOneWidget);
+    await tester.scrollUntilVisible(siteOption, 180, scrollable: dialogList);
+    await tester.tap(siteOption);
     await tester.pumpAndSettle();
     expect(store.layout.widgets.length, 5);
     await tester.tap(find.text('Close').last);

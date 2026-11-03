@@ -9,6 +9,8 @@ import '../domain/dashboard_layout.dart';
 import 'widgets/dashboard_widget_state.dart';
 import 'widgets/seven_night_weather_widget.dart';
 import 'widgets/top_targets_widget.dart';
+import 'widgets/dashboard_project_widgets.dart';
+import 'widgets/dashboard_quick_actions_widget.dart';
 import 'widgets/tonight_conditions_widget.dart';
 
 /// Metadata and rendering are registered together, independent of the grid.
@@ -236,9 +238,103 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
           type: DashboardSettingType.toggle,
           defaultValue: false,
         ),
+        DashboardWidgetSetting(
+          key: 'showAtlas',
+          label: 'Show Sky Atlas',
+          type: DashboardSettingType.toggle,
+          defaultValue: true,
+        ),
+        DashboardWidgetSetting(
+          key: 'showPlanner',
+          label: 'Show Night Planner',
+          type: DashboardSettingType.toggle,
+          defaultValue: true,
+        ),
+        DashboardWidgetSetting(
+          key: 'showProjects',
+          label: 'Show Projects',
+          type: DashboardSettingType.toggle,
+          defaultValue: true,
+        ),
+        DashboardWidgetSetting(
+          key: 'showSessions',
+          label: 'Show Session Logging',
+          type: DashboardSettingType.toggle,
+          defaultValue: true,
+        ),
+        DashboardWidgetSetting(
+          key: 'showTargets',
+          label: 'Show Targets',
+          type: DashboardSettingType.toggle,
+          defaultValue: false,
+        ),
+        DashboardWidgetSetting(
+          key: 'showEquipment',
+          label: 'Show Equipment',
+          type: DashboardSettingType.toggle,
+          defaultValue: false,
+        ),
       ],
       builder: (_, ref, environment, instance) =>
-          _QuickActions(compact: instance.settings['compact'] == true),
+          DashboardQuickActionsWidget(instance: instance),
+    ),
+    DashboardWidgetDefinition(
+      typeId: 'active-projects',
+      title: 'Active Imaging Projects',
+      description: 'Accepted integration time and imaging goal progress',
+      icon: Icons.insights_outlined,
+      defaultSize: const DashboardWidgetSize(2, 1),
+      supportedSizes: const [
+        DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
+        DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
+      ],
+      settings: const [
+        DashboardWidgetSetting(
+          key: 'limit',
+          label: 'Number of projects',
+          type: DashboardSettingType.choice,
+          defaultValue: '3',
+          choices: ['1', '2', '3', '4', '5'],
+        ),
+      ],
+      builder: (_, ref, environment, instance) => DashboardActiveProjectsWidget(
+        limit: int.tryParse(instance.settings['limit'] as String? ?? '3') ?? 3,
+      ),
+    ),
+    DashboardWidgetDefinition(
+      typeId: 'recent-sessions',
+      title: 'Recent Observation Sessions',
+      description: 'Recent imaging activity and accepted exposure time',
+      icon: Icons.history_outlined,
+      defaultSize: const DashboardWidgetSize(2, 1),
+      supportedSizes: const [
+        DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
+        DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
+      ],
+      settings: const [
+        DashboardWidgetSetting(
+          key: 'limit',
+          label: 'Number of sessions',
+          type: DashboardSettingType.choice,
+          defaultValue: '4',
+          choices: ['1', '2', '3', '4', '5'],
+        ),
+      ],
+      builder: (_, ref, environment, instance) => DashboardRecentSessionsWidget(
+        limit: int.tryParse(instance.settings['limit'] as String? ?? '4') ?? 4,
+      ),
     ),
     DashboardWidgetDefinition(
       typeId: 'observing-site',
@@ -274,56 +370,6 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
 
 Widget _unusedData(BuildContext context, Object data) =>
     const SizedBox.shrink();
-
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) => Wrap(
-    spacing: 8,
-    runSpacing: 8,
-    children: [
-      _action(
-        context,
-        'Night Planner',
-        AppRoutes.planner,
-        Icons.calendar_month_outlined,
-      ),
-      _action(
-        context,
-        'Targets',
-        AppRoutes.targets,
-        Icons.travel_explore_outlined,
-      ),
-      _action(context, 'Projects', AppRoutes.projects, Icons.folder_outlined),
-      _action(
-        context,
-        'Equipment',
-        AppRoutes.equipment,
-        Icons.camera_alt_outlined,
-      ),
-    ],
-  );
-
-  Widget _action(
-    BuildContext context,
-    String title,
-    String route,
-    IconData icon,
-  ) => compact
-      ? IconButton.outlined(
-          tooltip: appTranslate(context, title),
-          onPressed: () => context.go(route),
-          icon: Icon(icon),
-        )
-      : OutlinedButton.icon(
-          onPressed: () => context.go(route),
-          icon: Icon(icon, size: 18),
-          label: AppText(title),
-        );
-}
 
 class _SiteSummary extends StatelessWidget {
   const _SiteSummary({required this.location, required this.showCoordinates});
