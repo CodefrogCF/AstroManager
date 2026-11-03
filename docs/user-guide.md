@@ -121,3 +121,26 @@ all stored locally as versioned JSON in `app_settings` and included in
 
 The dashboard works offline; future forecast widgets will identify missing and
 stale data rather than assume favorable observing conditions.
+
+## Customizing the Dashboard
+
+Select **Edit layout** on the Dashboard to rearrange your widgets. On a
+phone, hold the dedicated grip to drag a widget vertically; on larger screens,
+you can also move it between columns. The dashboard snaps changes to a grid
+and automatically moves conflicting widgets to a free space. The move-arrow
+buttons provide a keyboard- and screen-reader-friendly alternative to dragging.
+
+Use **Size** on an individual widget to switch between its supported grid
+sizes. Widget size and position are saved separately for phones, tablets,
+and desktop-sized windows. **Done editing** returns to normal interaction;
+scrolling and widget buttons work normally when not editing.
+
+**Manage widgets** adds or removes widget types and lets you hide unused
+widgets. Hidden widgets are not built and do not fetch their own data.
+**Reset layout** resets only the current screen class after confirmation;
+**Restore default widgets** resets the complete widget list. The shared
+observing location is not changed by a layout reset.
+
+Your layout is stored locally, included in `.ambackup` exports and restored
+along with other application preferences. Backups from the previous linear
+Dashboard format are still supported.

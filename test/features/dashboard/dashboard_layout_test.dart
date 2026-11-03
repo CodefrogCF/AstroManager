@@ -49,7 +49,7 @@ void main() {
   test('malformed versions, identifiers, sizes and duplicate instances are rejected', () {
     final invalid = DashboardLayout.defaults.toJson();
     expect(
-      () => DashboardLayout.fromJson({...invalid, 'formatVersion': 2}),
+      () => DashboardLayout.fromJson({...invalid, 'formatVersion': 99}),
       throwsFormatException,
     );
     expect(

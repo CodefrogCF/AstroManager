@@ -1474,4 +1474,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard044 => 'Invalid widget settings.';
+
+  @override
+  String get dashboard045 => 'Edit layout';
+
+  @override
+  String get dashboard046 => 'Done editing';
+
+  @override
+  String get dashboard047 =>
+      'Hold the grip to move a widget. Use arrows or Size for accessible editing.';
+
+  @override
+  String get dashboard048 => 'Reset this device layout?';
+
+  @override
+  String get dashboard049 =>
+      'Widgets and layouts on other devices are preserved.';
+
+  @override
+  String get dashboard050 => 'Reset layout';
+
+  @override
+  String get dashboard051 => 'Edit widget';
+
+  @override
+  String get dashboard052 => 'Hold to drag widget';
+
+  @override
+  String get dashboard053 => 'Move widget left';
+
+  @override
+  String get dashboard054 => 'Move widget up';
+
+  @override
+  String get dashboard055 => 'Move widget down';
+
+  @override
+  String get dashboard056 => 'Move widget right';
+
+  @override
+  String get dashboard057 => 'Resize widget';
 }

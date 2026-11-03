@@ -1,7 +1,9 @@
+import 'dashboard_grid.dart';
+
 /// Persisted, UI-independent dashboard layout data.
 ///
-/// Layout v1 is intentionally independent of any particular widget registry:
-/// unknown widget types remain in storage for forward compatibility.
+/// Format v2 adds independent device grids while retaining the v1 widget
+/// registry abstraction: unknown widget types remain in saved settings.
 final class DashboardWidgetSize {
   const DashboardWidgetSize(this.columns, this.rows);
 
@@ -125,10 +127,16 @@ final class DashboardWidgetInstance {
 }
 
 final class DashboardLayout {
-  const DashboardLayout({required this.widgets, this.selectedLocationId});
+  const DashboardLayout({
+    required this.widgets,
+    this.selectedLocationId,
+    this.grids = const {},
+  });
 
-  static const formatVersion = 1;
+  /// v1 (linear order) is still accepted when restoring older .ambackup files.
+  static const formatVersion = 2;
   final List<DashboardWidgetInstance> widgets;
+  final Map<DashboardViewport, List<DashboardTile>> grids;
 
   /// Null means follow the user's default observing location.
   final String? selectedLocationId;
@@ -162,8 +170,10 @@ final class DashboardLayout {
     List<DashboardWidgetInstance>? widgets,
     String? selectedLocationId,
     bool clearSelectedLocation = false,
+    Map<DashboardViewport, List<DashboardTile>>? grids,
   }) => DashboardLayout(
     widgets: widgets ?? this.widgets,
+    grids: grids ?? this.grids,
     selectedLocationId: clearSelectedLocation
         ? null
         : selectedLocationId ?? this.selectedLocationId,
@@ -184,23 +194,57 @@ final class DashboardLayout {
         throw const FormatException('Duplicate dashboard widget identifier.');
       }
     }
+    for (final entry in grids.entries) {
+      DashboardGridValidator.validateSaved(
+        viewport: entry.key,
+        tiles: entry.value,
+        knownWidgetIds: ids,
+      );
+    }
   }
 
   Map<String, Object?> toJson() => {
     'formatVersion': formatVersion,
     'selectedLocationId': selectedLocationId,
     'widgets': widgets.map((widget) => widget.toJson()).toList(),
+    'grids': {
+      for (final entry in grids.entries)
+        entry.key.name: entry.value.map((tile) => tile.toJson()).toList(),
+    },
   };
 
   factory DashboardLayout.fromJson(Object? input) {
     if (input is! Map ||
-        input['formatVersion'] != formatVersion ||
+        (input['formatVersion'] != 1 &&
+            input['formatVersion'] != formatVersion) ||
         input['widgets'] is! List ||
         (input['selectedLocationId'] != null &&
             input['selectedLocationId'] is! String)) {
       throw const FormatException('Unsupported dashboard layout format.');
     }
+    final grids = <DashboardViewport, List<DashboardTile>>{};
+    if (input['formatVersion'] == formatVersion) {
+      final rawGrids = input['grids'];
+      if (rawGrids is! Map) {
+        throw const FormatException('Invalid dashboard grids.');
+      }
+      for (final entry in rawGrids.entries) {
+        if (entry.key is! String || entry.value is! List) {
+          throw const FormatException('Invalid dashboard grid data.');
+        }
+        final viewport = DashboardViewport.values.where(
+          (value) => value.name == entry.key,
+        );
+        if (viewport.length != 1) {
+          throw const FormatException('Unknown dashboard viewport.');
+        }
+        grids[viewport.single] = (entry.value as List)
+            .map((tile) => DashboardTile.fromJson(tile, viewport.single))
+            .toList(growable: false);
+      }
+    }
     final layout = DashboardLayout(
+      grids: grids,
       selectedLocationId: input['selectedLocationId'] as String?,
       widgets: (input['widgets'] as List)
           .map(DashboardWidgetInstance.fromJson)

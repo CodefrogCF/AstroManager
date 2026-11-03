@@ -461,5 +461,18 @@
   "dashboard041": "Data unavailable offline.",
   "dashboard042": "No observing location selected.",
   "dashboard043": "This widget is not installed.",
-  "dashboard044": "Invalid widget settings."
+  "dashboard044": "Invalid widget settings.",
+  "dashboard045": "Edit layout",
+  "dashboard046": "Done editing",
+  "dashboard047": "Hold the grip to move a widget. Use arrows or Size for accessible editing.",
+  "dashboard048": "Reset this device layout?",
+  "dashboard049": "Widgets and layouts on other devices are preserved.",
+  "dashboard050": "Reset layout",
+  "dashboard051": "Edit widget",
+  "dashboard052": "Hold to drag widget",
+  "dashboard053": "Move widget left",
+  "dashboard054": "Move widget up",
+  "dashboard055": "Move widget down",
+  "dashboard056": "Move widget right",
+  "dashboard057": "Resize widget"
 }

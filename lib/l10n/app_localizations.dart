@@ -2869,6 +2869,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid widget settings.'**
   String get dashboard044;
+
+  /// No description provided for @dashboard045.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit layout'**
+  String get dashboard045;
+
+  /// No description provided for @dashboard046.
+  ///
+  /// In en, this message translates to:
+  /// **'Done editing'**
+  String get dashboard046;
+
+  /// No description provided for @dashboard047.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the grip to move a widget. Use arrows or Size for accessible editing.'**
+  String get dashboard047;
+
+  /// No description provided for @dashboard048.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset this device layout?'**
+  String get dashboard048;
+
+  /// No description provided for @dashboard049.
+  ///
+  /// In en, this message translates to:
+  /// **'Widgets and layouts on other devices are preserved.'**
+  String get dashboard049;
+
+  /// No description provided for @dashboard050.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset layout'**
+  String get dashboard050;
+
+  /// No description provided for @dashboard051.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit widget'**
+  String get dashboard051;
+
+  /// No description provided for @dashboard052.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to drag widget'**
+  String get dashboard052;
+
+  /// No description provided for @dashboard053.
+  ///
+  /// In en, this message translates to:
+  /// **'Move widget left'**
+  String get dashboard053;
+
+  /// No description provided for @dashboard054.
+  ///
+  /// In en, this message translates to:
+  /// **'Move widget up'**
+  String get dashboard054;
+
+  /// No description provided for @dashboard055.
+  ///
+  /// In en, this message translates to:
+  /// **'Move widget down'**
+  String get dashboard055;
+
+  /// No description provided for @dashboard056.
+  ///
+  /// In en, this message translates to:
+  /// **'Move widget right'**
+  String get dashboard056;
+
+  /// No description provided for @dashboard057.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize widget'**
+  String get dashboard057;
 }
 
 class _AppLocalizationsDelegate

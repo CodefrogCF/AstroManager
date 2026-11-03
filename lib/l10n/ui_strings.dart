@@ -524,4 +524,18 @@ const Map<String, String> appGermanUiStrings = {
   'e.g. LRGB mosaic': 'z. B. LRGB-Mosaik',
   'e.g. Sony a7 II': 'z. B. Sony a7 II',
   'e.g. Wide-field setup': 'z. B. Weitfeld-Setup',
+  'Edit layout': 'Layout bearbeiten',
+  'Done editing': 'Fertig',
+  'Hold the grip to move a widget. Use arrows or Size for accessible editing.': 'Zum Verschieben am Griff halten. Alternativ Pfeiltasten oder Größe verwenden.',
+  'Reset this device layout?': 'Layout dieses Geräts zurücksetzen?',
+  'Widgets and layouts on other devices are preserved.':
+      'Widgets und Layouts anderer Geräte bleiben erhalten.',
+  'Reset layout': 'Layout zurücksetzen',
+  'Edit widget': 'Widget bearbeiten',
+  'Hold to drag widget': 'Halten und Widget ziehen',
+  'Move widget left': 'Widget nach links',
+  'Move widget up': 'Widget nach oben',
+  'Move widget down': 'Widget nach unten',
+  'Move widget right': 'Widget nach rechts',
+  'Resize widget': 'Widgetgröße ändern',
 };

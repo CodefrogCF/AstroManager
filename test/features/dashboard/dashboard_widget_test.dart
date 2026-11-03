@@ -1,5 +1,6 @@
 import 'package:astromanager/features/dashboard/data/dashboard_layout_repository.dart';
 import 'package:astromanager/features/dashboard/domain/dashboard_layout.dart';
+import 'package:astromanager/features/dashboard/domain/dashboard_grid.dart';
 import 'package:astromanager/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:astromanager/features/dashboard/presentation/dashboard_widget_registry.dart';
 import 'package:astromanager/features/dashboard/presentation/widgets/dashboard_widget_state.dart';
@@ -190,4 +191,104 @@ void main() {
       expect(find.text('Ready'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'edit mode offers touch handle and accessible move and resize controls',
+    (tester) async {
+      final store = MemoryDashboardLayoutRepository();
+      await _pumpDashboard(tester, store);
+      expect(
+        find.byKey(const ValueKey('dashboard-drag-tonight-default')),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const ValueKey('dashboard-edit-toggle')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('dashboard-drag-tonight-default')),
+        findsOneWidget,
+      );
+
+      final down = find.byKey(
+        const ValueKey('dashboard-move-down-tonight-default'),
+      );
+      await tester.ensureVisible(down);
+      await tester.tap(down);
+      await tester.pumpAndSettle();
+      final tiles = store.layout.grids[DashboardViewport.tablet]!;
+      expect(
+        tiles.singleWhere((tile) => tile.widgetId == 'tonight-default').row,
+        greaterThanOrEqualTo(3),
+      );
+
+      final sizeButton = find.byKey(
+        const ValueKey('dashboard-size-tonight-default'),
+      );
+      // The move can push the resize control below the test viewport. Scroll
+      // and flush the layout before sending a pointer event to that control.
+      await tester.ensureVisible(sizeButton);
+      await tester.pumpAndSettle();
+      expect(sizeButton.hitTestable(), findsOneWidget);
+      await tester.tap(sizeButton.hitTestable());
+      await tester.pumpAndSettle();
+      expect(find.text('1 × 2'), findsOneWidget);
+      await tester.tap(find.text('1 × 2'));
+      await tester.pumpAndSettle();
+      expect(
+        store.layout.grids[DashboardViewport.tablet]!
+            .singleWhere((tile) => tile.widgetId == 'tonight-default')
+            .rows,
+        2,
+      );
+    },
+  );
+
+  testWidgets(
+    'resetting current layout does not remove widgets or preferences',
+    (tester) async {
+      final store = MemoryDashboardLayoutRepository();
+      await _pumpDashboard(tester, store);
+      await tester.tap(find.byKey(const ValueKey('dashboard-edit-toggle')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('dashboard-move-down-tonight-default')),
+      );
+      await tester.pumpAndSettle();
+      expect(store.layout.grids.containsKey(DashboardViewport.tablet), isTrue);
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('dashboard-reset-layout')),
+      );
+      await tester.tap(find.byKey(const ValueKey('dashboard-reset-layout')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('dashboard-confirm-reset-layout')),
+      );
+      await tester.pumpAndSettle();
+      expect(store.layout.grids.containsKey(DashboardViewport.tablet), isFalse);
+      expect(store.layout.widgets.length, 4);
+    },
+  );
+
+  testWidgets('tablet layout does not replace the phone layout', (
+    tester,
+  ) async {
+    final store = MemoryDashboardLayoutRepository();
+    await _pumpDashboard(tester, store);
+    await tester.tap(find.byKey(const ValueKey('dashboard-edit-toggle')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('dashboard-move-down-tonight-default')),
+    );
+    await tester.pumpAndSettle();
+    expect(store.layout.grids.containsKey(DashboardViewport.tablet), isTrue);
+
+    tester.view.physicalSize = const Size(390, 1200);
+    await tester.pumpAndSettle();
+    final visibleTile = find.byKey(
+      const ValueKey('dashboard-widget-tonight-default'),
+    );
+    expect(visibleTile, findsOneWidget);
+    expect(tester.getSize(visibleTile).width, greaterThan(300));
+    expect(store.layout.grids.containsKey(DashboardViewport.phone), isFalse);
+    expect(store.layout.grids.containsKey(DashboardViewport.tablet), isTrue);
+  });
 }

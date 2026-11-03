@@ -127,7 +127,13 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
       defaultSize: const DashboardWidgetSize(2, 1),
       supportedSizes: const [
         DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
         DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
       ],
       builder: (_, ref, environment, instance) =>
           const DashboardWidgetStateView<Object>(
@@ -145,7 +151,13 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
       defaultSize: const DashboardWidgetSize(2, 1),
       supportedSizes: const [
         DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
         DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
       ],
       builder: (_, ref, environment, instance) =>
           const DashboardWidgetStateView<Object>(
@@ -163,7 +175,13 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
       defaultSize: const DashboardWidgetSize(1, 1),
       supportedSizes: const [
         DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
         DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
       ],
       builder: (_, ref, environment, instance) =>
           const DashboardWidgetStateView<Object>(
@@ -181,7 +199,13 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
       defaultSize: const DashboardWidgetSize(1, 1),
       supportedSizes: const [
         DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
         DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
       ],
       settings: const [
         DashboardWidgetSetting(
@@ -202,7 +226,13 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
       defaultSize: const DashboardWidgetSize(1, 1),
       supportedSizes: const [
         DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
         DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
       ],
       settings: const [
         DashboardWidgetSetting(

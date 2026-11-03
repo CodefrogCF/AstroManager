@@ -1490,4 +1490,45 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboard044 => 'Ungültige Widget-Einstellungen.';
+
+  @override
+  String get dashboard045 => 'Layout bearbeiten';
+
+  @override
+  String get dashboard046 => 'Fertig';
+
+  @override
+  String get dashboard047 =>
+      'Zum Verschieben am Griff halten. Alternativ Pfeiltasten oder Größe verwenden.';
+
+  @override
+  String get dashboard048 => 'Layout dieses Geräts zurücksetzen?';
+
+  @override
+  String get dashboard049 =>
+      'Widgets und Layouts anderer Geräte bleiben erhalten.';
+
+  @override
+  String get dashboard050 => 'Layout zurücksetzen';
+
+  @override
+  String get dashboard051 => 'Widget bearbeiten';
+
+  @override
+  String get dashboard052 => 'Halten und Widget ziehen';
+
+  @override
+  String get dashboard053 => 'Widget nach links';
+
+  @override
+  String get dashboard054 => 'Widget nach oben';
+
+  @override
+  String get dashboard055 => 'Widget nach unten';
+
+  @override
+  String get dashboard056 => 'Widget nach rechts';
+
+  @override
+  String get dashboard057 => 'Widgetgröße ändern';
 }

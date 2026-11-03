@@ -3,6 +3,8 @@ import 'package:uuid/uuid.dart';
 
 import '../data/dashboard_layout_repository.dart';
 import '../domain/dashboard_layout.dart';
+import '../domain/dashboard_grid.dart';
+import '../domain/dashboard_grid_engine.dart';
 
 final dashboardLayoutProvider =
     AsyncNotifierProvider<DashboardLayoutController, DashboardLayout>(
@@ -67,6 +69,13 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
         for (final widget in layout.widgets)
           if (widget.id != id) widget,
       ],
+      grids: {
+        for (final entry in layout.grids.entries)
+          entry.key: [
+            for (final tile in entry.value)
+              if (tile.widgetId != id) tile,
+          ],
+      },
     ),
   );
 
@@ -84,6 +93,39 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
       settings: Map<String, Object?>.from(settings),
     ),
   );
+
+  Future<void> configureWidgetForViewport(
+    String id,
+    DashboardViewport viewport, {
+    required DashboardWidgetSize size,
+    required Map<String, Object?> settings,
+  }) => _update((layout) {
+    if (!layout.widgets.any((widget) => widget.id == id)) {
+      throw StateError('Unknown dashboard widget.');
+    }
+    final updated = layout.copyWith(
+      widgets: [
+        for (final widget in layout.widgets)
+          widget.id == id
+              ? widget.copyWith(settings: Map<String, Object?>.from(settings))
+              : widget,
+      ],
+    );
+    final current = DashboardGridEngine.arrange(
+      viewport: viewport,
+      widgets: updated.widgets,
+      saved: updated.grids[viewport] ?? const [],
+    ).firstWhere((tile) => tile.widgetId == id);
+    return _relocate(
+      updated,
+      id,
+      viewport,
+      column: current.column,
+      row: current.row,
+      columns: size.columns,
+      rows: size.rows,
+    );
+  });
 
   Future<void> _editWidget(
     String id,
@@ -111,7 +153,121 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
     return layout.copyWith(widgets: list);
   });
 
-  Future<void> reset() => _update((layout) => DashboardLayout.defaults);
+  /// Reflow all tiles in one device class without touching other layouts.
+  Future<void> resetViewport(DashboardViewport viewport) => _update((layout) {
+    final updated = Map<DashboardViewport, List<DashboardTile>>.from(
+      layout.grids,
+    );
+    updated.remove(viewport);
+    return layout.copyWith(grids: updated);
+  });
+
+  /// Place the selected tile first and relocate colliding tiles. Running this
+  /// inside _update keeps rapid drag/keyboard/resize edits serialized.
+  DashboardLayout _relocate(
+    DashboardLayout layout,
+    String id,
+    DashboardViewport viewport, {
+    required int column,
+    required int row,
+    int? columns,
+    int? rows,
+  }) {
+    if (!layout.widgets.any((widget) => widget.id == id)) {
+      throw StateError('Unknown dashboard widget.');
+    }
+    final existing = DashboardGridEngine.arrange(
+      viewport: viewport,
+      widgets: layout.widgets,
+      saved: layout.grids[viewport] ?? const [],
+    );
+    final current = existing.firstWhere((tile) => tile.widgetId == id);
+    final spanColumns = (columns ?? current.columns)
+        .clamp(1, viewport.columns)
+        .toInt();
+    final spanRows = (rows ?? current.rows).clamp(1, 4).toInt();
+    final updatedTile = current.copyWith(
+      column: column.clamp(0, viewport.columns - spanColumns).toInt(),
+      row: row.clamp(0, 128).toInt(),
+      columns: spanColumns,
+      rows: spanRows,
+    );
+    final normalized = DashboardGridEngine.arrange(
+      viewport: viewport,
+      widgets: layout.widgets,
+      saved: [
+        for (final tile in existing) tile.widgetId == id ? updatedTile : tile,
+      ],
+      priorityWidgetId: id,
+    );
+    return layout.copyWith(grids: {...layout.grids, viewport: normalized});
+  }
+
+  Future<void> placeTile(
+    String id,
+    DashboardViewport viewport, {
+    required int column,
+    required int row,
+    int? columns,
+    int? rows,
+  }) => _update(
+    (layout) => _relocate(
+      layout,
+      id,
+      viewport,
+      column: column,
+      row: row,
+      columns: columns,
+      rows: rows,
+    ),
+  );
+
+  Future<void> nudgeTile(
+    String id,
+    DashboardViewport viewport, {
+    int horizontal = 0,
+    int vertical = 0,
+  }) => _update((layout) {
+    final tile = DashboardGridEngine.arrange(
+      viewport: viewport,
+      widgets: layout.widgets,
+      saved: layout.grids[viewport] ?? const [],
+    ).firstWhere((tile) => tile.widgetId == id);
+    return _relocate(
+      layout,
+      id,
+      viewport,
+      column: tile.column + horizontal,
+      row: tile.row + vertical,
+    );
+  });
+
+  Future<void> resizeTile(
+    String id,
+    DashboardViewport viewport,
+    DashboardWidgetSize size,
+  ) => _update((layout) {
+    final tile = DashboardGridEngine.arrange(
+      viewport: viewport,
+      widgets: layout.widgets,
+      saved: layout.grids[viewport] ?? const [],
+    ).firstWhere((tile) => tile.widgetId == id);
+    return _relocate(
+      layout,
+      id,
+      viewport,
+      column: tile.column,
+      row: tile.row,
+      columns: size.columns,
+      rows: size.rows,
+    );
+  });
+
+  Future<void> reset() => _update(
+    (layout) => DashboardLayout.defaults.copyWith(
+      selectedLocationId: layout.selectedLocationId,
+    ),
+  );
 
   /// Explicit repair action for a malformed saved layout. The original value
   /// is not overwritten during a failed load without user confirmation.
