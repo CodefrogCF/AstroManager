@@ -1,0 +1,19 @@
+AstroManager
+Copyright 2026 Codefrog
+
+This software is licensed under the Apache License, Version 2.0.
+See the LICENSE file at the root of this repository.
+
+The Apache-2.0 license applies to the original AstroManager source code
+and other original material unless otherwise identified. It does not
+relicense third-party software, datasets, survey imagery, or services.
+
+Third-party acknowledgements and licensing details are maintained in:
+  docs/THIRD_PARTY_NOTICES.md
+
+In particular, the bundled OpenNGC-derived JSON catalogue is distributed
+separately under Creative Commons Attribution-ShareAlike 4.0 International:
+  assets/catalog/LICENSE-OpenNGC.txt
+
+Nothing in this NOTICE grants rights to third-party names, logos, trademarks,
+or imagery beyond the rights granted by their respective owners.
