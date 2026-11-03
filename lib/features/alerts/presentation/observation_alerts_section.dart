@@ -106,6 +106,9 @@ class _ObservationAlertsSectionState
       final next = change(latest);
       await store.save(next);
       if (mounted) {
+        ref.invalidate(observationAlertStateProvider);
+      }
+      if (mounted) {
         setState(() {
           _state = next;
           _status = null;
@@ -282,6 +285,9 @@ class _ObservationAlertsSectionState
       final outcome = await ref
           .read(observationAlertMonitorProvider)
           .checkNow();
+      if (mounted) {
+        ref.invalidate(observationAlertStateProvider);
+      }
       if (mounted) {
         setState(() {
           _status =

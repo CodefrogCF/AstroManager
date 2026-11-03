@@ -54,3 +54,11 @@ final class MemoryObservationAlertStore implements ObservationAlertStore {
     state = value;
   }
 }
+
+/// Shared read-only alert state for dashboard widgets. Explicit settings edits
+/// and completed monitor checks invalidate it; no network access is involved.
+final observationAlertStateProvider =
+    FutureProvider.autoDispose<ObservationAlertState>(
+      (ref) => ref.watch(observationAlertStoreProvider).load(),
+      retry: (count, error) => null,
+    );

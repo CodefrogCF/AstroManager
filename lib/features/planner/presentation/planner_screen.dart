@@ -12,15 +12,35 @@ import 'night_planning_section.dart';
 
 /// Solar events and darkness for one observing site and local calendar date.
 class PlannerScreen extends ConsumerStatefulWidget {
-  const PlannerScreen({super.key});
+  const PlannerScreen({super.key, this.initialLocationId, this.initialDate});
+
+  final String? initialLocationId;
+  final DateTime? initialDate;
 
   @override
   ConsumerState<PlannerScreen> createState() => _PlannerScreenState();
 }
 
 class _PlannerScreenState extends ConsumerState<PlannerScreen> {
-  DateTime _date = DateTime.now();
+  late DateTime _date;
   String? _selectedLocationId;
+
+  @override
+  void initState() {
+    super.initState();
+    _date = widget.initialDate ?? DateTime.now();
+    _selectedLocationId = widget.initialLocationId;
+  }
+
+  @override
+  void didUpdateWidget(covariant PlannerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialLocationId != oldWidget.initialLocationId ||
+        widget.initialDate != oldWidget.initialDate) {
+      _selectedLocationId = widget.initialLocationId;
+      _date = widget.initialDate ?? DateTime.now();
+    }
+  }
 
   Future<void> _pickDate() async {
     final selected = await showDatePicker(

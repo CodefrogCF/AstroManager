@@ -13,6 +13,7 @@ import 'theme/app_theme_choice.dart';
 import 'theme/app_themes.dart';
 import 'theme/theme_controller.dart';
 import '../features/alerts/application/observation_alert_monitor.dart';
+import '../features/alerts/data/observation_alert_store.dart';
 import '../features/alerts/data/observation_notification_gateway.dart';
 
 class AstroManagerApp extends ConsumerStatefulWidget {
@@ -31,17 +32,18 @@ class _AstroManagerAppState extends ConsumerState<AstroManagerApp>
       return;
     }
     unawaited(
-      ref.read(observationAlertMonitorProvider).checkNow().catchError((
-        Object error,
-      ) {
-        // Offline and unavailable forecasts must never crash app startup.
-        debugPrint("Observation alerts check skipped: $error");
-        return const ObservationAlertCheckResult(
-          sent: 0,
-          alreadyDelivered: 0,
-          unavailable: 1,
-        );
-      }),
+      ref
+          .read(observationAlertMonitorProvider)
+          .checkNow()
+          .then<void>((_) {
+            if (mounted) {
+              ref.invalidate(observationAlertStateProvider);
+            }
+          })
+          .catchError((Object error) {
+            // Offline and unavailable forecasts must never crash app startup.
+            debugPrint("Observation alerts check skipped: $error");
+          }),
     );
   }
 

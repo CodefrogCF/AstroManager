@@ -22,6 +22,12 @@ abstract final class AppRoutes {
   static String targetDetails(String id) =>
       '/targets/details/${Uri.encodeComponent(id)}';
   static const planner = '/planner';
+
+  /// Opens the Night Planner for an exact site and local observing date.
+  static String plannerForNight(String locationId, String nightDate) => Uri(
+    path: planner,
+    queryParameters: {'location': locationId, 'night': nightDate},
+  ).toString();
   static const equipment = '/equipment';
   static const projects = '/projects';
   static const settings = '/settings';
@@ -83,7 +89,16 @@ GoRouter createAppRouter({String? initialLocation}) {
             routes: [
               GoRoute(
                 path: AppRoutes.planner,
-                builder: (context, state) => const PlannerScreen(),
+                builder: (context, state) {
+                  final night = state.uri.queryParameters['night'];
+                  final validNight =
+                      night != null &&
+                      RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(night);
+                  return PlannerScreen(
+                    initialLocationId: state.uri.queryParameters['location'],
+                    initialDate: validNight ? DateTime.tryParse(night) : null,
+                  );
+                },
               ),
             ],
           ),

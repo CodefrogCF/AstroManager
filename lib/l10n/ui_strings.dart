@@ -1,49 +1,16 @@
 // Generated from app_en.arb and app_de.arb; edit those files and regenerate.
 const Map<String, String> appGermanUiStrings = {
-  'Select at least one quick action in widget settings.':
-      'Wähle mindestens eine Schnellaktion in den Widget-Einstellungen.',
-  'Log session': 'Sitzung erfassen',
-  'Could not save session': 'Sitzung konnte nicht gespeichert werden',
-  'Observation session saved.': 'Beobachtungssitzung gespeichert.',
-  'No projects available. Create a project first.':
-      'Keine Projekte vorhanden. Erstelle zuerst ein Projekt.',
-  'Unable to load projects.': 'Projekte konnten nicht geladen werden.',
-  'Choose a project to log a session':
-      'Projekt für die Sitzungserfassung auswählen',
-  'rejected frames': 'verworfene Aufnahmen',
-  'accepted frames': 'akzeptierte Aufnahmen',
-  'Unable to load recent sessions.':
-      'Letzte Sitzungen konnten nicht geladen werden.',
-  'sessions': 'Sitzungen',
-  'No integration goal set.': 'Kein Integrationsziel festgelegt.',
-  'Remaining': 'Verbleibend',
-  'Integration progress': 'Integrationsfortschritt',
-  'Accepted integration': 'Akzeptierte Integrationszeit',
-  'No active imaging projects. Create one in Projects.':
-      'Keine aktiven Aufnahmeprojekte. Erstelle eines unter Projekte.',
-  'Unable to load project progress.':
-      'Projektfortschritt konnte nicht geladen werden.',
-  'Show Equipment': 'Ausrüstung anzeigen',
-  'Show Targets': 'Ziele anzeigen',
-  'Show Session Logging': 'Sitzungserfassung anzeigen',
-  'Show Projects': 'Projekte anzeigen',
-  'Show Night Planner': 'Nachtplaner anzeigen',
-  'Show Sky Atlas': 'Himmelsatlas anzeigen',
-  'Number of sessions': 'Anzahl Sitzungen',
-  'Number of projects': 'Anzahl Projekte',
-  'Recent imaging activity and accepted exposure time':
-      'Letzte Aufnahmen und akzeptierte Belichtungszeit',
-  'Recent Observation Sessions': 'Letzte Beobachtungssitzungen',
-  'Accepted integration time and imaging goal progress':
-      'Akzeptierte Integrationszeit und Fortschritt des Aufnahmeziels',
-  'Active Imaging Projects': 'Aktive Aufnahmeprojekte',
   '1.0 = native, 0.8 = reducer, 2.0 = Barlow':
       '1,0 = nativ, 0,8 = Reducer, 2,0 = Barlow',
   '12-hour clock (AM/PM)': '12-Stunden-Format (AM/PM)',
   '24-hour clock': '24-Stunden-Format',
   '7-Night Forecast': '7-Nächte-Prognose',
   'Accepted': 'Akzeptiert',
+  'Accepted integration': 'Akzeptierte Integrationszeit',
+  'Accepted integration time and imaging goal progress':
+      'Akzeptierte Integrationszeit und Fortschritt des Aufnahmeziels',
   'Active': 'Aktiv',
+  'Active Imaging Projects': 'Aktive Aufnahmeprojekte',
   'Active projects': 'Aktive Projekte',
   'Add': 'Hinzufügen',
   'Add a camera, optics and mount later in Equipment to calculate accurate framing and mosaics.': 'Kamera, Optik und Montierung kannst du später unter Ausrüstung hinzufügen, um Bildfelder und Mosaike korrekt zu berechnen.',
@@ -121,7 +88,10 @@ const Map<String, String> appGermanUiStrings = {
   'Center target': 'Ziel zentrieren',
   'Check now': 'Jetzt prüfen',
   'Check satellite data': 'Satellitendaten abrufen',
+  'Checks run at app start, foreground or manually; no continuous background monitoring.': 'Prüfungen erfolgen beim App-Start, im Vordergrund oder manuell; keine fortlaufende Hintergrundüberwachung.',
   'Choose a project for this target:': 'Wähle ein Projekt für dieses Ziel:',
+  'Choose a project to log a session':
+      'Projekt für die Sitzungserfassung auswählen',
   'Choose at least two sites, one project target, and a common local calendar date. Weather and terrain data are requested only when you run the comparison.': 'Wähle mindestens zwei Orte, ein Projektziel und denselben lokalen Kalendertag. Wetter- und Geländedaten werden erst beim Start des Vergleichs abgerufen.',
   'Choose how AstroManager looks. Astronomy night mode is designed for use during observing sessions.': 'Wähle die Darstellung von AstroManager. Der Astronomie-Nachtmodus eignet sich für Beobachtungen.',
   'Choose your language': 'Sprache auswählen',
@@ -148,6 +118,7 @@ const Map<String, String> appGermanUiStrings = {
   'Could not save dashboard changes:':
       'Änderungen an der Übersicht konnten nicht gespeichert werden:',
   'Could not save observation': 'Beobachtung konnte nicht gespeichert werden',
+  'Could not save session': 'Sitzung konnte nicht gespeichert werden',
   'Could not save the setup preference.':
       'Einrichtungseinstellung konnte nicht gespeichert werden.',
   'Create Optical Profile': 'Optisches Profil erstellen',
@@ -211,6 +182,8 @@ const Map<String, String> appGermanUiStrings = {
   'Embedded sky atlas is not supported on this platform.': 'Der integrierte Himmelsatlas wird auf dieser Plattform nicht unterstützt.',
   'Enable opportunity notifications':
       'Beobachtungsbenachrichtigungen aktivieren',
+  'Enabled alert rules and previously notified opportunities':
+      'Aktive Alarmregeln und frühere Benachrichtigungen',
   'English': 'Englisch',
   'Equipment': 'Ausrüstung',
   'Equipment Inventory': 'Ausrüstungsverzeichnis',
@@ -271,6 +244,7 @@ const Map<String, String> appGermanUiStrings = {
   'Include session images': 'Sitzungsbilder einschließen',
   'Incomplete DEM coverage: visibility is uncertain at missing bearings.': 'Unvollständige DEM-Abdeckung: Bei fehlenden Richtungen ist die Sichtbarkeit ungewiss.',
   'Info': 'Info',
+  'Integration progress': 'Integrationsfortschritt',
   'Integration unavailable': 'Integrationszeit nicht verfügbar',
   'Interactive night timeline': 'Interaktive Nacht-Timeline',
   'Invalid widget settings.': 'Ungültige Widget-Einstellungen.',
@@ -296,11 +270,13 @@ const Map<String, String> appGermanUiStrings = {
   'Local noon → next local noon · scroll horizontally to inspect the full night.': 'Lokaler Mittag → nächster Mittag · horizontal scrollen, um die gesamte Nacht zu sehen.',
   'Location name': 'Ortsname',
   'Location permission is optional': 'Standortberechtigung ist optional',
+  'Log session': 'Sitzung erfassen',
   'Longest clear period': 'Längste Klarphase',
   'Longitude': 'Längengrad',
   'Longitude (degrees)': 'Längengrad (Grad)',
   'Lunar conditions · observing night': 'Mondbedingungen · Beobachtungsnacht',
   'M31, NGC 224, Andromeda...': 'M31, NGC 224, Andromeda …',
+  'Manage alerts in Settings': 'Alarme in Einstellungen verwalten',
   'Manage coordinates, elevation and time zones.':
       'Koordinaten, Höhenlage und Zeitzonen verwalten.',
   'Manage locations': 'Beobachtungsorte verwalten',
@@ -308,6 +284,8 @@ const Map<String, String> appGermanUiStrings = {
   'Manage widgets': 'Widgets verwalten',
   'Manage your imaging equipment and create reusable optical setups.': 'Verwalte deine Aufnahmeausrüstung und erstelle wiederverwendbare Optik-Setups.',
   'Maximum cloud cover (%)': 'Maximale Bewölkung (%)',
+  'Maximum displayed alerts': 'Maximal angezeigte Alarme',
+  'Maximum displayed observations': 'Maximal angezeigte Beobachtungen',
   'Mean equatorial coordinates of date':
       'Mittlere äquatoriale Koordinaten des Datums',
   'Measurement units': 'Maßeinheiten',
@@ -320,6 +298,7 @@ const Map<String, String> appGermanUiStrings = {
   'Minimum duration': 'Mindestdauer',
   'Minimum observation duration': 'Mindestbeobachtungsdauer',
   'Minimum session duration (minutes)': 'Minimale Beobachtungsdauer (Minuten)',
+  'Monitored targets': 'Überwachte Ziele',
   'Moon phase and illumination': 'Mondphase und Beleuchtung',
   'Moon separation': 'Mondabstand',
   'Moon stays above horizon': 'Mond bleibt über dem Horizont',
@@ -358,18 +337,25 @@ const Map<String, String> appGermanUiStrings = {
   'Next morning': 'Nächster Morgen',
   'Night Planner': 'Nachtplanung',
   'No account required': 'Kein Konto erforderlich',
+  'No active imaging projects. Create one in Projects.':
+      'Keine aktiven Aufnahmeprojekte. Erstelle eines unter Projekte.',
   'No additional settings.': 'Keine weiteren Einstellungen.',
+  'No alert rules for this observing location.':
+      'Keine Alarmregeln für diesen Beobachtungsort.',
   'No astronomical darkness': 'Keine astronomische Dunkelheit',
   'No astronomical darkness during this night.':
       'In dieser Nacht tritt keine astronomische Dunkelheit ein.',
   'No candidate targets. Add projects or favorites, or select Catalog.': 'Keine Kandidatenziele. Füge Projekte oder Favoriten hinzu oder wähle den Katalog.',
   'No dashboard widgets. Use Manage widgets to add one.': 'Keine Dashboard-Widgets vorhanden. Füge über „Widgets verwalten“ eines hinzu.',
   'No data available.': 'Keine Daten verfügbar.',
+  'No enabled alert rules at this location.':
+      'Keine aktiven Alarmregeln an diesem Ort.',
   'No equipment selected': 'Keine Ausrüstung ausgewählt',
   'No equipment yet. Add a camera, lens, telescope or mount.': 'Noch keine Ausrüstung vorhanden. Füge Kamera, Objektiv, Teleskop oder Montierung hinzu.',
   'No forecast coverage': 'Keine Prognosedaten',
   'No forecast hour covers the selected observing period.':
       'Keine Prognosestunde deckt den gewählten Beobachtungszeitraum ab.',
+  'No integration goal set.': 'Kein Integrationsziel festgelegt.',
   'No integration target set; all usable time is still tracked.':
       'Kein Integrationsziel festgelegt; die Nutzzeit wird weiter erfasst.',
   'No lunar crossing this night':
@@ -382,17 +368,22 @@ const Map<String, String> appGermanUiStrings = {
   'No mosaic planned for this project.':
       'Für dieses Projekt ist kein Mosaik geplant.',
   'No mount selected': 'Keine Montierung ausgewählt',
-  'No observation sessions recorded yet.': 'Noch keine Beobachtungen erfasst.',
+  'No observation sessions recorded yet.':
+      'Noch keine Beobachtungssitzungen erfasst.',
   'No observing location selected.': 'Kein Beobachtungsort ausgewählt.',
   'No observing location. Add one in Settings to discover targets.': 'Kein Beobachtungsort vorhanden. Füge unter Einstellungen einen Ort hinzu, um Ziele zu finden.',
   'No observing locations yet.': 'Noch keine Beobachtungsorte vorhanden.',
   'No optical profiles created yet.': 'Noch keine optischen Profile vorhanden.',
+  'No projects available. Create a project first.':
+      'Keine Projekte vorhanden. Erstelle zuerst ein Projekt.',
   'No qualifying targets for this night and minimum duration.':
       'Keine geeigneten Ziele für diese Nacht und Mindestdauer.',
   'No setup': 'Kein Setup',
   'No setup selected': 'Kein Setup ausgewählt',
   'No targets assigned. Use Edit to add a catalog target.':
       'Keine Ziele zugeordnet. Über Bearbeiten ein Katalogziel hinzufügen.',
+  'No upcoming observation blocks at this location.':
+      'Keine bevorstehenden Beobachtungsblöcke an diesem Ort.',
   'No valid camera + optic profiles. Add an imaging setup in Equipment.': 'Kein gültiges Kamera-/Optikprofil. Erstelle ein Aufnahme-Setup unter Ausrüstung.',
   'No valid night-light data at this location.':
       'An diesem Ort liegen keine gültigen Nachtlichtdaten vor.',
@@ -401,12 +392,17 @@ const Map<String, String> appGermanUiStrings = {
   'Not selected (UTC)': 'Nicht ausgewählt (UTC)',
   'Notes': 'Notizen',
   'Notes (optional)': 'Notizen (optional)',
+  'Notified': 'Benachrichtigt',
   'Now': 'Jetzt',
+  'Number of projects': 'Anzahl Projekte',
+  'Number of sessions': 'Anzahl Sitzungen',
   'Object category': 'Objektkategorie',
+  'Observation Opportunities & Alerts': 'Beobachtungsgelegenheiten und Alarme',
   'Observation added to Night Planner.':
       'Beobachtung zur Nachtplanung hinzugefügt.',
   'Observation opportunity alerts':
       'Benachrichtigungen für Beobachtungsmöglichkeiten',
+  'Observation session saved.': 'Beobachtungssitzung gespeichert.',
   'Observation sessions': 'Beobachtungssitzungen',
   'Observing': 'Beobachtung',
   'Observing Locations': 'Beobachtungsorte',
@@ -416,15 +412,18 @@ const Map<String, String> appGermanUiStrings = {
   'Observing location': 'Beobachtungsort',
   'Observing locations': 'Beobachtungsorte',
   'Observing locations unavailable.': 'Beobachtungsorte nicht verfügbar.',
+  'Observing night': 'Beobachtungsnacht',
   'Offline cache': 'Offline-Zwischenspeicher',
   'Online refresh failed; showing a cached reading.':
       'Onlineaktualisierung fehlgeschlagen; gespeicherter Wert wird angezeigt.',
-  'Open Night Planner': 'Nachtplaner öffnen',
+  'Open Night Planner': 'Nachtplanung öffnen',
   'Open atlas': 'Atlas öffnen',
   'Open frequently used AstroManager screens':
       'Häufig verwendete AstroManager-Bereiche öffnen',
   'Open settings': 'Einstellungen öffnen',
   'Open the setup guide': 'Einrichtungsassistent öffnen',
+  'Opportunity notifications are disabled.':
+      'Benachrichtigungen zu Beobachtungsgelegenheiten sind deaktiviert.',
   'Optical Profiles': 'Optische Profile',
   'Optical multiplier': 'Optischer Faktor',
   'Optics': 'Optik',
@@ -435,6 +434,7 @@ const Map<String, String> appGermanUiStrings = {
   'Overlap': 'Überlappung',
   'Overlapping blocks are flagged on the timeline. Times are saved as UTC instants.': 'Überlappende Blöcke werden markiert. Zeiten werden als eindeutige UTC-Zeitpunkte gespeichert.',
   'Overlapping observation': 'Überlappende Beobachtung',
+  'Overlapping observations': 'Überschneidende Beobachtungen',
   'Page not found': 'Seite nicht gefunden',
   'Panel pointing coordinates': 'Panel-Zielkoordinaten',
   'Peak altitude': 'Maximale Zielhöhe',
@@ -464,6 +464,10 @@ const Map<String, String> appGermanUiStrings = {
   'Ranked for your observing night. Only continuous dark, visible windows meeting the minimum duration are recommended.': 'Nach Eignung für die Beobachtungsnacht sortiert. Empfohlen werden nur zusammenhängende dunkle Sichtbarkeitsfenster mit ausreichender Dauer.',
   'Reasons and scoring details': 'Gründe und Bewertungsdetails',
   'Recalculate recommendations': 'Empfehlungen neu berechnen',
+  'Recent Observation Sessions': 'Letzte Beobachtungssitzungen',
+  'Recent imaging activity and accepted exposure time':
+      'Letzte Aufnahmen und akzeptierte Belichtungszeit',
+  'Recently notified opportunities': 'Kürzlich gemeldete Gelegenheiten',
   'Recommended astrophotography targets': 'Empfohlene Astrofotografie-Ziele',
   'Recommended objects for the current observing night':
       'Empfohlene Objekte für die aktuelle Beobachtungsnacht',
@@ -471,6 +475,7 @@ const Map<String, String> appGermanUiStrings = {
   'Refresh satellite data': 'Satellitendaten aktualisieren',
   'Refresh terrain profile': 'Geländeprofil aktualisieren',
   'Rejected frames': 'Verworfene Frames',
+  'Remaining': 'Verbleibend',
   'Remaining darkness': 'Verbleibende Dunkelheit',
   'Remove mosaic': 'Mosaik entfernen',
   'Remove widget': 'Widget entfernen',
@@ -499,6 +504,8 @@ const Map<String, String> appGermanUiStrings = {
   'Save project': 'Projekt speichern',
   'Save session': 'Sitzung speichern',
   'Schedule target': 'Ziel einplanen',
+  'Scheduled observing blocks and overlapping plans':
+      'Geplante Beobachtungsblöcke und Überschneidungen',
   'Search': 'Suchen',
   'Search Messier, NGC and IC objects': 'Messier-, NGC- und IC-Objekte suchen',
   'Search Messier, NGC and IC objects, common names and other identifiers.': 'Messier-, NGC- und IC-Objekte, gebräuchliche Namen und weitere Kennungen suchen.',
@@ -509,6 +516,8 @@ const Map<String, String> appGermanUiStrings = {
   'Select a setup first.': 'Wähle zuerst ein Setup aus.',
   'Select a time zone from the list.':
       'Bitte eine Zeitzone aus der Liste auswählen.',
+  'Select at least one quick action in widget settings.':
+      'Wähle mindestens eine Schnellaktion in den Widget-Einstellungen.',
   'Select at least two saved locations.':
       'Wähle mindestens zwei gespeicherte Orte.',
   'Session notes': 'Sitzungsnotizen',
@@ -523,8 +532,16 @@ const Map<String, String> appGermanUiStrings = {
   'Seven-night forecast widget is not yet available.':
       'Die 7-Nächte-Prognose ist noch nicht verfügbar.',
   'Show Aladin controls': 'Aladin-Bedienelemente anzeigen',
+  'Show Equipment': 'Ausrüstung anzeigen',
+  'Show Night Planner': 'Nachtplaner anzeigen',
+  'Show Projects': 'Projekte anzeigen',
+  'Show Session Logging': 'Sitzungserfassung anzeigen',
+  'Show Sky Atlas': 'Himmelsatlas anzeigen',
+  'Show Targets': 'Ziele anzeigen',
   'Show coordinates': 'Koordinaten anzeigen',
   'Show details': 'Details anzeigen',
+  'Show recently notified opportunities':
+      'Kürzlich gemeldete Gelegenheiten anzeigen',
   'Show weather': 'Wetter anzeigen',
   'Skip': 'Überspringen',
   'Skip onboarding': 'Einrichtung überspringen',
@@ -600,6 +617,15 @@ const Map<String, String> appGermanUiStrings = {
       'Astronomische Bedingungen konnten nicht berechnet werden.',
   'Unable to calculate target recommendations.':
       'Zielempfehlungen konnten nicht berechnet werden.',
+  'Unable to load observation alerts.':
+      'Beobachtungsalarme konnten nicht geladen werden.',
+  'Unable to load planned observations.':
+      'Geplante Beobachtungen konnten nicht geladen werden.',
+  'Unable to load project progress.':
+      'Projektfortschritt konnte nicht geladen werden.',
+  'Unable to load projects.': 'Projekte konnten nicht geladen werden.',
+  'Unable to load recent sessions.':
+      'Letzte Sitzungen konnten nicht geladen werden.',
   'Unable to load widget data.': 'Widget-Daten konnten nicht geladen werden.',
   'Unable to save language preference.':
       'Spracheinstellung konnte nicht gespeichert werden.',
@@ -608,6 +634,8 @@ const Map<String, String> appGermanUiStrings = {
   'Unable to save theme preference.':
       'Darstellungseinstellung konnte nicht gespeichert werden.',
   'Unknown widget': 'Unbekanntes Widget',
+  'Upcoming Observation Plans': 'Geplante Beobachtungen',
+  'Upcoming observing nights': 'Kommende Beobachtungsnächte',
   'Update language': 'Sprache ändern',
   'Updating': 'Wird aktualisiert',
   'Upward radiance is not a sky brightness measurement. Nearby lights, terrain, cloud, snow and atmospheric scattering can change actual observing conditions.': 'Aufwärts gerichtete Strahldichte ist keine Messung der Himmelshelligkeit. Lichtquellen, Gelände, Wolken, Schnee und atmosphärische Streuung verändern die tatsächlichen Bedingungen.',
@@ -655,6 +683,7 @@ const Map<String, String> appGermanUiStrings = {
   'Your astrophotography planning dashboard.':
       'Deine Zentrale für Astrofotografie-Planung.',
   'Your data stays on this device. No account or registration is required.': 'Deine Daten bleiben auf diesem Gerät. Ein Konto oder eine Registrierung ist nicht erforderlich.',
+  'accepted frames': 'akzeptierte Aufnahmen',
   'candidates evaluated': 'Kandidaten bewertet',
   'catalog': 'Katalog',
   'clear': 'klar',
@@ -674,7 +703,9 @@ const Map<String, String> appGermanUiStrings = {
   'partial': 'teilweise',
   'possible obstruction': 'mögliche Abschattung',
   'projects': 'Projekte',
+  'rejected frames': 'verworfene Aufnahmen',
   'remaining': 'verbleibend',
+  'sessions': 'Sitzungen',
   'stable': 'Stabil',
   'stale': 'veraltet',
   'unknown': 'Unbekannt',

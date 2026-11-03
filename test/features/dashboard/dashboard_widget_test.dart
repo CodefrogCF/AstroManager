@@ -122,6 +122,18 @@ void main() {
     );
     expect(dialogList, findsOneWidget);
     await tester.scrollUntilVisible(siteOption, 180, scrollable: dialogList);
+    // scrollUntilVisible stops when the item is built, even if its center is
+    // still clipped by the dialog viewport. Center it before hit testing.
+    await Scrollable.ensureVisible(
+      tester.element(siteOption),
+      alignment: 0.5,
+      duration: const Duration(milliseconds: 100),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getRect(dialogList).contains(tester.getCenter(siteOption)),
+      isTrue,
+    );
     await tester.tap(siteOption);
     await tester.pumpAndSettle();
     expect(store.layout.widgets.length, 5);

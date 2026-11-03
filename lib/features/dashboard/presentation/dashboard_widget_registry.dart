@@ -12,6 +12,7 @@ import 'widgets/top_targets_widget.dart';
 import 'widgets/dashboard_project_widgets.dart';
 import 'widgets/dashboard_quick_actions_widget.dart';
 import 'widgets/tonight_conditions_widget.dart';
+import 'widgets/dashboard_plans_alerts_widgets.dart';
 
 /// Metadata and rendering are registered together, independent of the grid.
 /// A widget's Consumer subtree is constructed only while its instance is visible.
@@ -335,6 +336,87 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
       builder: (_, ref, environment, instance) => DashboardRecentSessionsWidget(
         limit: int.tryParse(instance.settings['limit'] as String? ?? '4') ?? 4,
       ),
+    ),
+    DashboardWidgetDefinition(
+      typeId: 'upcoming-plans',
+      title: 'Upcoming Observation Plans',
+      description: 'Scheduled observing blocks and overlapping plans',
+      icon: Icons.event_note_outlined,
+      defaultSize: const DashboardWidgetSize(2, 1),
+      supportedSizes: const [
+        DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
+        DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
+      ],
+      settings: const [
+        DashboardWidgetSetting(
+          key: 'horizonNights',
+          label: 'Upcoming observing nights',
+          type: DashboardSettingType.choice,
+          defaultValue: '7',
+          choices: ['3', '7', '14'],
+        ),
+        DashboardWidgetSetting(
+          key: 'limit',
+          label: 'Maximum displayed observations',
+          type: DashboardSettingType.choice,
+          defaultValue: '5',
+          choices: ['3', '5', '10'],
+        ),
+      ],
+      builder: (_, ref, environment, instance) => DashboardUpcomingPlansWidget(
+        location: environment.location,
+        limit: int.tryParse(instance.settings['limit'] as String? ?? '5') ?? 5,
+        horizonNights:
+            int.tryParse(
+              instance.settings['horizonNights'] as String? ?? '7',
+            ) ??
+            7,
+      ),
+    ),
+    DashboardWidgetDefinition(
+      typeId: 'observation-alerts',
+      title: 'Observation Opportunities & Alerts',
+      description: 'Enabled alert rules and previously notified opportunities',
+      icon: Icons.notifications_active_outlined,
+      defaultSize: const DashboardWidgetSize(2, 1),
+      supportedSizes: const [
+        DashboardWidgetSize(1, 1),
+        DashboardWidgetSize(1, 2),
+        DashboardWidgetSize(2, 1),
+        DashboardWidgetSize(2, 2),
+        DashboardWidgetSize(3, 1),
+        DashboardWidgetSize(3, 2),
+        DashboardWidgetSize(4, 1),
+        DashboardWidgetSize(4, 2),
+      ],
+      settings: const [
+        DashboardWidgetSetting(
+          key: 'limit',
+          label: 'Maximum displayed alerts',
+          type: DashboardSettingType.choice,
+          defaultValue: '3',
+          choices: ['3', '5', '10'],
+        ),
+        DashboardWidgetSetting(
+          key: 'showHistory',
+          label: 'Show recently notified opportunities',
+          type: DashboardSettingType.toggle,
+          defaultValue: true,
+        ),
+      ],
+      builder: (_, ref, environment, instance) =>
+          DashboardObservationAlertsWidget(
+            location: environment.location,
+            limit:
+                int.tryParse(instance.settings['limit'] as String? ?? '3') ?? 3,
+            showHistory: instance.settings['showHistory'] != false,
+          ),
     ),
     DashboardWidgetDefinition(
       typeId: 'observing-site',
