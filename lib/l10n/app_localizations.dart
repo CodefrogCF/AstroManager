@@ -2599,6 +2599,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update language'**
   String get ui9e172bd7b50a;
+
+  /// No description provided for @dashboard000.
+  ///
+  /// In en, this message translates to:
+  /// **'Observing dashboard'**
+  String get dashboard000;
+
+  /// No description provided for @dashboard001.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage widgets'**
+  String get dashboard001;
+
+  /// No description provided for @dashboard002.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard observing location'**
+  String get dashboard002;
+
+  /// No description provided for @dashboard003.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an observing location in Settings to personalize the dashboard.'**
+  String get dashboard003;
+
+  /// No description provided for @dashboard004.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading observing locations…'**
+  String get dashboard004;
+
+  /// No description provided for @dashboard005.
+  ///
+  /// In en, this message translates to:
+  /// **'Observing locations unavailable.'**
+  String get dashboard005;
+
+  /// No description provided for @dashboard006.
+  ///
+  /// In en, this message translates to:
+  /// **'No dashboard widgets. Use Manage widgets to add one.'**
+  String get dashboard006;
+
+  /// No description provided for @dashboard007.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save dashboard changes:'**
+  String get dashboard007;
+
+  /// No description provided for @dashboard008.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard widget'**
+  String get dashboard008;
+
+  /// No description provided for @dashboard009.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown widget'**
+  String get dashboard009;
+
+  /// No description provided for @dashboard010.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget options'**
+  String get dashboard010;
+
+  /// No description provided for @dashboard011.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure'**
+  String get dashboard011;
+
+  /// No description provided for @dashboard012.
+  ///
+  /// In en, this message translates to:
+  /// **'Move earlier'**
+  String get dashboard012;
+
+  /// No description provided for @dashboard013.
+  ///
+  /// In en, this message translates to:
+  /// **'Move later'**
+  String get dashboard013;
+
+  /// No description provided for @dashboard014.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide widget'**
+  String get dashboard014;
+
+  /// No description provided for @dashboard015.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove widget'**
+  String get dashboard015;
+
+  /// No description provided for @dashboard016.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible'**
+  String get dashboard016;
+
+  /// No description provided for @dashboard017.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get dashboard017;
+
+  /// No description provided for @dashboard018.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore default widgets'**
+  String get dashboard018;
+
+  /// No description provided for @dashboard019.
+  ///
+  /// In en, this message translates to:
+  /// **'Widget size'**
+  String get dashboard019;
+
+  /// No description provided for @dashboard020.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact actions'**
+  String get dashboard020;
+
+  /// No description provided for @dashboard021.
+  ///
+  /// In en, this message translates to:
+  /// **'Show coordinates'**
+  String get dashboard021;
+
+  /// No description provided for @dashboard022.
+  ///
+  /// In en, this message translates to:
+  /// **'No additional settings.'**
+  String get dashboard022;
+
+  /// No description provided for @dashboard023.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard configuration could not be loaded.'**
+  String get dashboard023;
+
+  /// No description provided for @dashboard024.
+  ///
+  /// In en, this message translates to:
+  /// **'7-Night Forecast'**
+  String get dashboard024;
+
+  /// No description provided for @dashboard025.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather outlook for the next seven observing nights'**
+  String get dashboard025;
+
+  /// No description provided for @dashboard026.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven-night forecast widget is not yet available.'**
+  String get dashboard026;
+
+  /// No description provided for @dashboard027.
+  ///
+  /// In en, this message translates to:
+  /// **'Top 3 Targets Tonight'**
+  String get dashboard027;
+
+  /// No description provided for @dashboard028.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended objects for the current observing night'**
+  String get dashboard028;
+
+  /// No description provided for @dashboard029.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight’s target recommendations are not yet available.'**
+  String get dashboard029;
+
+  /// No description provided for @dashboard030.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight at a Glance'**
+  String get dashboard030;
+
+  /// No description provided for @dashboard031.
+  ///
+  /// In en, this message translates to:
+  /// **'Astronomical darkness and lunar conditions'**
+  String get dashboard031;
+
+  /// No description provided for @dashboard032.
+  ///
+  /// In en, this message translates to:
+  /// **'Astronomical night summary is not yet available.'**
+  String get dashboard032;
+
+  /// No description provided for @dashboard033.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get dashboard033;
+
+  /// No description provided for @dashboard034.
+  ///
+  /// In en, this message translates to:
+  /// **'Open frequently used AstroManager screens'**
+  String get dashboard034;
+
+  /// No description provided for @dashboard035.
+  ///
+  /// In en, this message translates to:
+  /// **'Observing Site'**
+  String get dashboard035;
+
+  /// No description provided for @dashboard036.
+  ///
+  /// In en, this message translates to:
+  /// **'Current observing location and coordinates'**
+  String get dashboard036;
+
+  /// No description provided for @dashboard037.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage locations'**
+  String get dashboard037;
+
+  /// No description provided for @dashboard038.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading dashboard widget'**
+  String get dashboard038;
+
+  /// No description provided for @dashboard039.
+  ///
+  /// In en, this message translates to:
+  /// **'No data available.'**
+  String get dashboard039;
+
+  /// No description provided for @dashboard040.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load widget data.'**
+  String get dashboard040;
+
+  /// No description provided for @dashboard041.
+  ///
+  /// In en, this message translates to:
+  /// **'Data unavailable offline.'**
+  String get dashboard041;
+
+  /// No description provided for @dashboard042.
+  ///
+  /// In en, this message translates to:
+  /// **'No observing location selected.'**
+  String get dashboard042;
+
+  /// No description provided for @dashboard043.
+  ///
+  /// In en, this message translates to:
+  /// **'This widget is not installed.'**
+  String get dashboard043;
+
+  /// No description provided for @dashboard044.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid widget settings.'**
+  String get dashboard044;
 }
 
 class _AppLocalizationsDelegate

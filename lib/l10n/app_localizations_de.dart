@@ -1347,4 +1347,147 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ui9e172bd7b50a => 'Sprache ändern';
+
+  @override
+  String get dashboard000 => 'Beobachtungsübersicht';
+
+  @override
+  String get dashboard001 => 'Widgets verwalten';
+
+  @override
+  String get dashboard002 => 'Beobachtungsort der Übersicht';
+
+  @override
+  String get dashboard003 =>
+      'Lege in den Einstellungen einen Beobachtungsort an, um die Übersicht anzupassen.';
+
+  @override
+  String get dashboard004 => 'Beobachtungsorte werden geladen …';
+
+  @override
+  String get dashboard005 => 'Beobachtungsorte nicht verfügbar.';
+
+  @override
+  String get dashboard006 =>
+      'Keine Dashboard-Widgets vorhanden. Füge über „Widgets verwalten“ eines hinzu.';
+
+  @override
+  String get dashboard007 =>
+      'Änderungen an der Übersicht konnten nicht gespeichert werden:';
+
+  @override
+  String get dashboard008 => 'Dashboard-Widget';
+
+  @override
+  String get dashboard009 => 'Unbekanntes Widget';
+
+  @override
+  String get dashboard010 => 'Widget-Optionen';
+
+  @override
+  String get dashboard011 => 'Konfigurieren';
+
+  @override
+  String get dashboard012 => 'Nach vorne verschieben';
+
+  @override
+  String get dashboard013 => 'Nach hinten verschieben';
+
+  @override
+  String get dashboard014 => 'Widget ausblenden';
+
+  @override
+  String get dashboard015 => 'Widget entfernen';
+
+  @override
+  String get dashboard016 => 'Sichtbar';
+
+  @override
+  String get dashboard017 => 'Ausgeblendet';
+
+  @override
+  String get dashboard018 => 'Standard-Widgets wiederherstellen';
+
+  @override
+  String get dashboard019 => 'Widget-Größe';
+
+  @override
+  String get dashboard020 => 'Kompakte Aktionen';
+
+  @override
+  String get dashboard021 => 'Koordinaten anzeigen';
+
+  @override
+  String get dashboard022 => 'Keine weiteren Einstellungen.';
+
+  @override
+  String get dashboard023 =>
+      'Die Dashboard-Konfiguration konnte nicht geladen werden.';
+
+  @override
+  String get dashboard024 => '7-Nächte-Prognose';
+
+  @override
+  String get dashboard025 =>
+      'Wettervorhersage für die nächsten sieben Beobachtungsnächte';
+
+  @override
+  String get dashboard026 => 'Die 7-Nächte-Prognose ist noch nicht verfügbar.';
+
+  @override
+  String get dashboard027 => 'Top 3 Ziele heute Nacht';
+
+  @override
+  String get dashboard028 =>
+      'Empfohlene Objekte für die aktuelle Beobachtungsnacht';
+
+  @override
+  String get dashboard029 =>
+      'Zielempfehlungen für diese Nacht sind noch nicht verfügbar.';
+
+  @override
+  String get dashboard030 => 'Diese Nacht im Überblick';
+
+  @override
+  String get dashboard031 => 'Astronomische Dunkelheit und Mondbedingungen';
+
+  @override
+  String get dashboard032 =>
+      'Die astronomische Nachtübersicht ist noch nicht verfügbar.';
+
+  @override
+  String get dashboard033 => 'Schnellaktionen';
+
+  @override
+  String get dashboard034 => 'Häufig verwendete AstroManager-Bereiche öffnen';
+
+  @override
+  String get dashboard035 => 'Beobachtungsort';
+
+  @override
+  String get dashboard036 => 'Aktueller Beobachtungsort und Koordinaten';
+
+  @override
+  String get dashboard037 => 'Beobachtungsorte verwalten';
+
+  @override
+  String get dashboard038 => 'Dashboard-Widget wird geladen';
+
+  @override
+  String get dashboard039 => 'Keine Daten verfügbar.';
+
+  @override
+  String get dashboard040 => 'Widget-Daten konnten nicht geladen werden.';
+
+  @override
+  String get dashboard041 => 'Daten offline nicht verfügbar.';
+
+  @override
+  String get dashboard042 => 'Kein Beobachtungsort ausgewählt.';
+
+  @override
+  String get dashboard043 => 'Dieses Widget ist nicht installiert.';
+
+  @override
+  String get dashboard044 => 'Ungültige Widget-Einstellungen.';
 }

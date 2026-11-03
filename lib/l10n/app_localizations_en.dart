@@ -1333,4 +1333,145 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ui9e172bd7b50a => 'Update language';
+
+  @override
+  String get dashboard000 => 'Observing dashboard';
+
+  @override
+  String get dashboard001 => 'Manage widgets';
+
+  @override
+  String get dashboard002 => 'Dashboard observing location';
+
+  @override
+  String get dashboard003 =>
+      'Add an observing location in Settings to personalize the dashboard.';
+
+  @override
+  String get dashboard004 => 'Loading observing locations…';
+
+  @override
+  String get dashboard005 => 'Observing locations unavailable.';
+
+  @override
+  String get dashboard006 =>
+      'No dashboard widgets. Use Manage widgets to add one.';
+
+  @override
+  String get dashboard007 => 'Could not save dashboard changes:';
+
+  @override
+  String get dashboard008 => 'Dashboard widget';
+
+  @override
+  String get dashboard009 => 'Unknown widget';
+
+  @override
+  String get dashboard010 => 'Widget options';
+
+  @override
+  String get dashboard011 => 'Configure';
+
+  @override
+  String get dashboard012 => 'Move earlier';
+
+  @override
+  String get dashboard013 => 'Move later';
+
+  @override
+  String get dashboard014 => 'Hide widget';
+
+  @override
+  String get dashboard015 => 'Remove widget';
+
+  @override
+  String get dashboard016 => 'Visible';
+
+  @override
+  String get dashboard017 => 'Hidden';
+
+  @override
+  String get dashboard018 => 'Restore default widgets';
+
+  @override
+  String get dashboard019 => 'Widget size';
+
+  @override
+  String get dashboard020 => 'Compact actions';
+
+  @override
+  String get dashboard021 => 'Show coordinates';
+
+  @override
+  String get dashboard022 => 'No additional settings.';
+
+  @override
+  String get dashboard023 => 'Dashboard configuration could not be loaded.';
+
+  @override
+  String get dashboard024 => '7-Night Forecast';
+
+  @override
+  String get dashboard025 =>
+      'Weather outlook for the next seven observing nights';
+
+  @override
+  String get dashboard026 =>
+      'Seven-night forecast widget is not yet available.';
+
+  @override
+  String get dashboard027 => 'Top 3 Targets Tonight';
+
+  @override
+  String get dashboard028 =>
+      'Recommended objects for the current observing night';
+
+  @override
+  String get dashboard029 =>
+      'Tonight’s target recommendations are not yet available.';
+
+  @override
+  String get dashboard030 => 'Tonight at a Glance';
+
+  @override
+  String get dashboard031 => 'Astronomical darkness and lunar conditions';
+
+  @override
+  String get dashboard032 => 'Astronomical night summary is not yet available.';
+
+  @override
+  String get dashboard033 => 'Quick Actions';
+
+  @override
+  String get dashboard034 => 'Open frequently used AstroManager screens';
+
+  @override
+  String get dashboard035 => 'Observing Site';
+
+  @override
+  String get dashboard036 => 'Current observing location and coordinates';
+
+  @override
+  String get dashboard037 => 'Manage locations';
+
+  @override
+  String get dashboard038 => 'Loading dashboard widget';
+
+  @override
+  String get dashboard039 => 'No data available.';
+
+  @override
+  String get dashboard040 => 'Unable to load widget data.';
+
+  @override
+  String get dashboard041 => 'Data unavailable offline.';
+
+  @override
+  String get dashboard042 => 'No observing location selected.';
+
+  @override
+  String get dashboard043 => 'This widget is not installed.';
+
+  @override
+  String get dashboard044 => 'Invalid widget settings.';
 }

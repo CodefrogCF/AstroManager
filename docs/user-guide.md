@@ -95,3 +95,29 @@ The mobile Sky Atlas shows the sky first and puts AstroManager's View, Setup, Fr
 ## Accessibility
 
 Flutter screen labels and tooltips use the selected language. Standard UI text follows platform text scaling; dialogs and the onboarding guide are scrollable. Theme text colors were checked for readable light, dark and red astronomy-night contrast. Sky-map imagery, some dense altitude charts and third-party embedded elements have accessibility limitations; a screen reader cannot describe every graphical pixel.
+
+
+## Personal dashboard
+
+The Dashboard is a local, configurable start page. Choose the observing location
+from the selector at the top; **Default observing location** follows the default
+saved in Settings. The selection is shared by all dashboard widgets.
+
+Open **Manage widgets** to add and remove widget types or hide them without
+deleting their configuration. Each widget's options menu offers configuration,
+size selection (where supported), hiding, removal, and keyboard-friendly
+ordering. These controls are a foundation for a later drag-and-drop editor.
+
+The initial preset contains a seven-night weather panel, tonight's top targets,
+a night summary, and quick actions. The three data-driven panels are explicitly
+marked unavailable until their dedicated integrations are implemented; no
+forecast or recommendation is synthesized. Quick actions already open their
+respective AstroManager screens. An optional **Observing Site** widget shows
+your selected location and coordinates.
+
+Layout, visible widgets, sizes, per-widget settings and observing location are
+all stored locally as versioned JSON in `app_settings` and included in
+`.ambackup` exports. Hidden widgets are not built and do not request data.
+
+The dashboard works offline; future forecast widgets will identify missing and
+stale data rather than assume favorable observing conditions.

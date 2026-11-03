@@ -16,7 +16,7 @@ AstroManager is an offline-first astrophotography planning application built wit
 | **Advanced planning** | Estimate terrain obstruction, inspect available VIIRS satellite night-light radiance, compare observing locations and design/export mosaic panels. |
 | **Settings and data** | Save observing sites and preferences, configure optional observation-opportunity alerts, and export/restore portable `.ambackup` files. |
 
-The Dashboard currently provides a welcome view, not an analytics dashboard.
+The Dashboard offers locally saved, configurable widgets and quick actions. Weather, target-ranking and night-summary dashboard integrations are currently placeholders until their dedicated implementation.
 
 ## First observing night
 

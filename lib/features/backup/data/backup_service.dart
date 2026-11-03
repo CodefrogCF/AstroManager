@@ -14,6 +14,7 @@ import '../../planner/domain/night_observation_block.dart';
 import '../../mosaic/domain/mosaic_plan.dart';
 import '../../alerts/domain/observation_alert.dart';
 import '../../settings/domain/models/app_preferences.dart';
+import '../../dashboard/domain/dashboard_layout.dart';
 
 /// Portable AstroManager backup format v1; application schema v6.
 /// These are user-owned tables only. The bundled OpenNGC catalog can be
@@ -260,7 +261,9 @@ final class AstroBackupService {
         if (key is! String || value is! String) {
           throw const FormatException('Invalid application setting.');
         }
-        if (key == 'observation.alerts.v1') {
+        if (key == 'dashboard.layout.v1') {
+          DashboardLayout.fromJson(jsonDecode(value));
+        } else if (key == 'observation.alerts.v1') {
           ObservationAlertState.fromJson(
             Map<String, dynamic>.from(jsonDecode(value) as Map),
           );

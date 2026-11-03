@@ -1,3 +1,4 @@
+import 'package:astromanager/features/dashboard/data/dashboard_layout_repository.dart';
 import 'package:astromanager/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
@@ -54,6 +55,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          dashboardLayoutRepositoryProvider.overrideWithValue(
+            MemoryDashboardLayoutRepository(),
+          ),
           appPreferencesRepositoryProvider.overrideWithValue(repository),
           observingLocationsProvider.overrideWithBuild((ref, notifier) => []),
         ],
@@ -83,6 +87,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          dashboardLayoutRepositoryProvider.overrideWithValue(
+            MemoryDashboardLayoutRepository(),
+          ),
           appPreferencesRepositoryProvider.overrideWithValue(repository),
           observingLocationsProvider.overrideWithBuild((ref, notifier) => []),
         ],
