@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/router/app_router.dart';
-import '../../../l10n/app_text.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../domain/dashboard_layout.dart';
-import 'widgets/dashboard_widget_state.dart';
+import 'widgets/observing_site_conditions_widget.dart';
 import 'widgets/seven_night_weather_widget.dart';
 import 'widgets/top_targets_widget.dart';
 import 'widgets/dashboard_project_widgets.dart';
@@ -421,7 +418,7 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
     DashboardWidgetDefinition(
       typeId: 'observing-site',
       title: 'Observing Site',
-      description: 'Current observing location and coordinates',
+      description: 'Cached terrain horizon and night-light conditions for the selected site',
       icon: Icons.place_outlined,
       defaultSize: const DashboardWidgetSize(1, 1),
       supportedSizes: const [
@@ -441,51 +438,18 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
           type: DashboardSettingType.toggle,
           defaultValue: true,
         ),
+        DashboardWidgetSetting(
+          key: 'showDetails',
+          label: 'Show environmental details',
+          type: DashboardSettingType.toggle,
+          defaultValue: false,
+        ),
       ],
-      builder: (_, ref, environment, instance) => _SiteSummary(
+      builder: (_, ref, environment, instance) => ObservingSiteConditionsWidget(
         location: environment.location,
         showCoordinates: instance.settings['showCoordinates'] != false,
+        showDetailsInitially: instance.settings['showDetails'] == true,
       ),
     ),
   ]);
 });
-
-Widget _unusedData(BuildContext context, Object data) =>
-    const SizedBox.shrink();
-
-class _SiteSummary extends StatelessWidget {
-  const _SiteSummary({required this.location, required this.showCoordinates});
-
-  final ObservingLocation? location;
-  final bool showCoordinates;
-
-  @override
-  Widget build(BuildContext context) {
-    final site = location;
-    if (site == null) {
-      return const DashboardWidgetStateView<Object>(
-        state: DashboardLoadState.empty('No observing location selected.'),
-        dataBuilder: _unusedData,
-      );
-    }
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(site.name, style: Theme.of(context).textTheme.titleMedium),
-        Text(site.timeZone),
-        if (showCoordinates)
-          Text(
-            '${site.latitude.toStringAsFixed(3)}°, '
-            '${site.longitude.toStringAsFixed(3)}°',
-          ),
-        const SizedBox(height: 8),
-        TextButton.icon(
-          onPressed: () => context.go(AppRoutes.locations),
-          icon: const Icon(Icons.place_outlined),
-          label: const AppText('Manage locations'),
-        ),
-      ],
-    );
-  }
-}

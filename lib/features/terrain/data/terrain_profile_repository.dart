@@ -58,22 +58,21 @@ final class TerrainProfileRepository {
     return '$prefix${sha256.convert(utf8.encode(content))}';
   }
 
-  Future<TerrainHorizonProfile?> cached(
+  /// Cache-only result, including expired profiles for an explicitly
+  /// labelled stale preview. No elevation provider calls are made here.
+  Future<({TerrainHorizonProfile profile, bool isStale})?> cachedWithStatus(
     ObservingLocation site,
     TerrainHorizonOptions options,
   ) async {
     final key = cacheKey(site, options);
     final raw = await _store.getString(key);
-    if (raw == null) {
-      return null;
-    }
+    if (raw == null) return null;
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) {
         throw const FormatException('Invalid cache.');
       }
       final profile = TerrainHorizonProfile.fromJson(decoded);
-      final age = DateTime.now().toUtc().difference(profile.createdAtUtc);
       if (profile.sourceId != provider.id ||
           profile.latitude != site.latitude ||
           profile.longitude != site.longitude ||
@@ -81,17 +80,71 @@ final class TerrainProfileRepository {
           profile.options.azimuthStepDegrees != options.azimuthStepDegrees ||
           profile.options.maximumDistanceMeters !=
               options.maximumDistanceMeters ||
-          profile.options.distanceStepMeters != options.distanceStepMeters ||
-          age > maximumAge ||
-          age.inMinutes < -5) {
-        await _store.remove(key);
-        return null;
+          profile.options.distanceStepMeters != options.distanceStepMeters) {
+        throw const FormatException('Terrain site/provider mismatch.');
       }
-      return profile;
+      final age = DateTime.now().toUtc().difference(profile.createdAtUtc);
+      return (
+        profile: profile,
+        isStale: age > maximumAge || age.inMinutes < -5,
+      );
     } catch (_) {
       await _store.remove(key);
       return null;
     }
+  }
+
+  /// Finds any compatible cached resolution at this location. This is useful
+  /// for a dashboard preview without fetching a different DEM resolution.
+  /// A fresh profile is preferred over a stale one, then the newest sample.
+  Future<({TerrainHorizonProfile profile, bool isStale})?> cachedAnyForSite(
+    ObservingLocation site,
+  ) async {
+    final keys = await _store.getKeys();
+    ({TerrainHorizonProfile profile, bool isStale})? best;
+    for (final key in keys.where((key) => key.startsWith(prefix))) {
+      final raw = await _store.getString(key);
+      if (raw == null) continue;
+      try {
+        final parsed = jsonDecode(raw);
+        if (parsed is! Map<String, dynamic>) {
+          throw const FormatException('Invalid terrain cache.');
+        }
+        final profile = TerrainHorizonProfile.fromJson(parsed);
+        if (profile.sourceId != provider.id ||
+            profile.latitude != site.latitude ||
+            profile.longitude != site.longitude ||
+            profile.observerElevationMeters != site.elevationMeters) {
+          continue;
+        }
+        // Protect against storing a profile under a mismatched resolution key.
+        if (cacheKey(site, profile.options) != key) continue;
+        final age = DateTime.now().toUtc().difference(profile.createdAtUtc);
+        final stale = age > maximumAge || age.inMinutes < -5;
+        if (best == null ||
+            (best.isStale && !stale) ||
+            (best.isStale == stale &&
+                profile.createdAtUtc.isAfter(best.profile.createdAtUtc))) {
+          best = (profile: profile, isStale: stale);
+        }
+      } catch (_) {
+        await _store.remove(key);
+      }
+    }
+    return best;
+  }
+
+  Future<TerrainHorizonProfile?> cached(
+    ObservingLocation site,
+    TerrainHorizonOptions options,
+  ) async {
+    final value = await cachedWithStatus(site, options);
+    if (value == null) return null;
+    if (value.isStale) {
+      await _store.remove(cacheKey(site, options));
+      return null;
+    }
+    return value.profile;
   }
 
   /// Cache-first. A network error does not erase a valid, already-loaded profile.

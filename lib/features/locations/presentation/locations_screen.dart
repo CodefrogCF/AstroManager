@@ -11,7 +11,9 @@ import '../../light_pollution/presentation/light_pollution_location_panel.dart';
 import '../../site_comparison/presentation/observing_site_comparison_panel.dart';
 
 class LocationsScreen extends ConsumerWidget {
-  const LocationsScreen({super.key});
+  const LocationsScreen({super.key, this.showComparison = false});
+
+  final bool showComparison;
 
   Future<void> _showEditor(
     BuildContext context,
@@ -200,7 +202,10 @@ class LocationsScreen extends ConsumerWidget {
                     return Column(
                       children: [
                         if (savedLocations.length >= 2) ...[
-                          ObservingSiteComparisonPanel(sites: savedLocations),
+                          ObservingSiteComparisonPanel(
+                            sites: savedLocations,
+                            initiallyExpanded: showComparison,
+                          ),
                           const SizedBox(height: 14),
                         ],
                         for (final location in savedLocations)

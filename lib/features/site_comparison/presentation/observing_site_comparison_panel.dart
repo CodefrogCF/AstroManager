@@ -40,7 +40,13 @@ final siteComparisonTargetsProvider = FutureProvider<List<CelestialObject>>((
 }, retry: (count, error) => null);
 
 class ObservingSiteComparisonPanel extends ConsumerStatefulWidget {
-  const ObservingSiteComparisonPanel({super.key, required this.sites});
+  const ObservingSiteComparisonPanel({
+    super.key,
+    required this.sites,
+    this.initiallyExpanded = false,
+  });
+
+  final bool initiallyExpanded;
 
   final List<ObservingLocation> sites;
 
@@ -51,7 +57,7 @@ class ObservingSiteComparisonPanel extends ConsumerStatefulWidget {
 
 class _ObservingSiteComparisonPanelState
     extends ConsumerState<ObservingSiteComparisonPanel> {
-  bool _expanded = false;
+  late bool _expanded;
   final Set<String> _siteIds = {};
   String? _targetId;
   DateTime _date = DateTime.now();
@@ -66,6 +72,7 @@ class _ObservingSiteComparisonPanelState
   @override
   void initState() {
     super.initState();
+    _expanded = widget.initiallyExpanded;
     _siteIds.addAll(widget.sites.take(2).map((site) => site.id));
   }
 

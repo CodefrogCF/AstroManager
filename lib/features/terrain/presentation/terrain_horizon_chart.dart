@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:astromanager/l10n/app_text.dart';
-
 import 'package:flutter/material.dart';
+
+import 'package:astromanager/l10n/app_text.dart';
 
 import '../domain/terrain_horizon.dart';
 
@@ -15,35 +15,63 @@ class TerrainHorizonChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const AppText('Terrain horizon (degrees above horizontal)'),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 156,
-          width: double.infinity,
-          child: CustomPaint(
-            key: const ValueKey('terrain-horizon-plot'),
-            painter: _TerrainHorizonPainter(
-              profile,
-              theme.colorScheme.primary,
-              theme.colorScheme.outlineVariant,
-            ),
-          ),
-        ),
-        const SizedBox(height: 2),
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // When used in a bounded standalone panel, large text can make the
+    // heading and compass labels taller than the available height. Keep the
+    // text at the requested scale and scroll the chart instead of overflowing.
+    // Inside the dashboard's outer scroll view height is unbounded, so avoid
+    // creating a second vertical scrollable there.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            AppText('N · 0°'),
-            AppText('E · 90°'),
-            AppText('S · 180°'),
-            AppText('W · 270°'),
-            AppText('N · 360°'),
+            const AppText('Terrain horizon (degrees above horizontal)'),
+            const SizedBox(height: 4),
+            SizedBox(
+              height: 156,
+              width: double.infinity,
+              child: CustomPaint(
+                key: const ValueKey('terrain-horizon-plot'),
+                painter: _TerrainHorizonPainter(
+                  profile,
+                  theme.colorScheme.primary,
+                  theme.colorScheme.outlineVariant,
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                for (final bearing in const [
+                  'N · 0°',
+                  'E · 90°',
+                  'S · 180°',
+                  'W · 270°',
+                  'N · 360°',
+                ])
+                  Expanded(
+                    child: AppText(
+                      bearing,
+                      textAlign: TextAlign.center,
+                      softWrap: true,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+        if (!constraints.hasBoundedHeight) {
+          return content;
+        }
+        return SingleChildScrollView(
+          key: const ValueKey('terrain-horizon-scroll'),
+          primary: false,
+          child: content,
+        );
+      },
     );
   }
 }

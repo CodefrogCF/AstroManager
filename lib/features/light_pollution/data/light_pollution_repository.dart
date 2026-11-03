@@ -32,12 +32,16 @@ final class LightPollutionSnapshot {
     required this.fromCache,
     required this.isStale,
     this.refreshError,
+    this.checkedAtUtc,
   });
 
   final LightPollutionReading? reading;
   final bool fromCache;
   final bool isStale;
   final String? refreshError;
+
+  /// When this location/provider value was fetched, distinct from datasetDate.
+  final DateTime? checkedAtUtc;
 }
 
 /// Coordinate + provider-version keyed cache. Entries contain their retrieval
@@ -86,6 +90,37 @@ final class LightPollutionRepository {
     }
   }
 
+  /// Reads ONLY the existing cache. Never calls the upstream VIIRS service.
+  /// Stale readings stay identifiable rather than being presented as live data.
+  Future<LightPollutionSnapshot> cachedOnly({
+    required double latitude,
+    required double longitude,
+  }) async {
+    if (!latitude.isFinite ||
+        latitude < -90 ||
+        latitude > 90 ||
+        !longitude.isFinite ||
+        longitude < -180 ||
+        longitude > 180) {
+      throw ArgumentError('Invalid observing coordinates.');
+    }
+    final cached = await _readCache(latitude, longitude);
+    if (cached == null) {
+      return const LightPollutionSnapshot(
+        reading: null,
+        fromCache: true,
+        isStale: false,
+      );
+    }
+    final age = _now().toUtc().difference(cached.checkedAt);
+    return LightPollutionSnapshot(
+      reading: cached.reading,
+      fromCache: true,
+      isStale: age.isNegative || age > maximumAge,
+      checkedAtUtc: cached.checkedAt,
+    );
+  }
+
   Future<LightPollutionSnapshot> load({
     required double latitude,
     required double longitude,
@@ -108,6 +143,7 @@ final class LightPollutionRepository {
         reading: cached.reading,
         fromCache: true,
         isStale: false,
+        checkedAtUtc: cached.checkedAt,
       );
     }
     try {
@@ -137,6 +173,7 @@ final class LightPollutionRepository {
         reading: value,
         fromCache: false,
         isStale: false,
+        checkedAtUtc: value == null ? null : now,
       );
     } catch (error) {
       if (cached != null) {
@@ -144,6 +181,7 @@ final class LightPollutionRepository {
           reading: cached.reading,
           fromCache: true,
           isStale: !cacheFresh,
+          checkedAtUtc: cached.checkedAt,
           refreshError: error.toString(),
         );
       }

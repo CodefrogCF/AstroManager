@@ -63,8 +63,12 @@ const Map<String, String> appGermanUiStrings = {
   'Backup & restore': 'Sicherung und Wiederherstellung',
   'Bright surfaces with Codefrog green accents.':
       'Helle Oberflächen mit grünen Codefrog-Akzenten.',
+  'Cache only · no automatic data requests':
+      'Nur Cache · keine automatischen Datenabfragen',
+  'Cached': 'Zwischengespeichert',
   'Cached terrain at peak bearing':
       'Geländeprofil aus Cache in optimaler Richtung',
+  'Cached terrain horizon and night-light conditions for the selected site': 'Geländehorizont und Nachtlichtdaten aus dem Cache für den gewählten Beobachtungsort',
   'Calculated position': 'Berechnete Position',
   'Calculating terrain horizon (online fetch or local cache)…':
       'Geländehorizont wird berechnet (Netzabruf oder lokaler Cache) …',
@@ -149,6 +153,7 @@ const Map<String, String> appGermanUiStrings = {
   'Data sources': 'Datenquellen',
   'Data sources & credits': 'Datenquellen und Urheberhinweise',
   'Data unavailable offline.': 'Daten offline nicht verfügbar.',
+  'Dataset month': 'Datensatzmonat',
   'Date': 'Datum',
   'Default observing location': 'Standard-Beobachtungsort',
   'Delete': 'Löschen',
@@ -250,6 +255,7 @@ const Map<String, String> appGermanUiStrings = {
   'Invalid widget settings.': 'Ungültige Widget-Einstellungen.',
   'Keep': 'Behalten',
   'Keep current data': 'Aktuelle Daten behalten',
+  'Known bearings': 'Bekannte Richtungen',
   'Language': 'Sprache',
   'Language preference': 'Spracheinstellung',
   'Larger file; attachments stay outside SQLite.':
@@ -281,6 +287,7 @@ const Map<String, String> appGermanUiStrings = {
       'Koordinaten, Höhenlage und Zeitzonen verwalten.',
   'Manage locations': 'Beobachtungsorte verwalten',
   'Manage observing sites used for astronomical calculations, weather forecasts and imaging recommendations.': 'Verwalte Orte für astronomische Berechnungen, Wetterprognosen und Aufnahmeempfehlungen.',
+  'Manage site data': 'Standortdaten verwalten',
   'Manage widgets': 'Widgets verwalten',
   'Manage your imaging equipment and create reusable optical setups.': 'Verwalte deine Aufnahmeausrüstung und erstelle wiederverwendbare Optik-Setups.',
   'Maximum cloud cover (%)': 'Maximale Bewölkung (%)',
@@ -288,6 +295,7 @@ const Map<String, String> appGermanUiStrings = {
   'Maximum displayed observations': 'Maximal angezeigte Beobachtungen',
   'Mean equatorial coordinates of date':
       'Mittlere äquatoriale Koordinaten des Datums',
+  'Measured zenith sky brightness': 'Gemessene Zenit-Himmelshelligkeit',
   'Measurement units': 'Maßeinheiten',
   'Merge (no overwrites)': 'Zusammenführen (ohne Überschreiben)',
   'Merge retains existing records and rejects duplicate identifiers. Replace removes all existing user data before restoring the backup.': 'Zusammenführen bewahrt bestehende Datensätze und weist doppelte Kennungen zurück. Ersetzen löscht vor dem Import alle Nutzerdaten.',
@@ -298,6 +306,8 @@ const Map<String, String> appGermanUiStrings = {
   'Minimum duration': 'Mindestdauer',
   'Minimum observation duration': 'Mindestbeobachtungsdauer',
   'Minimum session duration (minutes)': 'Minimale Beobachtungsdauer (Minuten)',
+  'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.': 'Der modellierte Geländehorizont ist keine vermessene Sichtlinie. Unbekannte Richtungen bleiben unbekannt.',
+  'Modeled zenith sky brightness': 'Modellierte Zenit-Himmelshelligkeit',
   'Monitored targets': 'Überwachte Ziele',
   'Moon phase and illumination': 'Mondphase und Beleuchtung',
   'Moon separation': 'Mondabstand',
@@ -336,6 +346,7 @@ const Map<String, String> appGermanUiStrings = {
   'Next': 'Weiter',
   'Next morning': 'Nächster Morgen',
   'Night Planner': 'Nachtplanung',
+  'Night-light radiance': 'Nachtlicht-Strahldichte',
   'No account required': 'Kein Konto erforderlich',
   'No active imaging projects. Create one in Projects.':
       'Keine aktiven Aufnahmeprojekte. Erstelle eines unter Projekte.',
@@ -345,6 +356,8 @@ const Map<String, String> appGermanUiStrings = {
   'No astronomical darkness': 'Keine astronomische Dunkelheit',
   'No astronomical darkness during this night.':
       'In dieser Nacht tritt keine astronomische Dunkelheit ein.',
+  'No cached night-light data. Check the site details to load a sample.': 'Keine Nachtlichtdaten zwischengespeichert. Im Standortdetailbereich abrufen.',
+  'No cached terrain profile. Check the site details to load one.': 'Kein Geländehorizont zwischengespeichert. Im Standortdetailbereich laden.',
   'No candidate targets. Add projects or favorites, or select Catalog.': 'Keine Kandidatenziele. Füge Projekte oder Favoriten hinzu oder wähle den Katalog.',
   'No dashboard widgets. Use Manage widgets to add one.': 'Keine Dashboard-Widgets vorhanden. Füge über „Widgets verwalten“ eines hinzu.',
   'No data available.': 'Keine Daten verfügbar.',
@@ -388,6 +401,7 @@ const Map<String, String> appGermanUiStrings = {
   'No valid night-light data at this location.':
       'An diesem Ort liegen keine gültigen Nachtlichtdaten vor.',
   'No valid night-light data at this location. No darkness classification is inferred.': 'Für diesen Ort liegen keine gültigen Nachtlichtdaten vor. Es wird keine Dunkelheitsklasse abgeleitet.',
+  'Not available': 'Nicht verfügbar',
   'Not selected': 'Nicht ausgewählt',
   'Not selected (UTC)': 'Nicht ausgewählt (UTC)',
   'Notes': 'Notizen',
@@ -429,6 +443,7 @@ const Map<String, String> appGermanUiStrings = {
   'Optics': 'Optik',
   'Optional equipment': 'Optionale Ausrüstung',
   'Optional forecast-based alerts. Checks run when the app starts, returns to the foreground or when you tap Check now. No continuous background monitoring is provided.': 'Optionale Benachrichtigungen anhand von Prognosen. Prüfungen erfolgen beim App-Start, bei Rückkehr in den Vordergrund oder über „Jetzt prüfen“. Keine dauerhafte Hintergrundüberwachung.',
+  'Outdated cached data': 'Veraltete Cache-Daten',
   'Outdated forecasts are not treated as favorable conditions.':
       'Veraltete Prognosen gelten nicht als günstige Bedingungen.',
   'Overlap': 'Überlappung',
@@ -448,6 +463,7 @@ const Map<String, String> appGermanUiStrings = {
   'Portable .ambackup files contain a ZIP archive and work offline. Backups are not encrypted; store them securely. Older .zip backups can also be restored. The bundled celestial catalog is not included.': 'Portable .ambackup-Dateien enthalten ein ZIP-Archiv und funktionieren offline. Backups sind nicht verschlüsselt: sicher aufbewahren. Ältere .zip-Backups können ebenfalls importiert werden. Der mitgelieferte Himmelskatalog ist nicht enthalten.',
   'Previous': 'Zurück',
   'Profile actions': 'Profilaktionen',
+  'Profile generated': 'Profil erstellt',
   'Profile name': 'Profilname',
   'Project target': 'Projektziel',
   'Project title *': 'Projekttitel *',
@@ -471,6 +487,7 @@ const Map<String, String> appGermanUiStrings = {
   'Recommended astrophotography targets': 'Empfohlene Astrofotografie-Ziele',
   'Recommended objects for the current observing night':
       'Empfohlene Objekte für die aktuelle Beobachtungsnacht',
+  'Refresh cached site data': 'Standortdaten aus Cache neu einlesen',
   'Refresh projects': 'Projekte aktualisieren',
   'Refresh satellite data': 'Satellitendaten aktualisieren',
   'Refresh terrain profile': 'Geländeprofil aktualisieren',
@@ -490,11 +507,14 @@ const Map<String, String> appGermanUiStrings = {
   'Restore default widgets': 'Standard-Widgets wiederherstellen',
   'Restore defaults': 'Standard wiederherstellen',
   'Restore frame': 'Bildausschnitt wiederherstellen',
+  'Retrieved': 'Abgerufen',
   'Retry': 'Erneut versuchen',
   'Rotation': 'Drehung',
   'Rows': 'Zeilen',
   'S · 180°': 'S · 180°',
   'Satellite night lights': 'Satellitengestütztes Nachtlicht',
+  'Satellite radiance is not measured sky brightness or a Bortle class.': 'Satelliten-Strahldichte ist keine gemessene Himmelshelligkeit und keine Bortle-Klasse.',
+  'Satellite upward radiance': 'Aufwärts gerichtete Satelliten-Strahldichte',
   'Save': 'Speichern',
   'Save as project': 'Als Projekt speichern',
   'Save block': 'Block speichern',
@@ -540,6 +560,7 @@ const Map<String, String> appGermanUiStrings = {
   'Show Targets': 'Ziele anzeigen',
   'Show coordinates': 'Koordinaten anzeigen',
   'Show details': 'Details anzeigen',
+  'Show environmental details': 'Umgebungsdetails anzeigen',
   'Show recently notified opportunities':
       'Kürzlich gemeldete Gelegenheiten anzeigen',
   'Show weather': 'Wetter anzeigen',
@@ -551,6 +572,8 @@ const Map<String, String> appGermanUiStrings = {
   'Solar positions are approximate. Sunrise/sunset assumes an unobstructed sea-level horizon and standard refraction. Mountain ridges, weather and artificial light are not included.': 'Sonnenpositionen sind Näherungen. Sonnenauf- und -untergang setzen einen freien Horizont auf Meereshöhe und Standardrefraktion voraus. Berge, Wetter und Kunstlicht fehlen.',
   'Some solar events do not occur during this observing night.':
       'Einige Sonnenereignisse treten in dieser Beobachtungsnacht nicht auf.',
+  'Source': 'Quelle',
+  'Source catalogue updated': 'Quellkatalog aktualisiert',
   'Source: OpenNGC (CC BY-SA 4.0). Positions are geometric planning estimates; local terrain and atmospheric refraction are not modeled.': 'Quelle: OpenNGC (CC BY-SA 4.0). Positionen sind geometrische Planungsschätzungen; örtliches Gelände und atmosphärische Refraktion werden nicht modelliert.',
   'Source: OpenNGC · CC BY-SA 4.0\\nEquatorial coordinates: J2000\\nMagnitude: Johnson V, where available': 'Quelle: OpenNGC · CC BY-SA 4.0\\nÄquatoriale Koordinaten: J2000\\nHelligkeit: Johnson V, soweit verfügbar',
   'Stale forecast': 'Veraltete Prognose',
@@ -627,6 +650,8 @@ const Map<String, String> appGermanUiStrings = {
   'Unable to load recent sessions.':
       'Letzte Sitzungen konnten nicht geladen werden.',
   'Unable to load widget data.': 'Widget-Daten konnten nicht geladen werden.',
+  'Unable to read cached site conditions.':
+      'Zwischengespeicherte Standortbedingungen konnten nicht gelesen werden.',
   'Unable to save language preference.':
       'Spracheinstellung konnte nicht gespeichert werden.',
   'Unable to save observing location.':

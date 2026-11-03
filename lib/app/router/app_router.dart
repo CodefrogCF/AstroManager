@@ -32,6 +32,7 @@ abstract final class AppRoutes {
   static const projects = '/projects';
   static const settings = '/settings';
   static const locations = '/settings/locations';
+  static const locationsComparison = '/settings/locations?compare=true';
 }
 
 GoRouter createAppRouter({String? initialLocation}) {
@@ -126,7 +127,10 @@ GoRouter createAppRouter({String? initialLocation}) {
                 routes: [
                   GoRoute(
                     path: 'locations',
-                    builder: (context, state) => const LocationsScreen(),
+                    builder: (context, state) => LocationsScreen(
+                      showComparison:
+                          state.uri.queryParameters['compare'] == 'true',
+                    ),
                   ),
                 ],
               ),

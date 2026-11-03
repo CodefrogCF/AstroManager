@@ -109,18 +109,17 @@ size selection (where supported), hiding, removal, and keyboard-friendly
 ordering. These controls are a foundation for a later drag-and-drop editor.
 
 The initial preset contains a seven-night weather panel, tonight's top targets,
-a night summary, and quick actions. The three data-driven panels are explicitly
-marked unavailable until their dedicated integrations are implemented; no
-forecast or recommendation is synthesized. Quick actions already open their
-respective AstroManager screens. An optional **Observing Site** widget shows
-your selected location and coordinates.
+a night summary, and quick actions. Forecasts and recommendations use the existing
+weather and astronomy services. Quick actions open their respective AstroManager
+screens. An optional **Observing Site** widget shows your selected location,
+cached terrain-horizon coverage, and cached night-light information.
 
 Layout, visible widgets, sizes, per-widget settings and observing location are
 all stored locally as versioned JSON in `app_settings` and included in
 `.ambackup` exports. Hidden widgets are not built and do not request data.
 
-The dashboard works offline; future forecast widgets will identify missing and
-stale data rather than assume favorable observing conditions.
+The dashboard remains usable offline. Weather and environmental widgets identify
+missing or stale data rather than infer favorable observing conditions.
 
 ## Customizing the Dashboard
 
@@ -144,3 +143,25 @@ observing location is not changed by a layout reset.
 Your layout is stored locally, included in `.ambackup` exports and restored
 along with other application preferences. Backups from the previous linear
 Dashboard format are still supported.
+
+## Observing Site conditions
+
+The optional **Observing Site** dashboard widget shows cached environmental
+information for the dashboard's selected observing location. It never fetches
+terrain or night-light data automatically. To obtain or update those datasets,
+open **Manage site data** and use the existing location panels, then tap
+**Refresh cached site data** on the dashboard to reread the local caches.
+
+The terrain summary shows how many azimuth bearings are covered by the cached
+EU-DEM/OpenTopoData profile. Missing bearings are **unknown**, not clear; terrain
+modeling does not account for nearby buildings or trees and is not a guaranteed
+line-of-sight assessment. The details display the profile creation date and
+source.
+
+For night lights, the widget preserves the source's measurement type and units.
+The default VIIRS monthly product represents **satellite upward radiance in
+nW/cm²/sr** (EOG/NOAA via Esri), **not** measured zenith sky brightness, an
+SQM value, or a Bortle rating. The original dataset month, retrieval date,
+provider, attribution, and license notes are shown when available. Stale data
+are marked explicitly. Use **Compare observing sites** to open the existing
+site-comparison panel when multiple saved locations are available.
