@@ -255,6 +255,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
     setState(() => _favorites = updated);
     try {
       await ref.read(targetFavoritesStoreProvider).save(updated);
+      ref.read(targetFavoritesRevisionProvider.notifier).changed();
     } catch (error) {
       if (!mounted) return;
       setState(() => _favorites = before);

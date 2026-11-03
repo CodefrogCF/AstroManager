@@ -8,6 +8,7 @@ import '../../locations/domain/models/observing_location.dart';
 import '../domain/dashboard_layout.dart';
 import 'widgets/dashboard_widget_state.dart';
 import 'widgets/seven_night_weather_widget.dart';
+import 'widgets/top_targets_widget.dart';
 
 /// Metadata and rendering are registered together, independent of the grid.
 /// A widget's Consumer subtree is constructed only while its instance is visible.
@@ -173,13 +174,24 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
         DashboardWidgetSize(4, 1),
         DashboardWidgetSize(4, 2),
       ],
+      settings: const [
+        DashboardWidgetSetting(
+          key: 'candidateSource',
+          label: 'Candidate targets',
+          type: DashboardSettingType.choice,
+          defaultValue: 'combined',
+          choices: ['combined', 'catalog', 'projects', 'favorites'],
+        ),
+        DashboardWidgetSetting(
+          key: 'minimumDurationMinutes',
+          label: 'Minimum session duration (minutes)',
+          type: DashboardSettingType.choice,
+          defaultValue: '60',
+          choices: ['30', '60', '90', '120', '180'],
+        ),
+      ],
       builder: (_, ref, environment, instance) =>
-          const DashboardWidgetStateView<Object>(
-            state: DashboardLoadState.unavailable(
-              'Tonight’s target recommendations are not yet available.',
-            ),
-            dataBuilder: _unusedData,
-          ),
+          TopTargetsWidget(location: environment.location, instance: instance),
     ),
     DashboardWidgetDefinition(
       typeId: 'tonight',

@@ -649,6 +649,7 @@ class _ConfigureWidgetDialogState
                 )
               else
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue:
                       _settings[setting.key] as String? ??
                       setting.defaultValue as String,
@@ -657,7 +658,22 @@ class _ConfigureWidgetDialogState
                   ),
                   items: [
                     for (final choice in setting.choices)
-                      DropdownMenuItem(value: choice, child: Text(choice)),
+                      DropdownMenuItem(
+                        value: choice,
+                        child: AppText(
+                          setting.key == 'candidateSource'
+                              ? switch (choice) {
+                                  'combined' =>
+                                    'Projects, favorites and catalog',
+                                  'catalog' => 'Catalog targets',
+                                  'projects' => 'Active projects',
+                                  'favorites' => 'Favorite targets',
+                                  _ => choice,
+                                }
+                              : choice,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                   ],
                   onChanged: (value) {
                     if (value != null) {

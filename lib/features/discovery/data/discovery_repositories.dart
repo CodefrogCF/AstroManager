@@ -124,3 +124,16 @@ final targetFavoritesStoreProvider = Provider<TargetFavoritesStore>((ref) {
     AppSettingsRepository(ref.watch(appDatabaseProvider)),
   );
 });
+
+/// A lightweight invalidation signal for views using the persisted favorite
+/// list. Saving a favorite in Target Discovery refreshes any visible dashboard
+/// recommendations without adding another copy of favorite state.
+final targetFavoritesRevisionProvider =
+    NotifierProvider<TargetFavoritesRevision, int>(TargetFavoritesRevision.new);
+
+class TargetFavoritesRevision extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void changed() => state++;
+}

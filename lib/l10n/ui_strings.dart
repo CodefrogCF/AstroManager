@@ -569,4 +569,53 @@ const Map<String, String> appGermanUiStrings = {
   'stable': 'Stabil',
   'unknown': 'Unbekannt',
   'worsening': 'Verschlechtert sich',
+  'Active projects': 'Aktive Projekte',
+  'Cached terrain at peak bearing':
+      'Geländeprofil aus Cache in optimaler Richtung',
+  'Candidate targets': 'Kandidatenziele',
+  'Choose a project for this target:': 'Wähle ein Projekt für dieses Ziel:',
+  'Could not save observation': 'Beobachtung konnte nicht gespeichert werden',
+  'Create a new imaging project and plan':
+      'Neues Aufnahmeprojekt erstellen und planen',
+  'Favorite targets': 'Favorisierte Ziele',
+  'Minimum session duration (minutes)': 'Minimale Beobachtungsdauer (Minuten)',
+  'Moon separation': 'Mondabstand',
+  'No candidate targets. Add projects or favorites, or select Catalog.': 'Keine Kandidatenziele. Füge Projekte oder Favoriten hinzu oder wähle den Katalog.',
+  'No qualifying targets for this night and minimum duration.':
+      'Keine geeigneten Ziele für diese Nacht und Mindestdauer.',
+  'Observation added to Night Planner.':
+      'Beobachtung zur Nachtplanung hinzugefügt.',
+  'Overlapping observation': 'Überlappende Beobachtung',
+  'Peak altitude': 'Maximale Zielhöhe',
+  'Plan observation': 'Beobachtung planen',
+  'Projects, favorites and catalog': 'Projekte, Favoriten und Katalog',
+  'Provisional': 'Vorläufig',
+  'Recalculate recommendations': 'Empfehlungen neu berechnen',
+  'Stale weather · provisional scores':
+      'Veraltetes Wetter · vorläufige Bewertungen',
+  'Terrain horizon not available; not included in score.':
+      'Geländehorizont nicht verfügbar; nicht im Score enthalten.',
+  'This block overlaps another plan. Save it anyway?':
+      'Dieser Block überlappt einen vorhandenen Plan. Trotzdem speichern?',
+  'This observing window has ended.':
+      'Dieses Beobachtungsfenster ist bereits vorbei.',
+  'Top 3 use the existing suitability model.':
+      'Die Top 3 verwenden das vorhandene Eignungsmodell.',
+  'Unable to calculate target recommendations.':
+      'Zielempfehlungen konnten nicht berechnet werden.',
+  'Weather coverage': 'Wetterdatenabdeckung',
+  'Weather unavailable · provisional scores':
+      'Wetter nicht verfügbar · vorläufige Bewertungen',
+  'Why this score?': 'Wie entsteht dieser Score?',
+  'candidates evaluated': 'Kandidaten bewertet',
+  'catalog': 'Katalog',
+  'combined': 'Kombiniert',
+  'complete': 'vollständig',
+  'favorites': 'Favoriten',
+  'missing': 'fehlend',
+  'not included in score.': 'nicht im Score enthalten.',
+  'partial': 'teilweise',
+  'possible obstruction': 'mögliche Abschattung',
+  'projects': 'Projekte',
+  'stale': 'veraltet',
 };

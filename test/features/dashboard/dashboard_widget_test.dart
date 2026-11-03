@@ -1,4 +1,6 @@
 import 'package:astromanager/features/dashboard/data/dashboard_layout_repository.dart';
+import 'package:astromanager/features/dashboard/application/top_targets_provider.dart';
+import 'package:astromanager/features/dashboard/domain/top_targets.dart';
 import 'package:astromanager/features/dashboard/domain/dashboard_layout.dart';
 import 'package:astromanager/features/dashboard/domain/dashboard_grid.dart';
 import 'package:astromanager/features/dashboard/presentation/dashboard_screen.dart';
@@ -8,9 +10,6 @@ import 'package:astromanager/features/locations/application/observing_locations_
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
 import 'package:astromanager/features/settings/domain/models/app_preferences.dart';
-import 'package:astromanager/features/weather/application/weather_providers.dart';
-import 'package:astromanager/features/weather/domain/models/weather_cache.dart';
-import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -50,23 +49,15 @@ Future<void> _pumpDashboard(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        topTargetsProvider.overrideWith(
+          (ref, query) async => TopTargetsResult(
+            nightDate: DateTime.parse(query.nightDate),
+            considered: 0,
+            candidates: const [],
+            ranked: const [],
+          ),
+        ),
         dashboardLayoutRepositoryProvider.overrideWithValue(store),
-        weatherForecastSnapshotProvider.overrideWith((ref, request) async {
-          final now = DateTime.now().toUtc();
-          return WeatherForecastSnapshot(
-            forecast: WeatherForecast(
-              provider: const WeatherProviderMetadata(id: 'test', name: 'Test'),
-              latitudeDegrees: request.latitudeDegrees,
-              longitudeDegrees: request.longitudeDegrees,
-              issuedAtUtc: now,
-              fetchedAtUtc: now,
-              hours: [HourlyWeatherForecast(timeUtc: request.startUtc)],
-            ),
-            origin: WeatherForecastOrigin.freshCache,
-            checkedAtUtc: now,
-            isStale: false,
-          );
-        }),
         appPreferencesRepositoryProvider.overrideWithValue(
           FakeAppPreferencesRepository()
             ..preferences = const AppPreferences(
@@ -116,7 +107,7 @@ void main() {
     ]) {
       expect(find.text(name), findsOneWidget);
     }
-    expect(find.textContaining('not yet available'), findsNWidgets(2));
+    expect(find.textContaining('not yet available'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('dashboard-manage')));
     await tester.pumpAndSettle();
     await tester.tap(
