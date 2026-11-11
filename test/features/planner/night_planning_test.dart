@@ -63,6 +63,35 @@ void main() {
     expect(conflicts['c'], {'a', 'b'});
   });
 
+  test('unscheduled darkness excludes overlapping blocks only once', () {
+    final timeline = NightTimeline(
+      SolarEvents.calculateForLocalDate(
+        location: site,
+        localDate: DateTime.utc(2026, 11, 2),
+      ),
+    );
+    final darkness = timeline.day.astronomicalDarkness.single;
+    final beforeDusk = block(
+      'dusk',
+      darkness.startUtc.subtract(const Duration(minutes: 30)),
+      darkness.startUtc.add(const Duration(hours: 1)),
+    );
+    final overlaps = block(
+      'overlap',
+      darkness.startUtc.add(const Duration(minutes: 30)),
+      darkness.startUtc.add(const Duration(minutes: 90)),
+    );
+    final afterDawn = block(
+      'daylight',
+      darkness.endUtc.add(const Duration(minutes: 10)),
+      darkness.endUtc.add(const Duration(minutes: 30)),
+    );
+    expect(
+      timeline.unscheduledDarkness([overlaps, afterDawn, beforeDusk]),
+      darkness.duration - const Duration(minutes: 90),
+    );
+  });
+
   test('UTC intervals preserve their night and snapshot through JSON', () {
     final original = block(
       'one',
@@ -199,8 +228,7 @@ void main() {
         DateTime.utc(2026, 11, 2, 22),
         DateTime.utc(2026, 11, 2, 23),
       );
-      await repo.save(first);
-      await repo.save(second);
+      await Future.wait([repo.save(first), repo.save(second)]);
       await repo.save(
         block(
           'one',

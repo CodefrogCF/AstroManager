@@ -20,14 +20,17 @@ Open **Sky Atlas** to explore the DSS2 Color survey. Select an optical profile a
 
 ## 4. Plan a night
 
-Open **Night Planner** and select your observing location and date. The app shows sunrise/sunset, twilight phases, astronomical darkness and Moon information. The **Interactive night timeline** spans local noon through the following local noon, so after-midnight observing stays on the same planning night. Time-zone and daylight-saving changes are handled using the site's IANA zone and UTC instants.
+From a target in an existing project, select **Open Night Planner** to open the planner with that project and target selected. If the project has an observing location and date, the planner uses them as defaults. Choose the location and night you want, then select **Schedule target** to set a start time and duration and save the block.
+
+The **Night overview** shows the site's astronomical darkness, how much of it is unscheduled, and the local time slot for each planned target. Use the edit or delete button beside a block to update the schedule. Overlapping blocks are flagged in the list and on the timeline.
+
+The **Interactive night timeline** spans local noon through the following local noon. Start times before noon belong to the next calendar day. Repeated clock times during a daylight-saving transition show their UTC offsets. Sunrise, sunset, twilight and Moon details are below the timeline.
 
 You can:
 
 - Inspect altitude/visibility tracks for available project-linked targets and optional weather data.
-- Choose **Show weather** to request a forecast or display a cached forecast; stale/absent data is identified.
-- Add, edit or delete project-linked target blocks using **Schedule target**; overlapping blocks are flagged.
-- Enable **Use terrain horizon** to estimate obstruction from DEM terrain rather than assuming only a mathematical horizon. Tune azimuth resolution, range and radial sampling; the calculated profile is cached for later offline use.
+- Open **Timeline options** to adjust zoom or the minimum target altitude. If weather is available on request, select **Show weather** there.
+- Enable **Use terrain horizon** to estimate terrain obstruction from a digital elevation model. Tune azimuth resolution, range and radial sampling. The calculated profile is cached for later offline use.
 
 Terrain modeling excludes buildings, vegetation, small structures, local cables and refraction. A missing terrain sample means **unknown**, not clear visibility. Respect the terrain source's usage limits and allow time for a first profile download.
 

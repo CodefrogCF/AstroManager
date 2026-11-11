@@ -34,6 +34,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSettings => 'Settings';
 
   @override
+  String get plannerNightOverview => 'Night overview';
+
+  @override
+  String get plannerScheduledTargets => 'Scheduled targets';
+
+  @override
+  String get plannerUnscheduledDarkness => 'Unscheduled darkness';
+
+  @override
+  String get plannerNoScheduledTargets => 'No targets scheduled.';
+
+  @override
+  String get plannerOverlappingBlock => 'Overlapping block';
+
+  @override
+  String get plannerTimelineOptions => 'Timeline options';
+
+  @override
+  String get plannerSolarEvents => 'Solar events';
+
+  @override
+  String get plannerStartTime => 'Start time';
+
+  @override
+  String get plannerEditBlock => 'Edit block';
+
+  @override
+  String get plannerDeleteBlockTitle => 'Delete observation block?';
+
+  @override
+  String get plannerSaveError => 'Unable to save night plan';
+
+  @override
   String get ui00c6a742e0cc => 'Add target';
 
   @override

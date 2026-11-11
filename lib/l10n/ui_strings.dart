@@ -168,6 +168,7 @@ const Map<String, String> appGermanUiStrings = {
   'Delete block': 'Block löschen',
   'Delete location': 'Ort löschen',
   'Delete mosaic plan?': 'Mosaikplan löschen?',
+  'Delete observation block?': 'Beobachtungsblock löschen?',
   'Delete observation session?': 'Beobachtung löschen?',
   'Delete observing location?': 'Beobachtungsort löschen?',
   'Delete project?': 'Projekt löschen?',
@@ -184,6 +185,7 @@ const Map<String, String> appGermanUiStrings = {
   'Duration (minutes)': 'Dauer (Minuten)',
   'E · 90°': 'O · 90°',
   'Edit': 'Bearbeiten',
+  'Edit block': 'Block bearbeiten',
   'Edit layout': 'Layout bearbeiten',
   'Edit location': 'Ort bearbeiten',
   'Edit observation session': 'Beobachtungssitzung bearbeiten',
@@ -350,6 +352,7 @@ const Map<String, String> appGermanUiStrings = {
   'Next': 'Weiter',
   'Next morning': 'Nächster Morgen',
   'Night Planner': 'Nachtplanung',
+  'Night overview': 'Nachtübersicht',
   'Night-light radiance': 'Nachtlicht-Strahldichte',
   'No account required': 'Kein Konto erforderlich',
   'No active imaging projects. Create one in Projects.':
@@ -399,6 +402,7 @@ const Map<String, String> appGermanUiStrings = {
   'No setup selected': 'Kein Setup ausgewählt',
   'No targets assigned. Use Edit to add a catalog target.':
       'Keine Ziele zugeordnet. Über Bearbeiten ein Katalogziel hinzufügen.',
+  'No targets scheduled.': 'Keine Ziele eingeplant.',
   'No upcoming observation blocks at this location.':
       'Keine bevorstehenden Beobachtungsblöcke an diesem Ort.',
   'No valid camera + optic profiles. Add an imaging setup in Equipment.': 'Kein gültiges Kamera-/Optikprofil. Erstelle ein Aufnahme-Setup unter Ausrüstung.',
@@ -451,6 +455,7 @@ const Map<String, String> appGermanUiStrings = {
   'Outdated forecasts are not treated as favorable conditions.':
       'Veraltete Prognosen gelten nicht als günstige Bedingungen.',
   'Overlap': 'Überlappung',
+  'Overlapping block': 'Überlappender Block',
   'Overlapping blocks are flagged on the timeline. Times are saved as UTC instants.': 'Überlappende Blöcke werden markiert. Zeiten werden als eindeutige UTC-Zeitpunkte gespeichert.',
   'Overlapping observation': 'Überlappende Beobachtung',
   'Overlapping observations': 'Überschneidende Beobachtungen',
@@ -532,6 +537,7 @@ const Map<String, String> appGermanUiStrings = {
   'Schedule target': 'Ziel einplanen',
   'Scheduled observing blocks and overlapping plans':
       'Geplante Beobachtungsblöcke und Überschneidungen',
+  'Scheduled targets': 'Geplante Ziele',
   'Search': 'Suchen',
   'Search Messier, NGC and IC objects': 'Messier-, NGC- und IC-Objekte suchen',
   'Search Messier, NGC and IC objects, common names and other identifiers.': 'Messier-, NGC- und IC-Objekte, gebräuchliche Namen und weitere Kennungen suchen.',
@@ -575,6 +581,7 @@ const Map<String, String> appGermanUiStrings = {
   'Sky Atlas': 'Himmelsatlas',
   'Sky atlas': 'Himmelsatlas',
   'Sky dome': 'Himmelskuppel',
+  'Solar events': 'Sonnenereignisse',
   'Solar positions are approximate. Sunrise/sunset assumes an unobstructed sea-level horizon and standard refraction. Mountain ridges, weather and artificial light are not included.': 'Sonnenpositionen sind Näherungen. Sonnenauf- und -untergang setzen einen freien Horizont auf Meereshöhe und Standardrefraktion voraus. Berge, Wetter und Kunstlicht fehlen.',
   'Some solar events do not occur during this observing night.':
       'Einige Sonnenereignisse treten in dieser Beobachtungsnacht nicht auf.',
@@ -586,6 +593,7 @@ const Map<String, String> appGermanUiStrings = {
   'Stale weather · provisional scores':
       'Veraltetes Wetter · vorläufige Bewertungen',
   'Star': 'Stern',
+  'Start time': 'Startzeit',
   'Status': 'Status',
   'Sun below −18°; evaluated from local noon through the following local noon. Intervals can span midnight.': 'Sonne unter −18°; berechnet von lokalem Mittag bis zum nächsten Mittag. Intervalle können Mitternacht überschreiten.',
   'Sunset / sunrise': 'Sonnenuntergang / Sonnenaufgang',
@@ -630,6 +638,7 @@ const Map<String, String> appGermanUiStrings = {
   'This will replace existing locations, equipment, imaging projects, sessions, night plans and preferences. It cannot be undone. Export your current data first.': 'Dadurch werden bestehende Orte, Ausrüstung, Aufnahmeprojekte, Sitzungen, Nachtpläne und Einstellungen ersetzt. Das lässt sich nicht rückgängig machen. Sichere die aktuellen Daten zuerst.',
   'Time': 'Zeit',
   'Time format': 'Zeitformat',
+  'Timeline options': 'Optionen für die Zeitleiste',
   'Timeline zoom': 'Timeline-Zoom',
   'Title': 'Titel',
   'Today': 'Heute',
@@ -660,11 +669,13 @@ const Map<String, String> appGermanUiStrings = {
       'Zwischengespeicherte Standortbedingungen konnten nicht gelesen werden.',
   'Unable to save language preference.':
       'Spracheinstellung konnte nicht gespeichert werden.',
+  'Unable to save night plan': 'Nachtplan konnte nicht gespeichert werden',
   'Unable to save observing location.':
       'Beobachtungsort konnte nicht gespeichert werden.',
   'Unable to save theme preference.':
       'Darstellungseinstellung konnte nicht gespeichert werden.',
   'Unknown widget': 'Unbekanntes Widget',
+  'Unscheduled darkness': 'Unverplante Dunkelzeit',
   'Upcoming Observation Plans': 'Geplante Beobachtungen',
   'Upcoming observing nights': 'Kommende Beobachtungsnächte',
   'Update language': 'Sprache ändern',

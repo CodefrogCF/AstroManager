@@ -5,6 +5,9 @@ class AppSettingsRepository {
 
   final AppDatabase _database;
 
+  Future<T> transaction<T>(Future<T> Function() action) =>
+      _database.transaction(action);
+
   /// Reads a stored value by key.
   ///
   /// Returns null if the key does not exist.

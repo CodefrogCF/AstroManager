@@ -146,6 +146,72 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get navSettings;
 
+  /// No description provided for @plannerNightOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Night overview'**
+  String get plannerNightOverview;
+
+  /// No description provided for @plannerScheduledTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled targets'**
+  String get plannerScheduledTargets;
+
+  /// No description provided for @plannerUnscheduledDarkness.
+  ///
+  /// In en, this message translates to:
+  /// **'Unscheduled darkness'**
+  String get plannerUnscheduledDarkness;
+
+  /// No description provided for @plannerNoScheduledTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'No targets scheduled.'**
+  String get plannerNoScheduledTargets;
+
+  /// No description provided for @plannerOverlappingBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlapping block'**
+  String get plannerOverlappingBlock;
+
+  /// No description provided for @plannerTimelineOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline options'**
+  String get plannerTimelineOptions;
+
+  /// No description provided for @plannerSolarEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Solar events'**
+  String get plannerSolarEvents;
+
+  /// No description provided for @plannerStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get plannerStartTime;
+
+  /// No description provided for @plannerEditBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit block'**
+  String get plannerEditBlock;
+
+  /// No description provided for @plannerDeleteBlockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete observation block?'**
+  String get plannerDeleteBlockTitle;
+
+  /// No description provided for @plannerSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save night plan'**
+  String get plannerSaveError;
+
   /// No description provided for @ui00c6a742e0cc.
   ///
   /// In en, this message translates to:

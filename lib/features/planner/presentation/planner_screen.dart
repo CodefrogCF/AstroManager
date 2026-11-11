@@ -12,23 +12,31 @@ import 'night_planning_section.dart';
 
 /// Solar events and darkness for one observing site and local calendar date.
 class PlannerScreen extends ConsumerStatefulWidget {
-  const PlannerScreen({super.key, this.initialLocationId, this.initialDate});
+  const PlannerScreen({
+    super.key,
+    this.initialLocationId,
+    this.initialDate,
+    this.initialProjectId,
+    this.initialTargetId,
+  });
 
   final String? initialLocationId;
   final DateTime? initialDate;
+  final String? initialProjectId;
+  final String? initialTargetId;
 
   @override
   ConsumerState<PlannerScreen> createState() => _PlannerScreenState();
 }
 
 class _PlannerScreenState extends ConsumerState<PlannerScreen> {
-  late DateTime _date;
+  DateTime? _selectedDate;
   String? _selectedLocationId;
 
   @override
   void initState() {
     super.initState();
-    _date = widget.initialDate ?? DateTime.now();
+    _selectedDate = widget.initialDate;
     _selectedLocationId = widget.initialLocationId;
   }
 
@@ -36,26 +44,29 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
   void didUpdateWidget(covariant PlannerScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialLocationId != oldWidget.initialLocationId ||
-        widget.initialDate != oldWidget.initialDate) {
+        widget.initialDate != oldWidget.initialDate ||
+        widget.initialProjectId != oldWidget.initialProjectId ||
+        widget.initialTargetId != oldWidget.initialTargetId) {
       _selectedLocationId = widget.initialLocationId;
-      _date = widget.initialDate ?? DateTime.now();
+      _selectedDate = widget.initialDate;
     }
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickDate(DateTime date, DateTime today) async {
+    final firstDate = DateTime(1900);
+    final lastDate = DateTime(2100, 12, 31);
     final selected = await showDatePicker(
       context: context,
-      initialDate: _date,
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      initialDate: date.isBefore(firstDate) || date.isAfter(lastDate)
+          ? today
+          : date,
+      currentDate: today,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (!mounted || selected == null) return;
-    setState(() => _date = selected);
+    setState(() => _selectedDate = selected);
   }
-
-  String _dateText(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}.'
-      '${date.month.toString().padLeft(2, '0')}.${date.year}';
 
   Widget _eventRow(String label, SolarEvent? event, SolarCrossingState state) {
     final value = event == null
@@ -125,23 +136,22 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     );
   }
 
-  Widget _results(ObservingLocation location) {
+  Widget _results(ObservingLocation location, DateTime date) {
     final day = SolarEvents.calculateForLocalDate(
       location: location,
-      localDate: _date,
+      localDate: date,
     );
-    final darkness = day.astronomicalDarkness;
     final moonEvents = LunarEphemeris.calculateForObservingNight(
       location: location,
-      localDate: _date,
+      localDate: date,
     );
     final zone = SolarEvents.timeZone(location.timeZone);
     // Local midnight belonging to the observation night, never the device zone.
     final localMidnight = tz.TZDateTime(
       zone,
-      _date.year,
-      _date.month,
-      _date.day + 1,
+      date.year,
+      date.month,
+      date.day + 1,
     );
     final moon = LunarEphemeris.positionAt(
       at: localMidnight.toUtc(),
@@ -156,17 +166,19 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        AppText(
-          'Solar events · ${_dateText(day.localDate)}',
-          style: Theme.of(context).textTheme.titleLarge,
+        NightPlanningSection(
+          location: location,
+          day: day,
+          initialProjectId: widget.initialProjectId,
+          initialTargetId: widget.initialTargetId,
         ),
+        const SizedBox(height: 16),
+        AppText('Solar events', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         AppText(
           'Local time: ${location.timeZone} · '
           'Civil day: ${day.civilDayLength.inHours} h',
         ),
-        const SizedBox(height: 12),
-        NightPlanningSection(location: location, date: _date),
         const SizedBox(height: 12),
         _thresholdCard(
           day,
@@ -196,42 +208,6 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           'Astronomical dawn',
           'Astronomical dusk',
         ),
-        const SizedBox(height: 16),
-        AppText(
-          'Astronomical darkness · observing night',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 6),
-        const AppText(
-          'Sun below −18°; evaluated from local noon through the following '
-          'local noon. Intervals can span midnight.',
-        ),
-        const SizedBox(height: 10),
-        if (darkness.isEmpty)
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: AppText('No astronomical darkness during this night.'),
-            ),
-          ),
-        for (final interval in darkness)
-          Card(
-            key: ValueKey('darkness-${interval.startUtc.toIso8601String()}'),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    '${SolarEvents.formatLocal(interval.startLocal, includeDate: true)} '
-                    '– ${SolarEvents.formatLocal(interval.endLocal, includeDate: true)}',
-                  ),
-                  const SizedBox(height: 4),
-                  AppText('Duration: ${interval.duration.inMinutes} minutes'),
-                ],
-              ),
-            ),
-          ),
         const SizedBox(height: 20),
         AppText(
           'Lunar conditions · observing night',
@@ -314,48 +290,65 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
             orElse: () => locations.first,
           );
 
+    final nowAtSite = tz.TZDateTime.now(SolarEvents.timeZone(current.timeZone));
+    final today = DateTime(nowAtSite.year, nowAtSite.month, nowAtSite.day);
+    final date = _selectedDate ?? today;
+    final siteControl = DropdownButtonFormField<String>(
+      key: ValueKey('planner-site-${current.id}'),
+      initialValue: current.id,
+      isExpanded: true,
+      decoration: localizeDecoration(
+        context,
+        const InputDecoration(
+          labelText: 'Observing location',
+          prefixIcon: Icon(Icons.place_outlined),
+        ),
+      ),
+      items: [
+        for (final location in locations)
+          DropdownMenuItem(value: location.id, child: AppText(location.name)),
+      ],
+      onChanged: (value) => setState(() => _selectedLocationId = value),
+    );
+    final dateControls = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        OutlinedButton.icon(
+          key: const ValueKey('planner-date'),
+          onPressed: () => _pickDate(date, today),
+          icon: const Icon(Icons.calendar_month),
+          label: Text(MaterialLocalizations.of(context).formatFullDate(date)),
+        ),
+        TextButton(
+          onPressed: () => setState(() => _selectedDate = null),
+          child: const AppText('Today'),
+        ),
+      ],
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DropdownButtonFormField<String>(
-          key: ValueKey('planner-site-${current.id}'),
-          initialValue: current.id,
-          isExpanded: true,
-          decoration: localizeDecoration(
-            context,
-            const InputDecoration(
-              labelText: 'Observing location',
-              prefixIcon: Icon(Icons.place_outlined),
-            ),
-          ),
-          items: [
-            for (final location in locations)
-              DropdownMenuItem(
-                value: location.id,
-                child: AppText(location.name),
-              ),
-          ],
-          onChanged: (value) => setState(() => _selectedLocationId = value),
+        LayoutBuilder(
+          builder: (context, constraints) => constraints.maxWidth >= 650
+              ? Row(
+                  children: [
+                    Expanded(child: siteControl),
+                    const SizedBox(width: 16),
+                    Expanded(child: dateControls),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    siteControl,
+                    const SizedBox(height: 8),
+                    dateControls,
+                  ],
+                ),
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            OutlinedButton.icon(
-              key: const ValueKey('planner-date'),
-              onPressed: _pickDate,
-              icon: const Icon(Icons.calendar_month),
-              label: AppText(_dateText(_date)),
-            ),
-            TextButton(
-              onPressed: () => setState(() => _date = DateTime.now()),
-              child: const AppText('Today'),
-            ),
-          ],
-        ),
-        _results(current),
+        _results(current, date),
       ],
     );
   }
@@ -376,8 +369,6 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                   'Night Planner',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                const SizedBox(height: 8),
-                const AppText('Plan your upcoming astrophotography sessions.'),
                 const SizedBox(height: 20),
                 locations.when(
                   loading: () =>

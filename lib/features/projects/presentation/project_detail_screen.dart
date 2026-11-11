@@ -201,26 +201,55 @@ class _ProjectDetailScreenState extends ConsumerState<ProjectDetailScreen> {
               'No targets assigned. Use Edit to add a catalog target.',
             ),
           for (final id in _project.targetIds)
-            FutureBuilder<CelestialObject?>(
-              future: _findTarget(id),
-              builder: (context, snapshot) => ListTile(
-                leading: const Icon(Icons.auto_awesome_outlined),
-                title: AppText(snapshot.data?.displayTitle ?? id),
-                subtitle: snapshot.hasError
-                    ? const AppText(
-                        'Catalog unavailable — saved identifier retained',
-                      )
-                    : snapshot.connectionState == ConnectionState.done &&
-                          snapshot.data == null
-                    ? const AppText(
-                        'Catalog object not found — reference retained',
-                      )
-                    : AppText(id),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(
-                  AppRoutes.targetDetails(id),
-                  extra: snapshot.data,
-                ),
+            Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  FutureBuilder<CelestialObject?>(
+                    future: _findTarget(id),
+                    builder: (context, snapshot) => ListTile(
+                      leading: const Icon(Icons.auto_awesome_outlined),
+                      title: AppText(snapshot.data?.displayTitle ?? id),
+                      subtitle: snapshot.hasError
+                          ? const AppText(
+                              'Catalog unavailable — saved identifier retained',
+                            )
+                          : snapshot.connectionState == ConnectionState.done &&
+                                snapshot.data == null
+                          ? const AppText(
+                              'Catalog object not found — reference retained',
+                            )
+                          : AppText(id),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(
+                        AppRoutes.targetDetails(id),
+                        extra: snapshot.data,
+                      ),
+                    ),
+                  ),
+                  if (_project.status != ImagingProjectStatus.archived)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        end: 8,
+                        bottom: 4,
+                      ),
+                      child: TextButton.icon(
+                        key: ValueKey('project-schedule-$id'),
+                        icon: const Icon(Icons.calendar_month_outlined),
+                        label: const AppText('Open Night Planner'),
+                        onPressed: _busy
+                            ? null
+                            : () => context.go(
+                                AppRoutes.plannerForProjectTarget(
+                                  projectId: _project.id,
+                                  targetId: id,
+                                  locationId: _project.locationId,
+                                  nightDate: _project.observingDate,
+                                ),
+                              ),
+                      ),
+                    ),
+                ],
               ),
             ),
           const SizedBox(height: 18),

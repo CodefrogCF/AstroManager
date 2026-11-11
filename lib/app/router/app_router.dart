@@ -28,6 +28,21 @@ abstract final class AppRoutes {
     path: planner,
     queryParameters: {'location': locationId, 'night': nightDate},
   ).toString();
+
+  static String plannerForProjectTarget({
+    required String projectId,
+    required String targetId,
+    String? locationId,
+    String? nightDate,
+  }) => Uri(
+    path: planner,
+    queryParameters: {
+      'project': projectId,
+      'target': targetId,
+      'location': ?locationId,
+      'night': ?nightDate,
+    },
+  ).toString();
   static const equipment = '/equipment';
   static const projects = '/projects';
   static const settings = '/settings';
@@ -91,13 +106,18 @@ GoRouter createAppRouter({String? initialLocation}) {
               GoRoute(
                 path: AppRoutes.planner,
                 builder: (context, state) {
-                  final night = state.uri.queryParameters['night'];
-                  final validNight =
-                      night != null &&
-                      RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(night);
+                  final parameters = state.uri.queryParameters;
+                  final night = parameters['night'];
+                  final date = night == null ? null : DateTime.tryParse(night);
                   return PlannerScreen(
-                    initialLocationId: state.uri.queryParameters['location'],
-                    initialDate: validNight ? DateTime.tryParse(night) : null,
+                    initialLocationId: parameters['location'],
+                    initialDate:
+                        date != null &&
+                            date.toIso8601String().split('T').first == night
+                        ? date
+                        : null,
+                    initialProjectId: parameters['project'],
+                    initialTargetId: parameters['target'],
                   );
                 },
               ),

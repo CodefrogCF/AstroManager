@@ -20,8 +20,8 @@ final class NightPlanSave extends NightPlanEditResult {
 }
 
 final class NightPlanDelete extends NightPlanEditResult {
-  const NightPlanDelete(this.id);
-  final String id;
+  const NightPlanDelete(this.block);
+  final NightObservationBlock block;
 }
 
 /// The selected local date and starting clock are converted at the site,
@@ -35,6 +35,8 @@ class NightBlockEditorDialog extends StatefulWidget {
     required this.targets,
     this.existing,
     this.suggestedUtc,
+    this.initialProjectId,
+    this.initialTargetId,
   });
   final ObservingLocation location;
   final NightTimeline timeline;
@@ -42,6 +44,8 @@ class NightBlockEditorDialog extends StatefulWidget {
   final Map<String, CelestialObject> targets;
   final NightObservationBlock? existing;
   final DateTime? suggestedUtc;
+  final String? initialProjectId;
+  final String? initialTargetId;
 
   @override
   State<NightBlockEditorDialog> createState() => _NightBlockEditorDialogState();
@@ -49,12 +53,14 @@ class NightBlockEditorDialog extends StatefulWidget {
 
 class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
   final _form = GlobalKey<FormState>();
-  final _minutes = TextEditingController(text: '60');
+  final _minutes = TextEditingController();
   final _notes = TextEditingController();
+  late final Map<String, PlannedImagingProject> _projects;
+  late final List<String> _projectIds;
+  late final int _initialMinutes;
   late String _projectId;
   late String _targetId;
   late TimeOfDay _time;
-  late bool _nextDay;
   String? _error;
   DateTime? _foldChoiceUtc;
 
@@ -63,35 +69,78 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
     super.initState();
     final existing = widget.existing;
     final start =
-        existing?.startUtc ??
-        widget.suggestedUtc ??
-        widget.timeline.startUtc.add(const Duration(hours: 8));
+        existing?.startUtc ?? widget.suggestedUtc ?? _suggestedStart();
     final local = tz.TZDateTime.from(
       start,
       SolarEvents.timeZone(widget.location.timeZone),
     );
-    final night = widget.timeline.day.localDate;
-    _foldChoiceUtc = existing?.startUtc;
-    _nextDay = DateTime.utc(
-      local.year,
-      local.month,
-      local.day,
-    ).isAfter(DateTime.utc(night.year, night.month, night.day));
+    _foldChoiceUtc = _minuteUtc(start);
     _time = TimeOfDay(hour: local.hour, minute: local.minute);
-    final initial = widget.projects.first;
+    _projects = {for (final project in widget.projects) project.id: project};
+    _projectIds = [
+      ..._projects.keys,
+      if (existing != null && !_projects.containsKey(existing.projectId))
+        existing.projectId,
+    ];
+    final initialProject = widget.initialProjectId;
     _projectId =
-        existing != null &&
-            widget.projects.any((p) => p.id == existing.projectId)
-        ? existing.projectId
-        : initial.id;
-    final project = widget.projects.firstWhere((p) => p.id == _projectId);
+        existing?.projectId ??
+        (_projects.containsKey(initialProject)
+            ? initialProject!
+            : _projectIds.first);
+    final initialTarget = widget.initialTargetId;
+    final targets = _targetsFor(_projectId);
     _targetId =
-        existing != null && project.targetIds.contains(existing.targetId)
-        ? existing.targetId
-        : project.targetIds.first;
-    _minutes.text = existing?.duration.inMinutes.toString() ?? '60';
+        existing?.targetId ??
+        (targets.contains(initialTarget) ? initialTarget! : targets.first);
+    const microsPerMinute = Duration.microsecondsPerMinute;
+    _initialMinutes = existing == null
+        ? 60
+        : (existing.duration.inMicroseconds + microsPerMinute - 1) ~/
+              microsPerMinute;
+    _minutes.text = _initialMinutes.toString();
     _notes.text = existing?.notes ?? '';
   }
+
+  DateTime _suggestedStart() {
+    final timeline = widget.timeline;
+    final darkness = timeline.day.astronomicalDarkness.firstOrNull;
+    if (darkness != null) {
+      final minute = _minuteUtc(darkness.startUtc);
+      final start = minute.isBefore(darkness.startUtc)
+          ? minute.add(const Duration(minutes: 1))
+          : minute;
+      if (timeline.contains(start, start.add(const Duration(hours: 1)))) {
+        return start;
+      }
+    }
+    return timeline.startUtc.add(const Duration(hours: 8));
+  }
+
+  DateTime _minuteUtc(DateTime value) => DateTime.utc(
+    value.year,
+    value.month,
+    value.day,
+    value.hour,
+    value.minute,
+  );
+
+  List<String> _targetsFor(String projectId) {
+    final current = _projects[projectId]?.targetIds ?? const <String>[];
+    final existing = widget.existing;
+    return existing != null &&
+            existing.projectId == projectId &&
+            !current.contains(existing.targetId)
+        ? [existing.targetId, ...current]
+        : current;
+  }
+
+  String _projectName(String id) =>
+      _projects[id]?.title ?? widget.existing!.projectName;
+
+  String _targetName(String id) =>
+      widget.targets[id]?.displayTitle ??
+      (id == widget.existing?.targetId ? widget.existing!.targetName : id);
 
   @override
   void dispose() {
@@ -100,13 +149,18 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
     super.dispose();
   }
 
-  List<DateTime> get _clockCandidates {
+  DateTime get _startDate {
     final date = widget.timeline.day.localDate;
-    final day = DateTime.utc(
+    // Each wall-clock time belongs to one date in a noon-to-noon night.
+    return DateTime.utc(
       date.year,
       date.month,
-      date.day + (_nextDay ? 1 : 0),
+      date.day + (_time.hour < 12 ? 1 : 0),
     );
+  }
+
+  List<DateTime> get _clockCandidates {
+    final day = _startDate;
     return NightLocalClock.candidates(
       timeZoneId: widget.location.timeZone,
       year: day.year,
@@ -129,18 +183,24 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
       );
       return;
     }
-    final start = candidates.contains(_foldChoiceUtc)
+    final minute = candidates.contains(_foldChoiceUtc)
         ? _foldChoiceUtc!
         : candidates.first;
-    final end = start.add(Duration(minutes: int.parse(_minutes.text.trim())));
+    final existing = widget.existing;
+    final start = existing != null && _minuteUtc(existing.startUtc) == minute
+        ? existing.startUtc
+        : minute;
+    final minutes = int.parse(_minutes.text.trim());
+    final duration = existing != null && minutes == _initialMinutes
+        ? existing.duration
+        : Duration(minutes: minutes);
+    final end = start.add(duration);
     if (!widget.timeline.contains(start, end)) {
       setState(
         () => _error = 'Block must fit inside the selected noon-to-noon night.',
       );
       return;
     }
-    final project = widget.projects.firstWhere((p) => p.id == _projectId);
-    final target = widget.targets[_targetId];
     final block = NightObservationBlock(
       id: widget.existing?.id ?? const Uuid().v4(),
       locationId: widget.location.id,
@@ -149,10 +209,10 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
         10,
       ),
       timeZoneId: widget.location.timeZone,
-      projectId: project.id,
+      projectId: _projectId,
       targetId: _targetId,
-      projectName: project.title,
-      targetName: target?.displayTitle ?? _targetId,
+      projectName: _projectName(_projectId),
+      targetName: _targetName(_targetId),
       startUtc: start,
       endUtc: end,
       notes: _notes.text.trim(),
@@ -162,7 +222,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final project = widget.projects.firstWhere((p) => p.id == _projectId);
+    final candidates = _clockCandidates;
     return AlertDialog(
       title: AppText(
         widget.existing == null
@@ -187,11 +247,11 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                     const InputDecoration(labelText: 'Imaging project'),
                   ),
                   items: [
-                    for (final p in widget.projects)
+                    for (final id in _projectIds)
                       DropdownMenuItem(
-                        value: p.id,
+                        value: id,
                         child: AppText(
-                          p.title,
+                          _projectName(id),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -200,17 +260,14 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                     if (value == null) {
                       return;
                     }
-                    final next = widget.projects.firstWhere(
-                      (p) => p.id == value,
-                    );
                     setState(() {
                       _projectId = value;
-                      _targetId = next.targetIds.first;
+                      _targetId = _targetsFor(value).first;
                     });
                   },
                 ),
                 DropdownButtonFormField<String>(
-                  key: ValueKey('night-block-target-${project.id}'),
+                  key: ValueKey('night-block-target-$_projectId'),
                   initialValue: _targetId,
                   isExpanded: true,
                   decoration: localizeDecoration(
@@ -218,11 +275,11 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                     const InputDecoration(labelText: 'Celestial target'),
                   ),
                   items: [
-                    for (final id in project.targetIds)
+                    for (final id in _targetsFor(_projectId))
                       DropdownMenuItem(
                         value: id,
                         child: AppText(
-                          widget.targets[id]?.displayTitle ?? id,
+                          _targetName(id),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -232,57 +289,37 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                   },
                 ),
                 const SizedBox(height: 10),
-                AppText(
-                  'Start · ${widget.location.timeZone}',
+                Text(
+                  '${appTranslate(context, 'Start time')} · ${widget.location.timeZone}',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    ChoiceChip(
-                      label: const AppText('Evening (night date)'),
-                      selected: !_nextDay,
-                      onSelected: (_) => setState(() {
-                        _nextDay = false;
+                OutlinedButton.icon(
+                  key: const ValueKey('night-block-start'),
+                  icon: const Icon(Icons.schedule),
+                  label: Text(
+                    '${MaterialLocalizations.of(context).formatMediumDate(_startDate)} · ${_time.format(context)}',
+                  ),
+                  onPressed: () async {
+                    final value = await showTimePicker(
+                      context: context,
+                      initialTime: _time,
+                    );
+                    if (mounted && value != null && value != _time) {
+                      setState(() {
+                        _time = value;
                         _foldChoiceUtc = null;
-                      }),
-                    ),
-                    ChoiceChip(
-                      label: const AppText('Next morning'),
-                      selected: _nextDay,
-                      onSelected: (_) => setState(() {
-                        _nextDay = true;
-                        _foldChoiceUtc = null;
-                      }),
-                    ),
-                    OutlinedButton.icon(
-                      key: const ValueKey('night-block-start'),
-                      icon: const Icon(Icons.schedule),
-                      label: AppText(_time.format(context)),
-                      onPressed: () async {
-                        final value = await showTimePicker(
-                          context: context,
-                          initialTime: _time,
-                        );
-                        if (mounted && value != null) {
-                          setState(() {
-                            _time = value;
-                            _foldChoiceUtc = null;
-                          });
-                        }
-                      },
-                    ),
-                  ],
+                      });
+                    }
+                  },
                 ),
-                if (_clockCandidates.length > 1)
+                if (candidates.length > 1)
                   DropdownButtonFormField<DateTime>(
                     key: ValueKey(
-                      'night-fold-${_nextDay ? 'next' : 'same'}-${_time.hour}-${_time.minute}',
+                      'night-fold-$_startDate-${_time.hour}-${_time.minute}',
                     ),
-                    initialValue: _clockCandidates.contains(_foldChoiceUtc)
+                    initialValue: candidates.contains(_foldChoiceUtc)
                         ? _foldChoiceUtc
-                        : _clockCandidates.first,
+                        : candidates.first,
                     decoration: localizeDecoration(
                       context,
                       const InputDecoration(
@@ -290,7 +327,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                       ),
                     ),
                     items: [
-                      for (final candidate in _clockCandidates)
+                      for (final candidate in candidates)
                         DropdownMenuItem<DateTime>(
                           value: candidate,
                           child: AppText(widget.timeline.clockLabel(candidate)),
@@ -332,11 +369,6 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
                       ),
                     ),
                   ),
-                const SizedBox(height: 8),
-                const AppText(
-                  'Overlapping blocks are flagged on the timeline. '
-                  'Times are saved as UTC instants.',
-                ),
               ],
             ),
           ),
@@ -347,7 +379,7 @@ class _NightBlockEditorDialogState extends State<NightBlockEditorDialog> {
           TextButton.icon(
             key: const ValueKey('night-block-delete'),
             onPressed: () =>
-                Navigator.pop(context, NightPlanDelete(widget.existing!.id)),
+                Navigator.pop(context, NightPlanDelete(widget.existing!)),
             icon: const Icon(Icons.delete_outline),
             label: const AppText('Delete'),
           ),

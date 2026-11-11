@@ -5,6 +5,7 @@ import '../../../core/astronomy/astronomical_coordinates.dart';
 import '../../../core/astronomy/target_visibility.dart';
 import '../../terrain/domain/terrain_horizon.dart';
 import '../../../features/locations/domain/models/observing_location.dart';
+import 'night_observation_block.dart';
 
 /// All geometry is based on UTC duration, not local clock arithmetic.
 /// A spring-forward night and a fall-back night therefore have different widths.
@@ -36,6 +37,28 @@ final class NightTimeline {
     for (final dark in day.astronomicalDarkness)
       VisibilityInterval(startUtc: dark.startUtc, endUtc: dark.endUtc),
   ];
+
+  Duration unscheduledDarkness(Iterable<NightObservationBlock> blocks) {
+    final sorted = blocks.toList()
+      ..sort((a, b) => a.startUtc.compareTo(b.startUtc));
+    var available = Duration.zero;
+    for (final dark in day.astronomicalDarkness) {
+      var cursor = dark.startUtc;
+      for (final block in sorted) {
+        if (!block.endUtc.isAfter(cursor)) continue;
+        if (!block.startUtc.isBefore(dark.endUtc)) break;
+        if (block.startUtc.isAfter(cursor)) {
+          available += block.startUtc.difference(cursor);
+        }
+        cursor = block.endUtc;
+        if (!cursor.isBefore(dark.endUtc)) break;
+      }
+      if (cursor.isBefore(dark.endUtc)) {
+        available += dark.endUtc.difference(cursor);
+      }
+    }
+    return available;
+  }
 
   /// Tick every N elapsed UTC hours, labelled using the observing site.
   /// Repeated wall-clock hours receive distinct UTC offsets at DST fallback.
@@ -106,14 +129,11 @@ abstract final class NightLocalClock {
     required int minute,
   }) {
     final zone = SolarEvents.timeZone(timeZoneId);
-    final normalized = tz.TZDateTime(
-      zone,
-      year,
-      month,
-      day,
-      hour,
-      minute,
-    ).toUtc();
+    final local = tz.TZDateTime(zone, year, month, day, hour, minute);
+    final normalized = DateTime.fromMicrosecondsSinceEpoch(
+      local.microsecondsSinceEpoch,
+      isUtc: true,
+    );
     final matches = <DateTime>{};
     // Cover uncommon 30/90/120-minute DST changes as well as ordinary 1h.
     for (var offset = -180; offset <= 180; offset += 15) {

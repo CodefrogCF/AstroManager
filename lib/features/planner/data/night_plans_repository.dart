@@ -55,32 +55,35 @@ final class SettingsNightPlansRepository implements NightPlansRepository {
   Future<void> save(NightObservationBlock block) async {
     block.validate();
     final key = NightPlanKey(block.locationId, block.nightDate);
-    final blocks = [...await forNight(key)];
-    final oldIndex = blocks.indexWhere((item) => item.id == block.id);
-    if (oldIndex == -1) {
-      blocks.add(block);
-    } else {
-      blocks[oldIndex] = block;
-    }
-    await _settings.put(
-      storageKey(key),
-      jsonEncode(blocks.map((item) => item.toJson()).toList()),
-    );
-  }
-
-  @override
-  Future<void> remove(NightPlanKey key, String id) async {
-    final blocks = [...await forNight(key)]
-      ..removeWhere((item) => item.id == id);
-    if (blocks.isEmpty) {
-      await _settings.delete(storageKey(key));
-    } else {
+    await _settings.transaction(() async {
+      final blocks = [...await forNight(key)];
+      final oldIndex = blocks.indexWhere((item) => item.id == block.id);
+      if (oldIndex == -1) {
+        blocks.add(block);
+      } else {
+        blocks[oldIndex] = block;
+      }
       await _settings.put(
         storageKey(key),
         jsonEncode(blocks.map((item) => item.toJson()).toList()),
       );
-    }
+    });
   }
+
+  @override
+  Future<void> remove(NightPlanKey key, String id) =>
+      _settings.transaction(() async {
+        final blocks = [...await forNight(key)]
+          ..removeWhere((item) => item.id == id);
+        if (blocks.isEmpty) {
+          await _settings.delete(storageKey(key));
+        } else {
+          await _settings.put(
+            storageKey(key),
+            jsonEncode(blocks.map((item) => item.toJson()).toList()),
+          );
+        }
+      });
 }
 
 final nightPlansRepositoryProvider = Provider<NightPlansRepository>(
