@@ -28,11 +28,14 @@ final class SevenNightWeatherOptions {
 
 enum NightCloudTrend { improving, stable, worsening, unknown }
 
-final class NightWeatherSummary {
-  const NightWeatherSummary({
+enum ClearSkyView { nightOnly, fullDay }
+
+final class ClearSkySummary {
+  const ClearSkySummary({
     required this.localDate,
-    required this.darkness,
-    required this.remainingDarkness,
+    required this.view,
+    required this.periodDuration,
+    required this.expectedCoverage,
     required this.forecastCoverage,
     required this.clearDuration,
     required this.longestClearInterval,
@@ -40,12 +43,13 @@ final class NightWeatherSummary {
     required this.trend,
   });
 
-  /// The local civil date on which this observing night starts at noon.
+  /// The local calendar date or the date on which the observing night starts.
   final DateTime localDate;
-  final Duration darkness;
+  final ClearSkyView view;
+  final Duration periodDuration;
 
-  /// Future astronomical darkness, excluding already elapsed portions.
-  final Duration remainingDarkness;
+  /// Remaining darkness in night view, or the entire civil day in day view.
+  final Duration expectedCoverage;
   final Duration forecastCoverage;
 
   /// Sum of fully observed, contiguous qualifying clear-sky intervals.
@@ -54,11 +58,10 @@ final class NightWeatherSummary {
   final double? averageCloudPercent;
   final NightCloudTrend trend;
 
-  bool get hasDarkness => darkness > Duration.zero;
+  bool get hasPeriod => periodDuration > Duration.zero;
   bool get hasForecast => forecastCoverage > Duration.zero;
   bool get isComplete =>
-      remainingDarkness > Duration.zero &&
-      forecastCoverage >= remainingDarkness;
+      expectedCoverage > Duration.zero && forecastCoverage >= expectedCoverage;
   bool qualifies(SevenNightWeatherOptions options) =>
       clearDuration >= options.minimumClearDuration;
 }
@@ -71,6 +74,12 @@ abstract final class SevenNightWeatherAggregator {
   static List<SolarDayEvents> upcomingNights({
     required ObservingLocation location,
     required DateTime nowUtc,
+  }) => upcomingPeriods(location: location, nowUtc: nowUtc).nights;
+
+  static ({List<SolarDayEvents> nights, List<SolarDayEvents> days})
+  upcomingPeriods({
+    required ObservingLocation location,
+    required DateTime nowUtc,
   }) {
     location.validate();
     if (!nowUtc.isUtc) {
@@ -78,7 +87,18 @@ abstract final class SevenNightWeatherAggregator {
     }
     final zone = SolarEvents.timeZone(location.timeZone);
     final local = tz.TZDateTime.from(nowUtc, zone);
-    var firstDay = local.day;
+    final days = List.generate(7, (index) {
+      final date = tz.TZDateTime(
+        zone,
+        local.year,
+        local.month,
+        local.day + index,
+      );
+      return SolarEvents.calculateForLocalDate(
+        location: location,
+        localDate: DateTime.utc(date.year, date.month, date.day),
+      );
+    });
     if (local.hour < 12) {
       final previousDate = DateTime.utc(local.year, local.month, local.day - 1);
       final previousNight = SolarEvents.calculateForLocalDate(
@@ -90,52 +110,42 @@ abstract final class SevenNightWeatherAggregator {
             interval.endUtc.isAfter(nowUtc) &&
             !interval.startUtc.isAfter(nowUtc),
       )) {
-        firstDay -= 1;
+        return (nights: [previousNight, ...days.take(6)], days: days);
       }
     }
-    final firstDate = tz.TZDateTime(zone, local.year, local.month, firstDay);
-    return List.generate(7, (index) {
-      final date = tz.TZDateTime(
-        zone,
-        firstDate.year,
-        firstDate.month,
-        firstDate.day + index,
-      );
-      return SolarEvents.calculateForLocalDate(
-        location: location,
-        localDate: DateTime.utc(date.year, date.month, date.day),
-      );
-    });
+    return (nights: days, days: days);
   }
 
-  static List<NightWeatherSummary> calculate({
-    required List<SolarDayEvents> nights,
+  static List<ClearSkySummary> calculate({
+    required List<SolarDayEvents> periods,
     required WeatherForecast forecast,
     required DateTime nowUtc,
     required SevenNightWeatherOptions options,
+    ClearSkyView view = ClearSkyView.nightOnly,
   }) {
     options.validate();
     if (!nowUtc.isUtc) {
       throw ArgumentError.value(nowUtc, 'nowUtc');
     }
-    if (nights.length > 7) {
-      throw ArgumentError('Maximum seven nights.');
+    if (periods.length > 7) {
+      throw ArgumentError('Maximum seven forecast periods.');
     }
     forecast.validate();
     return [
-      for (final night in nights)
-        _summarize(night, forecast.hours, nowUtc, options),
+      for (final period in periods)
+        _summarize(period, forecast.hours, nowUtc, options, view),
     ];
   }
 
-  static NightWeatherSummary _summarize(
-    SolarDayEvents night,
+  static ClearSkySummary _summarize(
+    SolarDayEvents day,
     List<HourlyWeatherForecast> hours,
     DateTime nowUtc,
     SevenNightWeatherOptions options,
+    ClearSkyView view,
   ) {
-    var darknessUs = 0;
-    var remainingUs = 0;
+    var periodUs = 0;
+    var expectedUs = 0;
     var coveredUs = 0;
     var clearUs = 0;
     var longestUs = 0;
@@ -153,15 +163,24 @@ abstract final class SevenNightWeatherAggregator {
       runEnd = null;
     }
 
+    final intervals = switch (view) {
+      ClearSkyView.nightOnly => [
+        for (final interval in day.astronomicalDarkness)
+          (start: interval.startUtc, end: interval.endUtc),
+      ],
+      ClearSkyView.fullDay => [(start: day.dayStartUtc, end: day.dayEndUtc)],
+    };
     // Forecasts are sorted, distinct UTC hours by WeatherForecast.validate().
-    for (final interval in night.astronomicalDarkness) {
-      darknessUs += interval.duration.inMicroseconds;
-      final start = _later(interval.startUtc, nowUtc);
-      final end = interval.endUtc;
+    for (final interval in intervals) {
+      final end = interval.end;
+      periodUs += end.difference(interval.start).inMicroseconds;
+      final start = view == ClearSkyView.nightOnly
+          ? _later(interval.start, nowUtc)
+          : interval.start;
       if (!end.isAfter(start)) {
         continue;
       }
-      remainingUs += end.difference(start).inMicroseconds;
+      expectedUs += end.difference(start).inMicroseconds;
       flush();
       for (final hour in hours) {
         final hourStart = hour.timeUtc;
@@ -189,7 +208,7 @@ abstract final class SevenNightWeatherAggregator {
         weightedCloud += cloud * duration;
         segments.add(_CloudSegment(intersectStart, intersectEnd, cloud));
         if (cloud <= options.maximumCloudPercent) {
-          if (runEnd != null && runEnd != intersectStart) {
+          if (runEnd?.isAtSameMomentAs(intersectStart) == false) {
             flush();
           }
           currentRunUs += duration;
@@ -201,10 +220,11 @@ abstract final class SevenNightWeatherAggregator {
     }
     flush();
 
-    return NightWeatherSummary(
-      localDate: night.localDate,
-      darkness: Duration(microseconds: darknessUs),
-      remainingDarkness: Duration(microseconds: remainingUs),
+    return ClearSkySummary(
+      localDate: day.localDate,
+      view: view,
+      periodDuration: Duration(microseconds: periodUs),
+      expectedCoverage: Duration(microseconds: expectedUs),
       forecastCoverage: Duration(microseconds: coveredUs),
       clearDuration: Duration(microseconds: clearUs),
       longestClearInterval: Duration(microseconds: longestUs),

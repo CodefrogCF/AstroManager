@@ -9,10 +9,25 @@ import '../../../../core/astronomy/solar_events.dart';
 import '../../../../l10n/app_text.dart';
 import '../../../locations/domain/models/observing_location.dart';
 import '../../../weather/application/weather_providers.dart';
+import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/domain/providers/weather_provider.dart';
 import '../../domain/dashboard_layout.dart';
 import '../../domain/seven_night_weather.dart';
 import 'dashboard_widget_state.dart';
+
+final _cachedForecastFallbackProvider = FutureProvider.autoDispose
+    .family<WeatherForecastSnapshot?, WeatherForecastRequest>(
+      (ref, request) =>
+          ref.watch(weatherForecastServiceProvider).cachedFallback(request),
+      retry: (count, error) => null,
+    );
+
+extension on ClearSkyView {
+  String get label => switch (this) {
+    ClearSkyView.nightOnly => 'Night only',
+    ClearSkyView.fullDay => 'Full day',
+  };
+}
 
 /// Loads forecast data only while the widget is mounted and visible.
 /// Its request reuses the existing weather service, cache and deduplication.
@@ -48,53 +63,130 @@ class SevenNightWeatherWidget extends StatelessWidget {
       minimumClearDuration: Duration(hours: minHours),
     );
     final now = DateTime.now().toUtc();
-    final nights = SevenNightWeatherAggregator.upcomingNights(
+    final periods = SevenNightWeatherAggregator.upcomingPeriods(
       location: site,
       nowUtc: now,
     );
-    final start = DateTime.utc(now.year, now.month, now.day, now.hour);
+    DateTime hourStart(DateTime value) =>
+        DateTime.utc(value.year, value.month, value.day, value.hour);
+    final nightEnd = periods.nights.last.nightEndUtc;
+    final dayEnd = periods.days.last.dayEndUtc;
     final request = WeatherForecastRequest(
       latitudeDegrees: site.latitude,
       longitudeDegrees: site.longitude,
-      startUtc: start,
-      endUtc: nights.last.nightEndUtc,
+      startUtc: hourStart(periods.days.first.dayStartUtc),
+      endUtc: nightEnd.isAfter(dayEnd) ? nightEnd : dayEnd,
     );
-    // Keep the displayed request window stable as its refresh state changes.
-    return Consumer(
-      builder: (context, ref, _) =>
-          _buildForecast(context, ref, request, nights, options),
+    return _ClearSkyForecast(
+      request: request,
+      previousRequest: WeatherForecastRequest(
+        latitudeDegrees: site.latitude,
+        longitudeDegrees: site.longitude,
+        startUtc: hourStart(now),
+        endUtc: nightEnd,
+      ),
+      periods: periods,
+      options: options,
     );
   }
 
-  Widget _buildForecast(
-    BuildContext context,
-    WidgetRef ref,
-    WeatherForecastRequest request,
-    List<SolarDayEvents> nights,
-    SevenNightWeatherOptions options,
-  ) {
-    final provider = weatherForecastSnapshotProvider(request);
+  static Widget _empty(BuildContext context, Object data) =>
+      const SizedBox.shrink();
+}
+
+class _ClearSkyForecast extends ConsumerStatefulWidget {
+  const _ClearSkyForecast({
+    required this.request,
+    required this.previousRequest,
+    required this.periods,
+    required this.options,
+  });
+
+  final WeatherForecastRequest request;
+  final WeatherForecastRequest previousRequest;
+  final ({List<SolarDayEvents> nights, List<SolarDayEvents> days}) periods;
+  final SevenNightWeatherOptions options;
+
+  @override
+  ConsumerState<_ClearSkyForecast> createState() => _ClearSkyForecastState();
+}
+
+class _ClearSkyForecastState extends ConsumerState<_ClearSkyForecast> {
+  ClearSkyView _view = ClearSkyView.nightOnly;
+
+  Widget _viewSelector(BuildContext context) => PopupMenuButton<ClearSkyView>(
+    key: const ValueKey('clear-sky-view'),
+    tooltip: appTranslate(context, 'Clear-sky view'),
+    initialValue: _view,
+    onSelected: (view) => setState(() => _view = view),
+    itemBuilder: (context) => [
+      for (final view in ClearSkyView.values)
+        CheckedPopupMenuItem(
+          value: view,
+          checked: view == _view,
+          child: AppText(view.label),
+        ),
+    ],
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: AppText(
+              _view.label,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
+          const Icon(Icons.arrow_drop_down, size: 18),
+        ],
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = weatherForecastSnapshotProvider(widget.request);
     final forecast = ref.watch(provider);
+    final cached =
+        !forecast.hasValue &&
+            forecast.hasError &&
+            widget.previousRequest != widget.request
+        ? ref.watch(_cachedForecastFallbackProvider(widget.previousRequest))
+        : null;
+    final fallback = cached?.value;
+    final displayed = fallback != null
+        ? AsyncData(fallback)
+        : cached?.isLoading == true
+        ? const AsyncLoading<WeatherForecastSnapshot>()
+        : forecast;
     final policy = ref.watch(weatherCachePolicyProvider);
+    final options = widget.options;
     final refreshLabel = appTranslate(context, 'Refresh forecast');
     Future<void> refresh() => ref.read(provider.notifier).refreshForecast();
-    return forecast.when(
-      skipLoadingOnReload: forecast.hasValue,
-      skipLoadingOnRefresh: forecast.hasValue,
+    return displayed.when(
+      skipLoadingOnReload: displayed.hasValue,
+      skipLoadingOnRefresh: displayed.hasValue,
       skipError: true,
       loading: () => const DashboardWidgetStateView<Object>(
         state: DashboardLoadState.loading(),
-        dataBuilder: _empty,
+        dataBuilder: SevenNightWeatherWidget._empty,
       ),
       error: (error, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const AppText('Weather forecast unavailable. Check your connection.'),
           const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: forecast.isLoading ? null : refresh,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: Text(refreshLabel),
+          Wrap(
+            spacing: 8,
+            children: [
+              _viewSelector(context),
+              TextButton.icon(
+                onPressed: forecast.isLoading ? null : refresh,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: Text(refreshLabel),
+              ),
+            ],
           ),
         ],
       ),
@@ -104,10 +196,13 @@ class SevenNightWeatherWidget extends StatelessWidget {
         final refreshFailed =
             forecast.hasError || snapshot.refreshError != null;
         final summaries = SevenNightWeatherAggregator.calculate(
-          nights: nights,
+          periods: _view == ClearSkyView.nightOnly
+              ? widget.periods.nights
+              : widget.periods.days,
           forecast: snapshot.forecast,
           nowUtc: now,
           options: options,
+          view: _view,
         );
         final stale = snapshot.isStaleAt(now, policy);
         final age = now.difference(snapshot.forecast.fetchedAtUtc);
@@ -131,46 +226,41 @@ class SevenNightWeatherWidget extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Wrap(
+                        spacing: 7,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Wrap(
-                            spacing: 7,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Icon(
-                                stale
-                                    ? Icons.cloud_off_outlined
-                                    : Icons.cloud_outlined,
-                                size: 15,
-                                color: stale
-                                    ? Theme.of(context).colorScheme.error
-                                    : Theme.of(context).colorScheme.primary,
-                              ),
-                              AppText(
-                                snapshot.forecast.provider.name,
-                                style: labelStyle,
-                              ),
-                              Text('· $ageLabel', style: labelStyle),
-                              if (stale) const AppText('Stale forecast'),
-                              if (snapshot.isOfflineFallback)
-                                const AppText('Offline cache'),
-                              if (updating)
-                                Semantics(
-                                  liveRegion: true,
-                                  child: const AppText('Updating'),
-                                ),
-                            ],
+                          Icon(
+                            stale
+                                ? Icons.cloud_off_outlined
+                                : Icons.cloud_outlined,
+                            size: 15,
+                            color: stale
+                                ? Theme.of(context).colorScheme.error
+                                : Theme.of(context).colorScheme.primary,
                           ),
-                          Text(
-                            '${appTranslate(context, 'Cloud limit')}: ${options.maximumCloudPercent}% · '
-                            '${appTranslate(context, 'Minimum clear')}: ${options.minimumClearDuration.inHours}h',
+                          AppText(
+                            snapshot.forecast.provider.name,
                             style: labelStyle,
                           ),
+                          Text('· $ageLabel', style: labelStyle),
+                          if (stale) const AppText('Stale forecast'),
+                          if (snapshot.isOfflineFallback)
+                            const AppText('Offline cache'),
+                          if (updating)
+                            Semantics(
+                              liveRegion: true,
+                              child: const AppText('Updating'),
+                            ),
                         ],
                       ),
+                    ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: constraints.maxWidth * 0.4,
+                      ),
+                      child: _viewSelector(context),
                     ),
                     IconButton(
                       tooltip: refreshLabel,
@@ -195,11 +285,15 @@ class SevenNightWeatherWidget extends StatelessWidget {
                     primary: false,
                     itemCount: summaries.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 7),
-                    itemBuilder: (context, index) => _NightTile(
+                    itemBuilder: (context, index) => _ClearSkyTile(
                       summary: summaries[index],
                       options: options,
                       expanded: wide,
-                      onTap: () => _showNightDetails(context, summaries[index]),
+                      onTap: () => _showForecastDetails(
+                        context,
+                        summaries[index],
+                        options,
+                      ),
                     ),
                   ),
                 ),
@@ -223,20 +317,17 @@ class SevenNightWeatherWidget extends StatelessWidget {
       },
     );
   }
-
-  static Widget _empty(BuildContext context, Object data) =>
-      const SizedBox.shrink();
 }
 
-class _NightTile extends StatelessWidget {
-  const _NightTile({
+class _ClearSkyTile extends StatelessWidget {
+  const _ClearSkyTile({
     required this.summary,
     required this.options,
     required this.expanded,
     required this.onTap,
   });
 
-  final NightWeatherSummary summary;
+  final ClearSkySummary summary;
   final SevenNightWeatherOptions options;
   final bool expanded;
   final VoidCallback onTap;
@@ -254,14 +345,14 @@ class _NightTile extends StatelessWidget {
     final date = MaterialLocalizations.of(context)
         .formatShortDate(summary.localDate);
     final cloud = summary.averageCloudPercent;
-    final coverage = summary.remainingDarkness.inMinutes > 0
+    final coverage = summary.expectedCoverage > Duration.zero
         ? (100 *
-                  summary.forecastCoverage.inMinutes /
-                  summary.remainingDarkness.inMinutes)
+                  summary.forecastCoverage.inMicroseconds /
+                  summary.expectedCoverage.inMicroseconds)
               .clamp(0, 100)
               .round()
         : 0;
-    final title = !summary.hasDarkness
+    final title = !summary.hasPeriod
         ? appTranslate(context, 'No astronomical darkness')
         : !hasData
         ? appTranslate(context, 'No forecast coverage')
@@ -308,7 +399,9 @@ class _NightTile extends StatelessWidget {
                       !hasData
                           ? Icons.help_outline
                           : clear
-                          ? Icons.nights_stay_outlined
+                          ? summary.view == ClearSkyView.nightOnly
+                                ? Icons.nights_stay_outlined
+                                : Icons.wb_sunny_outlined
                           : Icons.cloud_outlined,
                       size: 18,
                       color: color,
@@ -372,9 +465,14 @@ String _duration(Duration value) {
   return '${hours}h ${minutes}m';
 }
 
-void _showNightDetails(BuildContext context, NightWeatherSummary night) {
+void _showForecastDetails(
+  BuildContext context,
+  ClearSkySummary summary,
+  SevenNightWeatherOptions options,
+) {
   final date = MaterialLocalizations.of(context)
-      .formatMediumDate(night.localDate);
+      .formatMediumDate(summary.localDate);
+  final nightOnly = summary.view == ClearSkyView.nightOnly;
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -388,29 +486,38 @@ void _showNightDetails(BuildContext context, NightWeatherSummary night) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(date, style: Theme.of(sheetContext).textTheme.titleLarge),
+              AppText(summary.view.label),
               const SizedBox(height: 12),
               Text(
-                '${appTranslate(sheetContext, 'Astronomical darkness')}: ${_duration(night.darkness)}',
+                '${appTranslate(sheetContext, nightOnly ? 'Astronomical darkness' : 'Local calendar day')}: '
+                '${_duration(summary.periodDuration)}',
               ),
               Text(
-                '${appTranslate(sheetContext, 'Forecast coverage')}: ${_duration(night.forecastCoverage)}'
-                ' / ${_duration(night.remainingDarkness)} ${appTranslate(sheetContext, 'remaining')}',
+                '${appTranslate(sheetContext, 'Forecast coverage')}: ${_duration(summary.forecastCoverage)}'
+                ' / ${_duration(summary.expectedCoverage)}'
+                '${nightOnly ? ' ${appTranslate(sheetContext, 'remaining')}' : ''}',
               ),
               Text(
-                '${appTranslate(sheetContext, 'Qualifying clear hours')}: ${_duration(night.clearDuration)}',
+                '${appTranslate(sheetContext, 'Qualifying clear hours')}: ${_duration(summary.clearDuration)}',
               ),
               Text(
-                '${appTranslate(sheetContext, 'Longest clear period')}: ${_duration(night.longestClearInterval)}',
+                '${appTranslate(sheetContext, 'Longest clear period')}: ${_duration(summary.longestClearInterval)}',
+              ),
+              Text(
+                '${appTranslate(sheetContext, 'Cloud limit')}: ${options.maximumCloudPercent}% · '
+                '${appTranslate(sheetContext, 'Minimum clear')}: ${_duration(options.minimumClearDuration)}',
+                style: Theme.of(sheetContext).textTheme.bodySmall,
               ),
               Text(
                 '${appTranslate(sheetContext, 'Average cloud cover')}: '
-                '${night.averageCloudPercent == null ? '—' : '${night.averageCloudPercent!.round()}%'}',
+                '${summary.averageCloudPercent == null ? '—' : '${summary.averageCloudPercent!.round()}%'}',
               ),
               Text(
                 '${appTranslate(sheetContext, 'Cloud trend')}: '
-                '${appTranslate(sheetContext, night.trend.name)}',
+                '${appTranslate(sheetContext, summary.trend.name)}',
               ),
-              if (!night.isComplete)
+              if (summary.expectedCoverage > Duration.zero &&
+                  !summary.isComplete)
                 const AppText(
                   'Forecast incomplete: uncovered hours are unknown, not clear.',
                 ),

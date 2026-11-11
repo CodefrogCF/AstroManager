@@ -3200,6 +3200,30 @@ abstract class AppLocalizations {
   /// **'Refresh forecast'**
   String get dashboardWeatherRefresh;
 
+  /// No description provided for @dashboardWeatherClearSkyView.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear-sky view'**
+  String get dashboardWeatherClearSkyView;
+
+  /// No description provided for @dashboardWeatherNightOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Night only'**
+  String get dashboardWeatherNightOnly;
+
+  /// No description provided for @dashboardWeatherFullDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Full day'**
+  String get dashboardWeatherFullDay;
+
+  /// No description provided for @dashboardWeatherLocalDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Local calendar day'**
+  String get dashboardWeatherLocalDay;
+
   /// No description provided for @dashboardWeatherTimeZoneSelect.
   ///
   /// In en, this message translates to:

@@ -122,6 +122,12 @@ forecast for the selected observing location. The widget shows when the request
 is in progress and keeps the previous forecast and its age visible if the
 request fails.
 
+The clear-sky view defaults to **Night only**, which counts qualifying forecast
+hours during the remaining astronomical darkness. Choose **Full day** to count
+hours from local midnight to the following midnight at the observing site,
+including daylight. The choice applies to both the total clear hours and the
+longest clear period. Tap a date tile for the breakdown and forecast coverage.
+
 Layout, visible widgets, sizes, per-widget settings and observing location are
 all stored locally as versioned JSON in `app_settings` and included in
 `.ambackup` exports. Hidden widgets are not built and do not request data.

@@ -35,11 +35,7 @@ final class WeatherForecastService {
     bool staleWhileRevalidate = false,
   }) async {
     request.validate();
-    final key = WeatherCacheKey(
-      providerId: provider.metadata.id,
-      model: provider.metadata.model,
-      request: request,
-    );
+    final key = _cacheKey(request);
     final stored = await _readSafe(key);
     final now = _clock().toUtc();
     final fresh = stored != null && policy.isFresh(stored, now);
@@ -98,6 +94,29 @@ final class WeatherForecastService {
       throw weatherError;
     }
   }
+
+  /// Reads a previously requested window for use when a wider request fails.
+  Future<WeatherForecastSnapshot?> cachedFallback(
+    WeatherForecastRequest request,
+  ) async {
+    request.validate();
+    final stored = await _readSafe(_cacheKey(request));
+    final now = _clock().toUtc();
+    if (stored == null || !policy.mayFallback(stored, now)) return null;
+    return _snapshot(
+      stored,
+      policy.isFresh(stored, now)
+          ? WeatherForecastOrigin.freshCache
+          : WeatherForecastOrigin.staleFallback,
+      now,
+    );
+  }
+
+  WeatherCacheKey _cacheKey(WeatherForecastRequest request) => WeatherCacheKey(
+    providerId: provider.metadata.id,
+    model: provider.metadata.model,
+    request: request,
+  );
 
   Future<WeatherForecast?> _readSafe(WeatherCacheKey key) async {
     try {

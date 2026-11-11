@@ -1646,6 +1646,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardWeatherRefresh => 'Refresh forecast';
 
   @override
+  String get dashboardWeatherClearSkyView => 'Clear-sky view';
+
+  @override
+  String get dashboardWeatherNightOnly => 'Night only';
+
+  @override
+  String get dashboardWeatherFullDay => 'Full day';
+
+  @override
+  String get dashboardWeatherLocalDay => 'Local calendar day';
+
+  @override
   String get dashboardWeatherTimeZoneSelect =>
       'Select a time zone from the list.';
 

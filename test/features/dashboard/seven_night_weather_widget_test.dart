@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:astromanager/features/dashboard/domain/dashboard_layout.dart';
+import 'package:astromanager/features/dashboard/domain/seven_night_weather.dart';
 import 'package:astromanager/features/dashboard/presentation/widgets/seven_night_weather_widget.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/weather/application/weather_providers.dart';
@@ -9,6 +10,7 @@ import 'package:astromanager/features/weather/domain/models/weather_error.dart';
 import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
 import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
+import 'package:astromanager/features/weather/domain/repositories/weather_cache_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,6 +79,118 @@ Future<void> _pumpControlledForecast(
 }
 
 void main() {
+  testWidgets(
+    'the view switches the tile and details using the same forecast',
+    (tester) async {
+      final provider = ControlledWeatherProvider(
+        (request) async => _mockForecast(request, DateTime.now().toUtc(), 10),
+      );
+      await _pumpControlledForecast(tester, provider, MemoryWeatherCache());
+      final request = provider.requests.single;
+      final periods = SevenNightWeatherAggregator.upcomingPeriods(
+        location: _site,
+        nowUtc: request.startUtc.add(const Duration(hours: 12)),
+      );
+      final firstDay = periods.days.first;
+      expect(request.startUtc.isAtSameMomentAs(firstDay.dayStartUtc), isTrue);
+      final dayHours = '${firstDay.civilDayLength.inHours}h';
+
+      final selector = find.byKey(const ValueKey('clear-sky-view'));
+      Finder selected(String label) =>
+          find.descendant(of: selector, matching: find.text(label));
+      final firstTile = find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is InkWell &&
+                widget.key.toString().contains('dashboard-night-'),
+          )
+          .first;
+
+      expect(selected('Night only'), findsOneWidget);
+      await tester.tap(firstTile);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Astronomical darkness:'), findsOneWidget);
+      expect(find.text('Longest clear period: $dayHours'), findsNothing);
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(selector);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Full day'));
+      await tester.pumpAndSettle();
+      expect(selected('Full day'), findsOneWidget);
+      expect(
+        find.descendant(of: firstTile, matching: find.text('$dayHours clear')),
+        findsOneWidget,
+      );
+
+      await tester.tap(firstTile);
+      await tester.pumpAndSettle();
+      expect(find.text('Local calendar day: $dayHours'), findsOneWidget);
+      expect(find.text('Qualifying clear hours: $dayHours'), findsOneWidget);
+      expect(find.text('Longest clear period: $dayHours'), findsOneWidget);
+      expect(
+        find.text('Forecast coverage: $dayHours / $dayHours'),
+        findsOneWidget,
+      );
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(selector);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Night only'));
+      await tester.pumpAndSettle();
+      expect(selected('Night only'), findsOneWidget);
+      expect(
+        find.descendant(of: firstTile, matching: find.text('$dayHours clear')),
+        findsNothing,
+      );
+      expect(provider.calls, 1);
+    },
+  );
+
+  testWidgets(
+    'a failed wider request still shows an existing cached night forecast',
+    (tester) async {
+      final now = DateTime.now().toUtc();
+      final nights = SevenNightWeatherAggregator.upcomingNights(
+        location: _site,
+        nowUtc: now,
+      );
+      final legacyRequest = WeatherForecastRequest(
+        latitudeDegrees: _site.latitude,
+        longitudeDegrees: _site.longitude,
+        startUtc: DateTime.utc(now.year, now.month, now.day, now.hour),
+        endUtc: nights.last.nightEndUtc,
+      );
+      final provider = ControlledWeatherProvider(
+        (_) async => throw const WeatherException(
+          type: WeatherErrorType.invalidResponse,
+          message: 'Forecast unavailable',
+        ),
+      );
+      final cache = MemoryWeatherCache();
+      await cache.write(
+        WeatherCacheKey(
+          providerId: provider.metadata.id,
+          request: legacyRequest,
+        ),
+        _mockForecast(
+          legacyRequest,
+          now.subtract(const Duration(hours: 2)),
+          10,
+        ),
+      );
+
+      await _pumpControlledForecast(tester, provider, cache);
+
+      expect(provider.requests.single, isNot(legacyRequest));
+      expect(find.text('Night only'), findsOneWidget);
+      expect(find.text('Offline cache'), findsOneWidget);
+      expect(find.text('Cloud cover: 10%'), findsWidgets);
+    },
+  );
+
   testWidgets('manual refresh bypasses a fresh cache and updates in place', (
     tester,
   ) async {

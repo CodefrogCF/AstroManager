@@ -1662,6 +1662,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboardWeatherRefresh => 'Prognose aktualisieren';
 
   @override
+  String get dashboardWeatherClearSkyView => 'Zeitraum für Klarphasen';
+
+  @override
+  String get dashboardWeatherNightOnly => 'Nur nachts';
+
+  @override
+  String get dashboardWeatherFullDay => 'Ganzer Tag';
+
+  @override
+  String get dashboardWeatherLocalDay => 'Lokaler Kalendertag';
+
+  @override
   String get dashboardWeatherTimeZoneSelect =>
       'Bitte eine Zeitzone aus der Liste auswählen.';
 
