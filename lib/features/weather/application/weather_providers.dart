@@ -42,10 +42,45 @@ Duration? weatherForecastRetry(int retryCount, Object error) {
 
 /// UI-facing result with provenance, staleness and optional refresh error.
 final weatherForecastSnapshotProvider =
-    FutureProvider.family<WeatherForecastSnapshot, WeatherForecastRequest>(
-      (ref, request) => ref.watch(weatherForecastServiceProvider).load(request),
-      retry: weatherForecastRetry,
-    );
+    AsyncNotifierProvider.family<
+      WeatherForecastSnapshotController,
+      WeatherForecastSnapshot,
+      WeatherForecastRequest
+    >(WeatherForecastSnapshotController.new, retry: weatherForecastRetry);
+
+final class WeatherForecastSnapshotController
+    extends AsyncNotifier<WeatherForecastSnapshot> {
+  WeatherForecastSnapshotController(this.request);
+
+  final WeatherForecastRequest request;
+
+  @override
+  Future<WeatherForecastSnapshot> build() =>
+      ref.watch(weatherForecastServiceProvider).load(request);
+
+  Future<void> refreshForecast() async {
+    if (state.isLoading) return;
+    final refreshRef = ref;
+    final service = refreshRef.read(weatherForecastServiceProvider);
+    final previous = state.value;
+    state = const AsyncLoading();
+    final refreshed = await AsyncValue.guard(() async {
+      final result = await service.load(request, forceRefresh: true);
+      final error = result.refreshError;
+      // A successful download can still be newer than the persisted cache.
+      // Keep that in-memory forecast if the next refresh fails.
+      if (error != null &&
+          previous != null &&
+          previous.forecast.fetchedAtUtc.isAfter(
+            result.forecast.fetchedAtUtc,
+          )) {
+        throw error;
+      }
+      return result;
+    });
+    if (refreshRef.mounted) state = refreshed;
+  }
+}
 
 /// Backward-compatible forecast-only API. It now benefits from the cache.
 final weatherForecastProvider =

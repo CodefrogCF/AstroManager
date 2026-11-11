@@ -114,6 +114,11 @@ weather and astronomy services. Quick actions open their respective AstroManager
 screens. An optional **Observing Site** widget shows your selected location,
 cached terrain-horizon coverage, and cached night-light information.
 
+Select **Refresh forecast** in the **7-Night Forecast** widget to request a new
+forecast for the selected observing location. The widget shows when the request
+is in progress and keeps the previous forecast and its age visible if the
+request fails.
+
 Layout, visible widgets, sizes, per-widget settings and observing location are
 all stored locally as versioned JSON in `app_settings` and included in
 `.ambackup` exports. Hidden widgets are not built and do not request data.

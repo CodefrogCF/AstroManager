@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
+import '../../../../core/astronomy/solar_events.dart';
 import '../../../../l10n/app_text.dart';
 import '../../../locations/domain/models/observing_location.dart';
 import '../../../weather/application/weather_providers.dart';
@@ -15,7 +16,7 @@ import 'dashboard_widget_state.dart';
 
 /// Loads forecast data only while the widget is mounted and visible.
 /// Its request reuses the existing weather service, cache and deduplication.
-class SevenNightWeatherWidget extends ConsumerWidget {
+class SevenNightWeatherWidget extends StatelessWidget {
   const SevenNightWeatherWidget({
     required this.location,
     required this.instance,
@@ -26,7 +27,7 @@ class SevenNightWeatherWidget extends ConsumerWidget {
   final DashboardWidgetInstance instance;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final site = location;
     if (site == null) {
       return const DashboardWidgetStateView<Object>(
@@ -58,9 +59,29 @@ class SevenNightWeatherWidget extends ConsumerWidget {
       startUtc: start,
       endUtc: nights.last.nightEndUtc,
     );
-    final forecast = ref.watch(weatherForecastSnapshotProvider(request));
+    // Keep the displayed request window stable as its refresh state changes.
+    return Consumer(
+      builder: (context, ref, _) =>
+          _buildForecast(context, ref, request, nights, options),
+    );
+  }
+
+  Widget _buildForecast(
+    BuildContext context,
+    WidgetRef ref,
+    WeatherForecastRequest request,
+    List<SolarDayEvents> nights,
+    SevenNightWeatherOptions options,
+  ) {
+    final provider = weatherForecastSnapshotProvider(request);
+    final forecast = ref.watch(provider);
     final policy = ref.watch(weatherCachePolicyProvider);
+    final refreshLabel = appTranslate(context, 'Refresh forecast');
+    Future<void> refresh() => ref.read(provider.notifier).refreshForecast();
     return forecast.when(
+      skipLoadingOnReload: forecast.hasValue,
+      skipLoadingOnRefresh: forecast.hasValue,
+      skipError: true,
       loading: () => const DashboardWidgetStateView<Object>(
         state: DashboardLoadState.loading(),
         dataBuilder: _empty,
@@ -71,14 +92,17 @@ class SevenNightWeatherWidget extends ConsumerWidget {
           const AppText('Weather forecast unavailable. Check your connection.'),
           const SizedBox(height: 8),
           TextButton.icon(
-            onPressed: () =>
-                ref.invalidate(weatherForecastSnapshotProvider(request)),
+            onPressed: forecast.isLoading ? null : refresh,
             icon: const Icon(Icons.refresh, size: 18),
-            label: const AppText('Retry'),
+            label: Text(refreshLabel),
           ),
         ],
       ),
       data: (snapshot) {
+        final now = DateTime.now().toUtc();
+        final updating = forecast.isLoading || snapshot.refreshInProgress;
+        final refreshFailed =
+            forecast.hasError || snapshot.refreshError != null;
         final summaries = SevenNightWeatherAggregator.calculate(
           nights: nights,
           forecast: snapshot.forecast,
@@ -90,6 +114,7 @@ class SevenNightWeatherWidget extends ConsumerWidget {
         final hours = math.max(0, age.inHours);
         final minutes = math.max(0, age.inMinutes);
         final ageLabel = hours > 0 ? '${hours}h' : '${minutes}m';
+        final labelStyle = Theme.of(context).textTheme.labelSmall;
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 480;
@@ -103,35 +128,64 @@ class SevenNightWeatherWidget extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                Row(
                   children: [
-                    Icon(
-                      stale ? Icons.cloud_off_outlined : Icons.cloud_outlined,
-                      size: 15,
-                      color: stale
-                          ? Theme.of(context).colorScheme.error
-                          : Theme.of(context).colorScheme.primary,
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 7,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Icon(
+                                stale
+                                    ? Icons.cloud_off_outlined
+                                    : Icons.cloud_outlined,
+                                size: 15,
+                                color: stale
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(context).colorScheme.primary,
+                              ),
+                              AppText(
+                                snapshot.forecast.provider.name,
+                                style: labelStyle,
+                              ),
+                              Text('· $ageLabel', style: labelStyle),
+                              if (stale) const AppText('Stale forecast'),
+                              if (snapshot.isOfflineFallback)
+                                const AppText('Offline cache'),
+                              if (updating)
+                                Semantics(
+                                  liveRegion: true,
+                                  child: const AppText('Updating'),
+                                ),
+                            ],
+                          ),
+                          Text(
+                            '${appTranslate(context, 'Cloud limit')}: ${options.maximumCloudPercent}% · '
+                            '${appTranslate(context, 'Minimum clear')}: ${options.minimumClearDuration.inHours}h',
+                            style: labelStyle,
+                          ),
+                        ],
+                      ),
                     ),
-                    AppText(
-                      snapshot.forecast.provider.name,
-                      style: Theme.of(context).textTheme.labelSmall,
+                    IconButton(
+                      tooltip: refreshLabel,
+                      onPressed: updating ? null : refresh,
+                      icon: const Icon(Icons.refresh),
                     ),
-                    Text(
-                      '· $ageLabel',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                    if (stale) const AppText('Stale forecast'),
-                    if (snapshot.isOfflineFallback)
-                      const AppText('Offline cache'),
-                    if (snapshot.refreshInProgress) const AppText('Updating'),
                   ],
                 ),
-                if (snapshot.refreshError != null &&
-                    !snapshot.isOfflineFallback)
-                  const AppText('Forecast refresh failed; cached data shown.'),
+                if (!updating && refreshFailed)
+                  Semantics(
+                    liveRegion: true,
+                    child: const AppText(
+                      'Could not refresh. Showing the last forecast.',
+                    ),
+                  ),
                 const SizedBox(height: 7),
                 SizedBox(
                   height: (wide ? 128.0 : 120.0) * math.max(1, textScale),
@@ -149,23 +203,11 @@ class SevenNightWeatherWidget extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 5),
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 4,
-                  children: [
-                    Text(
-                      '${appTranslate(context, 'Cloud limit')}: $maxCloud% · '
-                      '${appTranslate(context, 'Minimum clear')}: ${minHours}h',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                    if (snapshot.forecast.provider.attribution != null)
-                      AppText(
-                        snapshot.forecast.provider.attribution!,
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                  ],
-                ),
+                if (snapshot.forecast.provider.attribution
+                    case final attribution?) ...[
+                  const SizedBox(height: 5),
+                  AppText(attribution, style: labelStyle),
+                ],
               ],
             );
             if (!constraints.hasBoundedHeight) {

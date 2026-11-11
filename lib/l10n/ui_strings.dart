@@ -119,6 +119,8 @@ const Map<String, String> appGermanUiStrings = {
   'Continue without account': 'Ohne Konto fortfahren',
   'Continuous astronomical darkness throughout this observing night.':
       'Durchgehend astronomische Dunkelheit während dieser Beobachtungsnacht.',
+  'Could not refresh. Showing the last forecast.':
+      'Aktualisierung fehlgeschlagen. Die letzte Prognose wird angezeigt.',
   'Could not save dashboard changes.':
       'Dashboard-Änderungen konnten nicht gespeichert werden.',
   'Could not save dashboard changes:':
@@ -217,7 +219,6 @@ const Map<String, String> appGermanUiStrings = {
   'Forecast coverage': 'Prognoseabdeckung',
   'Forecast incomplete: uncovered hours are unknown, not clear.':
       'Unvollständige Prognose: Fehlende Stunden sind unbekannt, nicht klar.',
-  'Forecast refresh failed; cached data shown.': 'Aktualisierung fehlgeschlagen; zwischengespeicherte Daten werden angezeigt.',
   'Frame': 'Bildausschnitt',
   'Frame at atlas center': 'Am Atlaszentrum ausrichten',
   'Frame count': 'Anzahl Frames',
@@ -491,6 +492,7 @@ const Map<String, String> appGermanUiStrings = {
   'Recommended objects for the current observing night':
       'Empfohlene Objekte für die aktuelle Beobachtungsnacht',
   'Refresh cached site data': 'Standortdaten aus Cache neu einlesen',
+  'Refresh forecast': 'Prognose aktualisieren',
   'Refresh projects': 'Projekte aktualisieren',
   'Refresh satellite data': 'Satellitendaten aktualisieren',
   'Refresh terrain profile': 'Geländeprofil aktualisieren',

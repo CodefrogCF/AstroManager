@@ -1583,7 +1583,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboardWeather14 =>
-      'Aktualisierung fehlgeschlagen; zwischengespeicherte Daten werden angezeigt.';
+      'Aktualisierung fehlgeschlagen. Die letzte Prognose wird angezeigt.';
 
   @override
   String get dashboardWeather15 => 'Astronomische Dunkelheit';
@@ -1624,6 +1624,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboardWeather27 => 'Nachtplaner öffnen';
+
+  @override
+  String get dashboardWeatherRefresh => 'Prognose aktualisieren';
 
   @override
   String get dashboardWeatherTimeZoneSelect =>

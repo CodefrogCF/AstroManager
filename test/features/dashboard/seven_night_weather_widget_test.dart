@@ -1,13 +1,19 @@
+import 'dart:async';
+
 import 'package:astromanager/features/dashboard/domain/dashboard_layout.dart';
 import 'package:astromanager/features/dashboard/presentation/widgets/seven_night_weather_widget.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/weather/application/weather_providers.dart';
 import 'package:astromanager/features/weather/domain/models/weather_cache.dart';
+import 'package:astromanager/features/weather/domain/models/weather_error.dart';
 import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
 import 'package:astromanager/features/weather/domain/models/weather_value.dart';
+import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/weather_fakes.dart';
 
 const _site = ObservingLocation(
   id: 'ch',
@@ -25,7 +31,184 @@ const _instance = DashboardWidgetInstance(
   settings: {'maxCloudPercent': '30', 'minClearHours': '2'},
 );
 
+const _offline = WeatherException(
+  type: WeatherErrorType.network,
+  message: 'Offline',
+);
+
+WeatherForecast _mockForecast(
+  WeatherForecastRequest request,
+  DateTime fetchedAt,
+  double cloudCover,
+) => WeatherForecast(
+  provider: const WeatherProviderMetadata(id: 'mock', name: 'Mock'),
+  latitudeDegrees: request.latitudeDegrees,
+  longitudeDegrees: request.longitudeDegrees,
+  issuedAtUtc: fetchedAt,
+  fetchedAtUtc: fetchedAt,
+  hours: List.generate(
+    request.endUtc.difference(request.startUtc).inHours,
+    (index) => HourlyWeatherForecast(
+      timeUtc: request.startUtc.add(Duration(hours: index)),
+      totalCloudCoverPercent: WeatherValue.available(cloudCover),
+    ),
+  ),
+);
+
+Future<void> _pumpControlledForecast(
+  WidgetTester tester,
+  ControlledWeatherProvider provider,
+  MemoryWeatherCache cache, {
+  Widget forecast = const SevenNightWeatherWidget(
+    location: _site,
+    instance: _instance,
+  ),
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        weatherProviderProvider.overrideWithValue(provider),
+        weatherCacheRepositoryProvider.overrideWithValue(cache),
+      ],
+      child: MaterialApp(home: Scaffold(body: forecast)),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
+  testWidgets('manual refresh bypasses a fresh cache and updates in place', (
+    tester,
+  ) async {
+    final originalTime = DateTime.now().toUtc().subtract(
+      const Duration(minutes: 37),
+    );
+    final provider = ControlledWeatherProvider(
+      (request) async => _mockForecast(request, originalTime, 75),
+    );
+    final cache = MemoryWeatherCache();
+    await _pumpControlledForecast(tester, provider, cache);
+    final original = cache.values.entries.single;
+    expect(
+      const WeatherCachePolicy().isFresh(original.value, DateTime.now()),
+      isTrue,
+    );
+    expect(find.text('· 37m'), findsOneWidget);
+    expect(find.text('Cloud cover: 75%'), findsWidgets);
+
+    final refresh = find.byTooltip('Refresh forecast');
+    final pending = Completer<WeatherForecast>();
+    provider.respond = (_) => pending.future;
+    await tester.tap(refresh);
+    await tester.tap(refresh);
+    await tester.pump();
+
+    expect(provider.calls, 2);
+    final request = provider.requests.last;
+    expect(request, original.key.request);
+    expect(request.latitudeDegrees, _site.latitude);
+    expect(request.longitudeDegrees, _site.longitude);
+    expect(find.text('Updating'), findsOneWidget);
+    expect(find.text('· 37m'), findsOneWidget);
+    expect(find.text('Cloud cover: 75%'), findsWidgets);
+
+    pending.complete(_mockForecast(request, DateTime.now().toUtc(), 20));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Updating'), findsNothing);
+    expect(find.text('· 0m'), findsOneWidget);
+    expect(find.text('Cloud cover: 20%'), findsWidgets);
+    expect(find.text('Cloud cover: 75%'), findsNothing);
+
+    // A failed cache write can leave an older copy on disk.
+    cache.values[original.key] = original.value;
+    provider.respond = (_) async => throw _offline;
+    await tester.tap(refresh);
+    await tester.pumpAndSettle();
+    expect(provider.calls, 3);
+    expect(
+      find.text('Could not refresh. Showing the last forecast.'),
+      findsOneWidget,
+    );
+    expect(find.text('· 0m'), findsOneWidget);
+    expect(find.text('Cloud cover: 20%'), findsWidgets);
+  });
+
+  testWidgets('failed refresh keeps the cached forecast and its original age', (
+    tester,
+  ) async {
+    final originalTime = DateTime.now().toUtc().subtract(
+      const Duration(hours: 3),
+    );
+    final provider = ControlledWeatherProvider(
+      (request) async => _mockForecast(request, originalTime, 75),
+    );
+    final cache = MemoryWeatherCache();
+    await _pumpControlledForecast(tester, provider, cache);
+
+    provider.respond = (_) async => throw _offline;
+    await tester.tap(find.byTooltip('Refresh forecast'));
+    await tester.pumpAndSettle();
+
+    expect(provider.calls, 2);
+    expect(cache.values.values.single.fetchedAtUtc, originalTime);
+    expect(
+      find.text('Could not refresh. Showing the last forecast.'),
+      findsOneWidget,
+    );
+    expect(find.text('Offline cache'), findsOneWidget);
+    expect(find.text('· 3h'), findsOneWidget);
+    expect(find.text('Cloud cover: 75%'), findsWidgets);
+  });
+
+  testWidgets('switching sites during a refresh keeps the new site visible', (
+    tester,
+  ) async {
+    const otherSite = ObservingLocation(
+      id: 'other',
+      name: 'Other Observatory',
+      latitude: 48,
+      longitude: 9,
+      elevationMeters: 300,
+      timeZone: 'Europe/Zurich',
+      isDefault: false,
+    );
+    final site = ValueNotifier(_site);
+    addTearDown(site.dispose);
+    final provider = ControlledWeatherProvider(
+      (request) async => _mockForecast(request, DateTime.now().toUtc(), 75),
+    );
+    await _pumpControlledForecast(
+      tester,
+      provider,
+      MemoryWeatherCache(),
+      forecast: ValueListenableBuilder(
+        valueListenable: site,
+        builder: (_, selected, _) =>
+            SevenNightWeatherWidget(location: selected, instance: _instance),
+      ),
+    );
+
+    final pending = Completer<WeatherForecast>();
+    provider.respond = (request) => request.latitudeDegrees == _site.latitude
+        ? pending.future
+        : Future.value(_mockForecast(request, DateTime.now().toUtc(), 30));
+    await tester.tap(find.byTooltip('Refresh forecast'));
+    await tester.pump();
+    final oldRequest = provider.requests.last;
+    expect(find.text('Updating'), findsOneWidget);
+
+    site.value = otherSite;
+    await tester.pumpAndSettle();
+    expect(provider.requests.last.latitudeDegrees, otherSite.latitude);
+    expect(find.text('Cloud cover: 30%'), findsWidgets);
+
+    pending.complete(_mockForecast(oldRequest, DateTime.now().toUtc(), 20));
+    await tester.pumpAndSettle();
+    expect(find.text('Cloud cover: 30%'), findsWidgets);
+    expect(find.text('Cloud cover: 20%'), findsNothing);
+  });
+
   testWidgets('no observing site displays an offline-safe empty state', (
     tester,
   ) async {
@@ -47,7 +230,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            weatherForecastSnapshotProvider.overrideWith((ref, request) async {
+            weatherForecastSnapshotProvider.overrideWithBuild((
+              ref,
+              notifier,
+            ) async {
+              final request = notifier.request;
               final now = DateTime.now().toUtc();
               final forecast = WeatherForecast(
                 provider: const WeatherProviderMetadata(
@@ -118,7 +305,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          weatherForecastSnapshotProvider.overrideWith((ref, request) async {
+          weatherForecastSnapshotProvider.overrideWithBuild((
+            ref,
+            notifier,
+          ) async {
+            final request = notifier.request;
             final now = DateTime.now().toUtc();
             return WeatherForecastSnapshot(
               forecast: WeatherForecast(

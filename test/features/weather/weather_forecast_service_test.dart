@@ -10,41 +10,8 @@ import 'package:astromanager/features/weather/domain/models/weather_error.dart';
 import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
 import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
-import 'package:astromanager/features/weather/domain/repositories/weather_cache_repository.dart';
 
-final class MemoryWeatherCache implements WeatherCacheRepository {
-  final Map<WeatherCacheKey, WeatherForecast> values = {};
-  @override
-  Future<WeatherForecast?> read(WeatherCacheKey key) async => values[key];
-  @override
-  Future<void> write(WeatherCacheKey key, WeatherForecast forecast) async {
-    values[key] = forecast;
-  }
-
-  @override
-  Future<void> remove(WeatherCacheKey key) async {
-    values.remove(key);
-  }
-
-  @override
-  Future<void> clear() async {
-    values.clear();
-  }
-}
-
-final class ControlledProvider implements WeatherProvider {
-  ControlledProvider(this.respond);
-  Future<WeatherForecast> Function(WeatherForecastRequest) respond;
-  int calls = 0;
-  @override
-  WeatherProviderMetadata get metadata =>
-      const WeatherProviderMetadata(id: 'mock', name: 'Mock');
-  @override
-  Future<WeatherForecast> fetchForecast(WeatherForecastRequest request) {
-    calls++;
-    return respond(request);
-  }
-}
+import '../../support/weather_fakes.dart';
 
 final request = WeatherForecastRequest(
   latitudeDegrees: 47.48,
@@ -130,7 +97,7 @@ void main() {
   group('Weather forecast service', () {
     test('first call downloads, second uses fresh cache', () async {
       final now = DateTime.utc(2026, 11, 1, 18);
-      final provider = ControlledProvider((_) async => sample(now));
+      final provider = ControlledWeatherProvider((_) async => sample(now));
       final service = WeatherForecastService(
         provider: provider,
         cache: MemoryWeatherCache(),
@@ -148,7 +115,7 @@ void main() {
       'refresh failure preserves stale data and original timestamps',
       () async {
         var now = DateTime.utc(2026, 11, 1, 18);
-        final provider = ControlledProvider((_) async => sample(now));
+        final provider = ControlledWeatherProvider((_) async => sample(now));
         final cache = MemoryWeatherCache();
         final service = WeatherForecastService(
           provider: provider,
@@ -170,7 +137,7 @@ void main() {
     );
 
     test('no cached forecast propagates typed network failure', () async {
-      final provider = ControlledProvider((_) async => throw offline);
+      final provider = ControlledWeatherProvider((_) async => throw offline);
       final service = WeatherForecastService(
         provider: provider,
         cache: MemoryWeatherCache(),
@@ -190,7 +157,7 @@ void main() {
     test('concurrent requests share exactly one HTTP fetch', () async {
       final pending = Completer<WeatherForecast>();
       final now = DateTime.utc(2026, 11, 1, 18);
-      final provider = ControlledProvider((_) => pending.future);
+      final provider = ControlledWeatherProvider((_) => pending.future);
       final service = WeatherForecastService(
         provider: provider,
         cache: MemoryWeatherCache(),
@@ -211,7 +178,7 @@ void main() {
       () async {
         var now = DateTime.utc(2026, 11, 1, 18);
         final pending = Completer<WeatherForecast>();
-        final provider = ControlledProvider((_) async => sample(now));
+        final provider = ControlledWeatherProvider((_) async => sample(now));
         final service = WeatherForecastService(
           provider: provider,
           cache: MemoryWeatherCache(),
@@ -234,7 +201,7 @@ void main() {
 
     test('Riverpod exposes full provenance and keeps legacy API', () async {
       final now = DateTime.utc(2026, 11, 1, 18);
-      final mock = ControlledProvider((_) async => sample(now));
+      final mock = ControlledWeatherProvider((_) async => sample(now));
       final cache = MemoryWeatherCache();
       final container = ProviderContainer.test(
         overrides: [

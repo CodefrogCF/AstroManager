@@ -73,7 +73,11 @@ Future<void> _pumpDashboard(
             ),
         ),
         observingLocationsProvider.overrideWithBuild((ref, notifier) => _sites),
-        weatherForecastSnapshotProvider.overrideWith((ref, request) async {
+        weatherForecastSnapshotProvider.overrideWithBuild((
+          ref,
+          notifier,
+        ) async {
+          final request = notifier.request;
           final now = DateTime.now().toUtc();
           return WeatherForecastSnapshot(
             forecast: WeatherForecast(

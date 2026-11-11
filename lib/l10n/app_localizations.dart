@@ -3047,7 +3047,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardWeather14.
   ///
   /// In en, this message translates to:
-  /// **'Forecast refresh failed; cached data shown.'**
+  /// **'Could not refresh. Showing the last forecast.'**
   String get dashboardWeather14;
 
   /// No description provided for @dashboardWeather15.
@@ -3127,6 +3127,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Night Planner'**
   String get dashboardWeather27;
+
+  /// No description provided for @dashboardWeatherRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh forecast'**
+  String get dashboardWeatherRefresh;
 
   /// No description provided for @dashboardWeatherTimeZoneSelect.
   ///

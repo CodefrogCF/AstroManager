@@ -1567,7 +1567,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardWeather14 =>
-      'Forecast refresh failed; cached data shown.';
+      'Could not refresh. Showing the last forecast.';
 
   @override
   String get dashboardWeather15 => 'Astronomical darkness';
@@ -1608,6 +1608,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardWeather27 => 'Open Night Planner';
+
+  @override
+  String get dashboardWeatherRefresh => 'Refresh forecast';
 
   @override
   String get dashboardWeatherTimeZoneSelect =>
