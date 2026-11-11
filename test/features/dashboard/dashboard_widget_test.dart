@@ -10,6 +10,10 @@ import 'package:astromanager/features/locations/application/observing_locations_
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/settings/application/app_preferences_controller.dart';
 import 'package:astromanager/features/settings/domain/models/app_preferences.dart';
+import 'package:astromanager/features/weather/application/weather_providers.dart';
+import 'package:astromanager/features/weather/domain/models/weather_cache.dart';
+import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
+import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,9 +45,10 @@ Future<void> _pumpDashboard(
   WidgetTester tester,
   MemoryDashboardLayoutRepository store, {
   DashboardWidgetRegistry? registry,
+  Size surface = const Size(900, 1200),
 }) async {
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(900, 1200);
+  tester.view.physicalSize = surface;
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
@@ -68,6 +73,32 @@ Future<void> _pumpDashboard(
             ),
         ),
         observingLocationsProvider.overrideWithBuild((ref, notifier) => _sites),
+        weatherForecastSnapshotProvider.overrideWith((ref, request) async {
+          final now = DateTime.now().toUtc();
+          return WeatherForecastSnapshot(
+            forecast: WeatherForecast(
+              provider: const WeatherProviderMetadata(
+                id: 'stub',
+                name: 'Test Weather',
+                attribution: 'Test forecast attribution',
+              ),
+              latitudeDegrees: request.latitudeDegrees,
+              longitudeDegrees: request.longitudeDegrees,
+              issuedAtUtc: now,
+              fetchedAtUtc: now,
+              hours: List.generate(
+                170,
+                (index) => HourlyWeatherForecast(
+                  timeUtc: request.startUtc.add(Duration(hours: index)),
+                  totalCloudCoverPercent: const WeatherValue.available(15),
+                ),
+              ),
+            ),
+            origin: WeatherForecastOrigin.network,
+            checkedAtUtc: now,
+            isStale: false,
+          );
+        }),
         if (registry != null)
           dashboardWidgetRegistryProvider.overrideWithValue(registry),
       ],
@@ -78,6 +109,66 @@ Future<void> _pumpDashboard(
 }
 
 void main() {
+  testWidgets(
+    'an intermediate height fits the forecast and survives reopening',
+    (tester) async {
+      final store = MemoryDashboardLayoutRepository();
+      const surface = Size(390, 900);
+      await _pumpDashboard(tester, store, surface: surface);
+      final weather = find.byKey(
+        const ValueKey('dashboard-widget-weather-default'),
+      );
+      final next = find.byKey(
+        const ValueKey('dashboard-widget-targets-default'),
+      );
+      final scrollable = find
+          .descendant(of: weather, matching: find.byType(Scrollable))
+          .first;
+      double overflow() =>
+          tester.state<ScrollableState>(scrollable).position.maxScrollExtent;
+      final originalHeight = tester.getSize(weather).height;
+      expect(overflow(), greaterThan(0));
+
+      final edit = find.byKey(const ValueKey('dashboard-edit-toggle'));
+      await tester.tap(edit);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('dashboard-size-weather-default')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('dashboard-widget-height')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1.5').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(edit);
+      await tester.pumpAndSettle();
+
+      final resizedHeight = tester.getSize(weather).height;
+      expect(
+        resizedHeight,
+        inExclusiveRange(originalHeight, 2 * originalHeight),
+      );
+      expect(overflow(), 0);
+      expect(tester.getTopLeft(next).dy - tester.getBottomLeft(weather).dy, 12);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _pumpDashboard(tester, store, surface: surface);
+      expect(tester.getSize(weather).height, resizedHeight);
+      expect(tester.getTopLeft(next).dy - tester.getBottomLeft(weather).dy, 12);
+
+      await tester.tap(
+        find.byKey(const ValueKey('dashboard-actions-weather-default')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Configure'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('dashboard-configure-save')));
+      await tester.pumpAndSettle();
+      expect(tester.getSize(weather).height, resizedHeight);
+    },
+  );
+
   test('registry validates unique types and compatible sizes', () {
     final defaultRegistry = DashboardWidgetRegistry([]);
     expect(defaultRegistry.entries, isEmpty);
@@ -262,15 +353,21 @@ void main() {
       expect(sizeButton.hitTestable(), findsOneWidget);
       await tester.tap(sizeButton.hitTestable());
       await tester.pumpAndSettle();
-      expect(find.text('1 × 2'), findsOneWidget);
-      await tester.tap(find.text('1 × 2'));
+      await tester.tap(find.byKey(const ValueKey('dashboard-widget-width')));
       await tester.pumpAndSettle();
-      expect(
-        store.layout.grids[DashboardViewport.tablet]!
-            .singleWhere((tile) => tile.widgetId == 'tonight-default')
-            .rows,
-        2,
+      await tester.tap(find.text('1.5').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('dashboard-widget-height')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('1.75').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      final resized = store.layout.grids[DashboardViewport.tablet]!.singleWhere(
+        (tile) => tile.widgetId == 'tonight-default',
       );
+      expect(resized.columns, 1.5);
+      expect(resized.rows, 1.75);
     },
   );
 

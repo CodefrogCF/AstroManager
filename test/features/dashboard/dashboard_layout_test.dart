@@ -151,7 +151,7 @@ void main() {
       await container.read(dashboardLayoutProvider.notifier).recoverDefaults();
       final recovered = await repository.load();
       expect(recovered.widgets.length, 4);
-      expect(recovered.toJson()['formatVersion'], 2);
+      expect(recovered.toJson()['formatVersion'], 3);
       expect(
         container.read(dashboardLayoutProvider).requireValue.widgets.length,
         4,

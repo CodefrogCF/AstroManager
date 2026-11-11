@@ -2885,7 +2885,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard047.
   ///
   /// In en, this message translates to:
-  /// **'Hold the grip to move a widget. Use arrows or Size for accessible editing.'**
+  /// **'Drag the grip or use the arrows to move a widget. Select Resize to adjust its size.'**
   String get dashboard047;
 
   /// No description provided for @dashboard048.
@@ -2915,7 +2915,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard052.
   ///
   /// In en, this message translates to:
-  /// **'Hold to drag widget'**
+  /// **'Drag widget'**
   String get dashboard052;
 
   /// No description provided for @dashboard053.
@@ -2947,6 +2947,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resize widget'**
   String get dashboard057;
+
+  /// No description provided for @dashboardResize.
+  ///
+  /// In en, this message translates to:
+  /// **'Resize'**
+  String get dashboardResize;
+
+  /// No description provided for @dashboardWidthColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Width (columns)'**
+  String get dashboardWidthColumns;
+
+  /// No description provided for @dashboardHeightRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (rows)'**
+  String get dashboardHeightRows;
 
   /// No description provided for @dashboardWeather01.
   ///

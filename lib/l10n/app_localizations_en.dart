@@ -1483,7 +1483,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard047 =>
-      'Hold the grip to move a widget. Use arrows or Size for accessible editing.';
+      'Drag the grip or use the arrows to move a widget. Select Resize to adjust its size.';
 
   @override
   String get dashboard048 => 'Reset this device layout?';
@@ -1499,7 +1499,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard051 => 'Edit widget';
 
   @override
-  String get dashboard052 => 'Hold to drag widget';
+  String get dashboard052 => 'Drag widget';
 
   @override
   String get dashboard053 => 'Move widget left';
@@ -1515,6 +1515,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard057 => 'Resize widget';
+
+  @override
+  String get dashboardResize => 'Resize';
+
+  @override
+  String get dashboardWidthColumns => 'Width (columns)';
+
+  @override
+  String get dashboardHeightRows => 'Height (rows)';
 
   @override
   String get dashboardWeather01 => 'Maximum cloud cover (%)';

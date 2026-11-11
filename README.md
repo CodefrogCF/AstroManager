@@ -2,7 +2,7 @@
 
 AstroManager is an offline-first astrophotography planning application built with Flutter. It combines a local celestial-object catalog, observing-site and equipment management, nighttime planning, imaging projects, observation logs, and an interactive sky atlas. Optional online data can refine recommendations with weather forecasts, terrain and satellite night-light information.
 
-**Current application version:** `0.6.0+6`.
+**Current application version:** `0.7.0+7`.
 
 ## What you can do
 

@@ -9,6 +9,7 @@ import '../application/dashboard_layout_controller.dart';
 import '../domain/dashboard_grid.dart';
 import '../domain/dashboard_grid_engine.dart';
 import '../domain/dashboard_layout.dart';
+import 'dashboard_size_fields.dart';
 
 /// A responsive, pixel-snapped dashboard. Dragging starts only from the grip;
 /// the cards and surrounding ListView keep their normal touch behavior.
@@ -43,9 +44,7 @@ class DashboardEditableGrid extends ConsumerStatefulWidget {
 
 class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
   final _gridKey = GlobalKey();
-  DashboardViewport _viewport = DashboardViewport.phone;
-  double _cellWidth = 300;
-  double _cellHeight = 200;
+  DashboardTile? _dropPreview;
   static const _gap = 12.0;
 
   Future<void> _save(Future<void> Function() action) async {
@@ -69,24 +68,15 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
     }
   }
 
-  void _acceptDrop(DragTargetDetails<String> details) {
-    final object = _gridKey.currentContext?.findRenderObject();
-    if (!widget.editing || object is! RenderBox || !object.hasSize) {
+  void _showDropPreview(DashboardTile? tile) {
+    if (_dropPreview?.widgetId == tile?.widgetId &&
+        _dropPreview?.column == tile?.column &&
+        _dropPreview?.row == tile?.row &&
+        _dropPreview?.columns == tile?.columns &&
+        _dropPreview?.rows == tile?.rows) {
       return;
     }
-    final local = object.globalToLocal(details.offset);
-    final column = (local.dx / (_cellWidth + _gap)).floor();
-    final row = (local.dy / (_cellHeight + _gap)).floor();
-    _save(
-      () => ref
-          .read(dashboardLayoutProvider.notifier)
-          .placeTile(
-            details.data,
-            _viewport,
-            column: column.clamp(0, _viewport.columns - 1).toInt(),
-            row: math.max(0, row),
-          ),
-    );
+    setState(() => _dropPreview = tile);
   }
 
   @override
@@ -103,28 +93,113 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
       );
       final cellHeight =
           (widget.editing ? 248.0 : 198.0) + (textScale - 1.0) * 116.0;
-      _viewport = viewport;
-      _cellWidth = cellWidth;
-      _cellHeight = cellHeight;
+      final columnStride = cellWidth + _gap;
+      final rowStride = cellHeight + _gap;
       final tiles = DashboardGridEngine.arrange(
         viewport: viewport,
         widgets: widget.widgets,
         saved: widget.layout.grids[viewport] ?? const [],
       );
-      final maxRow = tiles.fold<int>(
+      final maxRow = tiles.fold<num>(
         0,
         (maxBottom, tile) => math.max(maxBottom, tile.row + tile.rows),
       );
-      final height = maxRow * (cellHeight + _gap) - (maxRow > 0 ? _gap : 0);
+      final height =
+          (maxRow * rowStride -
+                  (maxRow > 0 ? _gap : 0) +
+                  (widget.editing ? rowStride * DashboardTile.rowStep : 0))
+              .toDouble();
       final byId = {
         for (final instance in widget.widgets) instance.id: instance,
       };
+
+      Rect bounds(DashboardTile tile) => Rect.fromLTWH(
+        (tile.column * columnStride).toDouble(),
+        (tile.row * rowStride).toDouble(),
+        (tile.columns * columnStride - _gap).toDouble(),
+        (tile.rows * rowStride - _gap).toDouble(),
+      );
+
+      ({DashboardTile tile, String? overWidgetId})? destination(
+        DragTargetDetails<String> details,
+      ) {
+        final box = _gridKey.currentContext?.findRenderObject();
+        final source = tiles
+            .where((tile) => tile.widgetId == details.data)
+            .firstOrNull;
+        if (!widget.editing ||
+            box is! RenderBox ||
+            !box.hasSize ||
+            source == null) {
+          return null;
+        }
+        final pointer = box.globalToLocal(details.offset);
+        final target = tiles
+            .where((tile) => bounds(tile).contains(pointer))
+            .firstOrNull;
+        if (viewport == DashboardViewport.phone && target != null) {
+          final reordered = DashboardGridEngine.reorderColumn(
+            tiles,
+            source.widgetId,
+            target.widgetId,
+          );
+          if (reordered != null) {
+            return (
+              tile: reordered.firstWhere(
+                (tile) => tile.widgetId == source.widgetId,
+              ),
+              overWidgetId: target.widgetId,
+            );
+          }
+        }
+        // Over a tile, use its origin. In empty space, snap the pointer to
+        // the nearest valid grid line within the dashboard.
+        final column =
+            target?.column ??
+            (pointer.dx / columnStride / DashboardTile.columnStep).round() *
+                DashboardTile.columnStep;
+        final row =
+            target?.row ??
+            (pointer.dy / rowStride / DashboardTile.rowStep).round() *
+                DashboardTile.rowStep;
+        return (
+          tile: source.copyWith(
+            column: column.clamp(0, columns - source.columns),
+            row: row.clamp(0, DashboardTile.lastRow),
+          ),
+          overWidgetId: null,
+        );
+      }
 
       return FocusTraversalGroup(
         child: DragTarget<String>(
           onWillAcceptWithDetails: (details) =>
               widget.editing && byId.containsKey(details.data),
-          onAcceptWithDetails: _acceptDrop,
+          onMove: (details) => _showDropPreview(destination(details)?.tile),
+          onLeave: (_) => _showDropPreview(null),
+          onAcceptWithDetails: (details) {
+            final drop = destination(details);
+            _showDropPreview(null);
+            if (drop == null) return;
+            final target = drop.tile;
+            final current = tiles.firstWhere(
+              (tile) => tile.widgetId == target.widgetId,
+            );
+            if (target.column == current.column && target.row == current.row) {
+              return;
+            }
+            _save(
+              () => ref
+                  .read(dashboardLayoutProvider.notifier)
+                  .placeTile(
+                    target.widgetId,
+                    viewport,
+                    column: target.column,
+                    row: target.row,
+                    overWidgetId: drop.overWidgetId,
+                  ),
+            );
+          },
           builder: (context, candidates, rejected) => SizedBox(
             key: _gridKey,
             height: height,
@@ -132,20 +207,28 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
               clipBehavior: Clip.none,
               children: [
                 for (final tile in tiles)
-                  Positioned(
-                    left: tile.column * (cellWidth + _gap),
-                    top: tile.row * (cellHeight + _gap),
-                    width: tile.columns * cellWidth + (tile.columns - 1) * _gap,
-                    height: tile.rows * cellHeight + (tile.rows - 1) * _gap,
+                  Positioned.fromRect(
+                    key: ValueKey(tile.widgetId),
+                    rect: bounds(tile),
                     child: Semantics(
                       container: true,
                       sortKey: OrdinalSortKey(
-                        (tile.row * columns + tile.column).toDouble(),
+                        tile.row / DashboardTile.rowStep * columns +
+                            tile.column,
                       ),
                       child: SizedBox(
                         key: ValueKey('dashboard-widget-${tile.widgetId}'),
                         child: Column(
                           children: [
+                            if (widget.editing)
+                              _TileEditBar(
+                                instance: byId[tile.widgetId]!,
+                                title: widget.titleFor(byId[tile.widgetId]!),
+                                viewport: viewport,
+                                tile: tile,
+                                sizes: widget.sizesFor(byId[tile.widgetId]!),
+                                save: _save,
+                              ),
                             Expanded(
                               child: widget.tileBuilder(
                                 context,
@@ -154,41 +237,29 @@ class _DashboardEditableGridState extends ConsumerState<DashboardEditableGrid> {
                                 tile,
                               ),
                             ),
-                            if (widget.editing)
-                              SizedBox(
-                                // Six 48px controls require two rows in narrow
-                                // phone tiles; preserve touch target dimensions.
-                                height:
-                                    tile.columns * cellWidth +
-                                            (tile.columns - 1) * _gap <
-                                        300
-                                    ? 104
-                                    : 52,
-                                child: _TileEditBar(
-                                  instance: byId[tile.widgetId]!,
-                                  title: widget.titleFor(byId[tile.widgetId]!),
-                                  viewport: viewport,
-                                  tile: tile,
-                                  sizes: widget.sizesFor(byId[tile.widgetId]!),
-                                  save: _save,
-                                ),
-                              ),
                           ],
                         ),
                       ),
                     ),
                   ),
-                if (widget.editing && candidates.isNotEmpty)
-                  IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
+                if (widget.editing &&
+                    candidates.isNotEmpty &&
+                    _dropPreview != null)
+                  Positioned.fromRect(
+                    rect: bounds(_dropPreview!),
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        key: const ValueKey('dashboard-drop-preview'),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary
+                              .withValues(alpha: 0.1),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: SizedBox.expand(),
                     ),
                   ),
               ],
@@ -217,13 +288,49 @@ class _TileEditBar extends ConsumerWidget {
   final List<DashboardWidgetSize> sizes;
   final Future<void> Function(Future<void> Function()) save;
 
+  Future<void> _resize(BuildContext context, WidgetRef ref) async {
+    final controller = ref.read(dashboardLayoutProvider.notifier);
+    final initial = DashboardWidgetSize(tile.columns, tile.rows);
+    var size = initial;
+    final selection = await showDialog<DashboardWidgetSize>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const AppText('Resize widget'),
+          content: SizedBox(
+            width: 320,
+            child: SingleChildScrollView(
+              child: DashboardSizeFields(
+                viewport: viewport,
+                sizes: sizes,
+                initialSize: initial,
+                size: size,
+                onChanged: (value) => setState(() => size = value),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const AppText('Cancel'),
+            ),
+            FilledButton(
+              onPressed: size == initial
+                  ? null
+                  : () => Navigator.pop(context, size),
+              child: const AppText('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (selection != null && context.mounted) {
+      await save(() => controller.resizeTile(instance.id, viewport, selection));
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controller = ref.read(dashboardLayoutProvider.notifier);
-    final permittedSizes = sizes
-        .where((size) => size.columns <= viewport.columns)
-        .toList();
-    final current = DashboardWidgetSize(tile.columns, tile.rows);
     return Semantics(
       container: true,
       label:
@@ -235,27 +342,43 @@ class _TileEditBar extends ConsumerWidget {
           spacing: 0,
           runSpacing: 0,
           children: [
-            LongPressDraggable<String>(
+            Draggable<String>(
               data: instance.id,
-              feedback: Material(
-                elevation: 4,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Text(title),
+              maxSimultaneousDrags: 1,
+              hitTestBehavior: HitTestBehavior.opaque,
+              dragAnchorStrategy: pointerDragAnchorStrategy,
+              feedback: Transform.translate(
+                offset: const Offset(12, 12),
+                child: Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: AppText(title),
+                  ),
                 ),
               ),
-              child: Semantics(
-                label: appTranslate(context, 'Hold to drag widget'),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.grab,
                 child: Tooltip(
-                  message: appTranslate(context, 'Hold to drag widget'),
+                  triggerMode: TooltipTriggerMode.manual,
+                  message: appTranslate(context, 'Drag widget'),
                   child: SizedBox(
                     key: ValueKey('dashboard-drag-${instance.id}'),
-                    width: 44,
-                    height: 44,
+                    width: 48,
+                    height: 48,
                     child: const Icon(Icons.drag_indicator),
                   ),
                 ),
+              ),
+            ),
+            Tooltip(
+              message: appTranslate(context, 'Resize widget'),
+              child: OutlinedButton.icon(
+                key: ValueKey('dashboard-size-${instance.id}'),
+                icon: const Icon(Icons.aspect_ratio_outlined),
+                label: const AppText('Resize'),
+                onPressed: () => _resize(context, ref),
               ),
             ),
             _move(
@@ -296,26 +419,6 @@ class _TileEditBar extends ConsumerWidget {
               1,
               0,
               enabled: tile.column + tile.columns < viewport.columns,
-            ),
-            PopupMenuButton<DashboardWidgetSize>(
-              key: ValueKey('dashboard-size-${instance.id}'),
-              tooltip: appTranslate(context, 'Resize widget'),
-              icon: const Icon(Icons.aspect_ratio_outlined),
-              onSelected: (value) => save(
-                () => controller.resizeTile(instance.id, viewport, value),
-              ),
-              itemBuilder: (context) => [
-                for (final size in permittedSizes)
-                  PopupMenuItem(
-                    value: size,
-                    child: Row(
-                      children: [
-                        if (size == current) const Icon(Icons.check, size: 16),
-                        Text('${size.columns} × ${size.rows}'),
-                      ],
-                    ),
-                  ),
-              ],
             ),
           ],
         ),

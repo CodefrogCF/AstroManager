@@ -123,24 +123,23 @@ missing or stale data rather than infer favorable observing conditions.
 
 ## Customizing the Dashboard
 
-Select **Edit layout** on the Dashboard to rearrange your widgets. On a
-phone, hold the dedicated grip to drag a widget vertically; on larger screens,
-you can also move it between columns. The dashboard snaps changes to a grid
-and automatically moves conflicting widgets to a free space. The move-arrow
-buttons provide a keyboard- and screen-reader-friendly alternative to dragging.
+Select **Edit layout** on the Dashboard to rearrange your widgets. Drag a widget
+by its grip and use the highlighted outline to see where it will land. On
+larger screens you can also move widgets between columns. The move arrows
+provide a keyboard- and screen-reader-friendly way to move widgets.
 
-Use **Size** on an individual widget to switch between its supported grid
-sizes. Widget size and position are saved separately for phones, tablets,
-and desktop-sized windows. **Done editing** returns to normal interaction;
-scrolling and widget buttons work normally when not editing.
+Select **Resize** above a widget to adjust its width in half-column steps and
+its height in quarter-row steps. A phone layout has one full-width column.
+Widgets below shift to make room or close gaps when you save the new size.
+Widget sizes and positions are saved separately for phones, tablets, and
+desktop-sized windows. Select **Done editing** to return to normal interaction.
 
 On compact phones, the edit controls wrap to a second row when needed.
 At increased system font sizes the dashboard reserves more vertical space,
 while the content inside each card can still scroll independently. On a
 keyboard, use **Tab** / **Shift+Tab** to select buttons, **Enter** or **Space**
-to activate **Move up/down/left/right**, and **Size** to change dimensions.
-The move controls are the supported alternative to long-press dragging for
-screen readers, switches and keyboard users. Changing orientation can select a
+to activate **Move up/down/left/right** and **Resize** to change dimensions.
+The move controls also work with switches. Changing orientation can select a
 different saved device-size layout; it does not overwrite the other layouts.
 
 **Manage widgets** adds or removes widget types and lets you hide unused
@@ -155,8 +154,8 @@ only when selected; other local data is unaffected. Create a `.ambackup`
 before resetting settings if you want to retain a copy of the stored data.
 
 Your layout is stored locally, included in `.ambackup` exports and restored
-along with other application preferences. Backups from the previous linear
-Dashboard format are still supported.
+along with other application preferences. Backups with linear or whole-cell
+Dashboard layouts are still supported.
 
 ## Observing Site conditions
 

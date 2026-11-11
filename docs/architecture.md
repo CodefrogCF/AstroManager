@@ -98,21 +98,21 @@ and is validated during restore. The first-run preset includes placeholders for
 forecast, target ranking and night conditions until their dedicated data
 widgets are implemented. Quick Actions is immediately operational.
 
-The current framework supports accessible menu-based ordering, visibility,
-creation, removal and metadata-driven configuration. Touch drag-and-drop and
-fully independent breakpoint layouts belong to the subsequent layout editor.
+The dashboard supports drag-and-drop, accessible move controls, visibility,
+creation, removal and metadata-driven configuration.
 
-### Responsive dashboard grid (format v2)
+### Responsive dashboard grid (format v3)
 
 The Dashboard persists widget identities, settings, and visibility in the
-existing `dashboard.layout.v1` settings key. Its **JSON `formatVersion: 2`** adds
-independent `grids` for `phone` (one column), `tablet` (two columns), and
-`desktop` (four columns). Every grid tile stores its widget ID, zero-based
-column/row, and cell spans. Format v1 layouts are accepted and lazily reflowed
-without destructive migration.
+existing `dashboard.layout.v1` settings key. The JSON stores independent
+`grids` for `phone` (one column), `tablet` (two columns), and `desktop` (four
+columns). Each tile stores its widget ID, zero-based column and row, and cell
+spans. Format v3 supports half columns and quarter rows. Format v2 whole-cell
+grids keep their coordinates, and format v1 linear layouts reflow when opened.
 
 `DashboardGridEngine` deterministically places the moved or resized tile first,
-then shifts intersecting tiles into free cells. All saved grid rectangles are
+then shifts intersecting tiles into free cells. Resizing also compacts visible
+tiles from the resized tile's row onward. All saved grid rectangles are
 validated for bounds, unique IDs, and non-overlap. Dashboard layouts remain
 part of the existing `.ambackup` export and import checks. No database schema
 migration or new runtime package is needed.

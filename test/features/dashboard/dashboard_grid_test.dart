@@ -25,22 +25,37 @@ final class _UnusedAttachments implements SessionAttachmentStore {
 }
 
 void main() {
-  test(
-    'layout v1 restores and upgrades to version 2 without losing settings',
-    () {
-      final old = DashboardLayout.defaults.toJson()
-        ..['formatVersion'] = 1
-        ..remove('grids');
-      final layout = DashboardLayout.fromJson(old);
-      expect(layout.widgets.length, 4);
-      expect(layout.grids, isEmpty);
-      expect(layout.toJson()['formatVersion'], 2);
-      final roundTrip = DashboardLayout.fromJson(
-        jsonDecode(jsonEncode(layout.toJson())),
-      );
-      expect(roundTrip.widgets.length, 4);
-    },
-  );
+  test('layout v1 restores and upgrades without losing settings', () {
+    final old = DashboardLayout.defaults.toJson()
+      ..['formatVersion'] = 1
+      ..remove('grids');
+    final layout = DashboardLayout.fromJson(old);
+    expect(layout.widgets.length, 4);
+    expect(layout.grids, isEmpty);
+    expect(layout.toJson()['formatVersion'], 3);
+    final roundTrip = DashboardLayout.fromJson(
+      jsonDecode(jsonEncode(layout.toJson())),
+    );
+    expect(roundTrip.widgets.length, 4);
+  });
+
+  test('version 2 keeps existing whole-cell placements', () {
+    final saved = DashboardLayout.defaults.copyWith(
+      grids: {
+        DashboardViewport.tablet: const [
+          DashboardTile(
+            widgetId: 'weather-default',
+            column: 1,
+            row: 3,
+            columns: 1,
+            rows: 2,
+          ),
+        ],
+      },
+    );
+    final legacy = saved.toJson()..['formatVersion'] = 2;
+    expect(DashboardLayout.fromJson(legacy).toJson(), saved.toJson());
+  });
 
   test(
     'three responsive classes have independent widths and all widgets fit',
@@ -66,6 +81,46 @@ void main() {
       }
     },
   );
+
+  test('resizing moves widgets below down and back up without gaps', () async {
+    final store = MemoryDashboardLayoutRepository(
+      DashboardLayout.defaults.copyWith(
+        widgets: [
+          ...DashboardLayout.defaults.widgets,
+          const DashboardWidgetInstance(
+            id: 'hidden',
+            typeId: 'tonight',
+            visible: false,
+          ),
+        ],
+      ),
+    );
+    final container = ProviderContainer.test(
+      overrides: [dashboardLayoutRepositoryProvider.overrideWithValue(store)],
+    );
+    await container.read(dashboardLayoutProvider.future);
+    final controller = container.read(dashboardLayoutProvider.notifier);
+    const viewport = DashboardViewport.phone;
+
+    for (final height in [2, 1.25]) {
+      await controller.resizeTile(
+        'weather-default',
+        viewport,
+        DashboardWidgetSize(1, height),
+      );
+      final reloaded = await store.load();
+      final visible = reloaded.grids[viewport]!.where(
+        (tile) => tile.widgetId != 'hidden',
+      );
+      expect(visible.map((tile) => tile.row), [
+        0,
+        height,
+        height + 1,
+        height + 2,
+      ]);
+      expect(visible.first.rows, height);
+    }
+  });
 
   test(
     'moving and resizing reflows collisions without disturbing other screens',
@@ -115,6 +170,37 @@ void main() {
       expect(after.widgets.length, 4);
     },
   );
+
+  test('narrowing a tile frees space for the next widget beside it', () async {
+    final store = MemoryDashboardLayoutRepository(
+      const DashboardLayout(
+        widgets: [
+          DashboardWidgetInstance(
+            id: 'wide',
+            typeId: 'forecast',
+            size: DashboardWidgetSize(2, 1),
+          ),
+          DashboardWidgetInstance(id: 'next', typeId: 'tonight'),
+        ],
+      ),
+    );
+    final container = ProviderContainer.test(
+      overrides: [dashboardLayoutRepositoryProvider.overrideWithValue(store)],
+    );
+    await container.read(dashboardLayoutProvider.future);
+    await container
+        .read(dashboardLayoutProvider.notifier)
+        .resizeTile(
+          'wide',
+          DashboardViewport.tablet,
+          const DashboardWidgetSize(1, 1),
+        );
+    final next = store.layout.grids[DashboardViewport.tablet]!.singleWhere(
+      (tile) => tile.widgetId == 'next',
+    );
+    expect(next.row, 0);
+    expect(next.column, 1);
+  });
 
   test('malformed placements and overlaps fail validation', () {
     const a = DashboardTile(
@@ -189,7 +275,7 @@ void main() {
     );
   });
 
-  test('version 2 layouts survive .ambackup export and restore', () async {
+  test('fractional layouts survive .ambackup export and restore', () async {
     final source = AppDatabase(NativeDatabase.memory());
     final target = AppDatabase(NativeDatabase.memory());
     addTearDown(source.close);
@@ -227,10 +313,10 @@ void main() {
         DashboardViewport.desktop: const [
           DashboardTile(
             widgetId: 'weather-default',
-            column: 2,
-            row: 3,
-            columns: 2,
-            rows: 2,
+            column: 2.5,
+            row: 3.25,
+            columns: 1.5,
+            rows: 1.75,
           ),
         ],
       },
@@ -256,7 +342,7 @@ void main() {
     expect(restored.widgets.last.visible, isFalse);
     expect(restored.widgets.last.settings['useCache'], isTrue);
     expect(restored.grids[DashboardViewport.tablet]!.single.columns, 2);
-    expect(restored.grids[DashboardViewport.desktop]!.single.row, 3);
+    expect(restored.grids[DashboardViewport.desktop]!.single.row, 3.25);
     expect(jsonEncode(restored.toJson()), jsonEncode(saved.toJson()));
   });
 }

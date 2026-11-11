@@ -8,6 +8,7 @@ import 'package:astromanager/features/dashboard/domain/dashboard_grid.dart';
 import 'package:astromanager/features/dashboard/domain/dashboard_layout.dart';
 import 'package:astromanager/features/dashboard/presentation/dashboard_editable_grid.dart';
 import 'package:astromanager/l10n/ui_strings.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,6 +68,97 @@ double _contrast(Color a, Color b) {
 }
 
 void main() {
+  for (final device in [PointerDeviceKind.touch, PointerDeviceKind.mouse]) {
+    testWidgets('${device.name} drop uses the highlighted tile position', (
+      tester,
+    ) async {
+      final phone = device == PointerDeviceKind.touch;
+      final viewport = phone
+          ? DashboardViewport.phone
+          : DashboardViewport.desktop;
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = Size(phone ? 390 : 1300, 900);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final store = MemoryDashboardLayoutRepository(
+        phone
+            ? _layout.copyWith(
+                widgets: [
+                  _layout.widgets.first,
+                  _layout.widgets.last.copyWith(
+                    size: const DashboardWidgetSize(1, 1.5),
+                  ),
+                ],
+              )
+            : _layout,
+      );
+
+      Future<void> openDashboard() async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              dashboardLayoutRepositoryProvider.overrideWithValue(store),
+            ],
+            child: const MaterialApp(home: _GridHarness()),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await openDashboard();
+      final grip = find.byKey(const ValueKey('dashboard-drag-first'));
+      final first = find.byKey(const ValueKey('dashboard-widget-first'));
+      final second = find.byKey(const ValueKey('dashboard-widget-second'));
+      final originalFirst = tester.getTopLeft(first);
+      final originalSecond = tester.getTopLeft(second);
+      final expectedDrop = phone
+          ? originalFirst + Offset(0, tester.getSize(second).height + 12)
+          : originalSecond;
+      final drag = await tester.startGesture(
+        tester.getCenter(grip),
+        kind: device,
+      );
+      await drag.moveBy(const Offset(0, 24));
+      await drag.moveTo(originalSecond + const Offset(20, 4));
+      await tester.pump();
+      final preview = find.byKey(const ValueKey('dashboard-drop-preview'));
+      expect(tester.getTopLeft(preview), expectedDrop);
+      await drag.up();
+      await tester.pumpAndSettle();
+
+      expect(preview, findsNothing);
+      expect(store.layout.grids[viewport], hasLength(2));
+      expect(tester.getTopLeft(first), expectedDrop);
+      expect(tester.getTopLeft(second), originalFirst);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await openDashboard();
+      expect(tester.getTopLeft(first), expectedDrop);
+      expect(tester.getTopLeft(second), originalFirst);
+
+      if (!phone) {
+        final columnWidth = originalSecond.dx - originalFirst.dx;
+        final emptySlot = originalFirst + Offset(columnWidth * 2.5, 0);
+        final drag = await tester.startGesture(
+          tester.getCenter(grip),
+          kind: device,
+        );
+        await drag.moveBy(const Offset(24, 0));
+        await drag.moveTo(emptySlot + const Offset(4, 4));
+        await tester.pump();
+        expect(tester.getTopLeft(preview), emptySlot);
+        await drag.up();
+        await tester.pumpAndSettle();
+        expect(tester.getTopLeft(first), emptySlot);
+        expect(
+          store.layout.grids[viewport]!
+              .singleWhere((tile) => tile.widgetId == 'first')
+              .column,
+          2.5,
+        );
+      }
+    });
+  }
+
   test(
     'Codefrog and astronomy night palettes meet text and boundary contrast',
     () {
@@ -116,12 +208,15 @@ void main() {
       'Edit layout',
       'Done editing',
       'Manage widgets',
-      'Hold to drag widget',
+      'Drag widget',
       'Move widget up',
       'Move widget down',
       'Move widget left',
       'Move widget right',
       'Resize widget',
+      'Resize',
+      'Width (columns)',
+      'Height (rows)',
       'Reset layout',
       'Widget options',
       'Could not save dashboard changes.',
@@ -149,7 +244,7 @@ void main() {
     expect(migrated.widgets.single.typeId, 'future-extension');
     expect(migrated.widgets.single.settings['note'], 'preserve');
     expect(migrated.widgets.single.visible, isFalse);
-    expect(migrated.toJson()['formatVersion'], 2);
+    expect(migrated.toJson()['formatVersion'], 3);
   });
 
   testWidgets('edit handles are usable at 200% text in portrait and landscape', (
@@ -184,7 +279,11 @@ void main() {
     await tester.ensureVisible(resize);
     await tester.tap(resize);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1 × 2').last);
+    await tester.tap(find.byKey(const ValueKey('dashboard-widget-height')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(
       store.layout.grids[DashboardViewport.phone]!

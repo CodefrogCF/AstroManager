@@ -168,10 +168,12 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
     DashboardLayout layout,
     String id,
     DashboardViewport viewport, {
-    required int column,
-    required int row,
-    int? columns,
-    int? rows,
+    required num column,
+    required num row,
+    num? columns,
+    num? rows,
+    bool swapOnCollision = false,
+    String? overWidgetId,
   }) {
     if (!layout.widgets.any((widget) => widget.id == id)) {
       throw StateError('Unknown dashboard widget.');
@@ -182,23 +184,79 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
       saved: layout.grids[viewport] ?? const [],
     );
     final current = existing.firstWhere((tile) => tile.widgetId == id);
-    final spanColumns = (columns ?? current.columns)
-        .clamp(1, viewport.columns)
-        .toInt();
-    final spanRows = (rows ?? current.rows).clamp(1, 4).toInt();
+    final hiddenIds = {
+      for (final widget in layout.widgets)
+        if (!widget.visible) widget.id,
+    };
+    if (viewport == DashboardViewport.phone && overWidgetId != null) {
+      final visible = existing
+          .where((tile) => !hiddenIds.contains(tile.widgetId))
+          .toList();
+      final reordered = DashboardGridEngine.reorderColumn(
+        visible,
+        id,
+        overWidgetId,
+      );
+      if (reordered != null) {
+        final normalized = DashboardGridEngine.arrange(
+          viewport: viewport,
+          widgets: layout.widgets,
+          saved: [
+            ...reordered,
+            for (final tile in existing)
+              if (hiddenIds.contains(tile.widgetId)) tile,
+          ],
+        );
+        return layout.copyWith(grids: {...layout.grids, viewport: normalized});
+      }
+    }
+    final spanColumns = (columns ?? current.columns).clamp(1, viewport.columns);
+    final spanRows = (rows ?? current.rows).clamp(1, DashboardTile.maxRows);
     final updatedTile = current.copyWith(
-      column: column.clamp(0, viewport.columns - spanColumns).toInt(),
-      row: row.clamp(0, 128).toInt(),
+      column: column.clamp(0, viewport.columns - spanColumns),
+      row: row.clamp(0, DashboardTile.lastRow),
       columns: spanColumns,
       rows: spanRows,
     );
+    DashboardTile? swapped;
+    if (swapOnCollision) {
+      final others = existing.where(
+        (tile) => tile.widgetId != id && !hiddenIds.contains(tile.widgetId),
+      );
+      final collisions = others.where(updatedTile.intersects).toList();
+      if (collisions.length == 1) {
+        final other = collisions.single;
+        final replacement = other.copyWith(
+          column: current.column,
+          row: current.row,
+        );
+        if (replacement.column + replacement.columns <= viewport.columns &&
+            !replacement.intersects(updatedTile) &&
+            !others.any(
+              (tile) =>
+                  tile.widgetId != other.widgetId &&
+                  replacement.intersects(tile),
+            )) {
+          swapped = replacement;
+        }
+      }
+    }
     final normalized = DashboardGridEngine.arrange(
       viewport: viewport,
       widgets: layout.widgets,
       saved: [
-        for (final tile in existing) tile.widgetId == id ? updatedTile : tile,
+        for (final tile in existing)
+          if (tile.widgetId == id)
+            updatedTile
+          else if (tile.widgetId == swapped?.widgetId)
+            swapped!
+          else
+            tile,
       ],
       priorityWidgetId: id,
+      compactFromRow: spanColumns != current.columns || spanRows != current.rows
+          ? current.row
+          : null,
     );
     return layout.copyWith(grids: {...layout.grids, viewport: normalized});
   }
@@ -206,10 +264,11 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
   Future<void> placeTile(
     String id,
     DashboardViewport viewport, {
-    required int column,
-    required int row,
-    int? columns,
-    int? rows,
+    required num column,
+    required num row,
+    num? columns,
+    num? rows,
+    String? overWidgetId,
   }) => _update(
     (layout) => _relocate(
       layout,
@@ -219,6 +278,8 @@ class DashboardLayoutController extends AsyncNotifier<DashboardLayout> {
       row: row,
       columns: columns,
       rows: rows,
+      swapOnCollision: true,
+      overWidgetId: overWidgetId,
     ),
   );
 

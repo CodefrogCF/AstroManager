@@ -1499,7 +1499,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboard047 =>
-      'Zum Verschieben am Griff halten. Alternativ Pfeiltasten oder Größe verwenden.';
+      'Verschiebe ein Widget am Griff oder mit den Pfeilen. Unter „Größe ändern“ passt du die Abmessungen an.';
 
   @override
   String get dashboard048 => 'Layout dieses Geräts zurücksetzen?';
@@ -1515,7 +1515,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard051 => 'Widget bearbeiten';
 
   @override
-  String get dashboard052 => 'Halten und Widget ziehen';
+  String get dashboard052 => 'Widget ziehen';
 
   @override
   String get dashboard053 => 'Widget nach links';
@@ -1531,6 +1531,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboard057 => 'Widgetgröße ändern';
+
+  @override
+  String get dashboardResize => 'Größe ändern';
+
+  @override
+  String get dashboardWidthColumns => 'Breite (Spalten)';
+
+  @override
+  String get dashboardHeightRows => 'Höhe (Zeilen)';
 
   @override
   String get dashboardWeather01 => 'Maximale Bewölkung (%)';

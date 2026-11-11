@@ -2,16 +2,20 @@ import 'dashboard_grid.dart';
 
 /// Persisted, UI-independent dashboard layout data.
 ///
-/// Format v2 adds independent device grids while retaining the v1 widget
-/// registry abstraction: unknown widget types remain in saved settings.
+/// Sizes are measured in grid columns and rows.
 final class DashboardWidgetSize {
   const DashboardWidgetSize(this.columns, this.rows);
 
-  final int columns;
-  final int rows;
+  final num columns;
+  final num rows;
 
   void validate() {
-    if (columns < 1 || columns > 4 || rows < 1 || rows > 4) {
+    if (columns < 1 ||
+        columns > DashboardViewport.desktop.columns ||
+        rows < 1 ||
+        rows > DashboardTile.maxRows ||
+        columns.remainder(DashboardTile.columnStep) != 0 ||
+        rows.remainder(DashboardTile.rowStep) != 0) {
       throw const FormatException('Invalid dashboard widget dimensions.');
     }
   }
@@ -19,12 +23,12 @@ final class DashboardWidgetSize {
   Map<String, Object> toJson() => {'columns': columns, 'rows': rows};
 
   factory DashboardWidgetSize.fromJson(Object? input) {
-    if (input is! Map || input['columns'] is! int || input['rows'] is! int) {
+    if (input is! Map || input['columns'] is! num || input['rows'] is! num) {
       throw const FormatException('Invalid dashboard widget size.');
     }
     final result = DashboardWidgetSize(
-      input['columns'] as int,
-      input['rows'] as int,
+      input['columns'] as num,
+      input['rows'] as num,
     );
     result.validate();
     return result;
@@ -133,8 +137,9 @@ final class DashboardLayout {
     this.grids = const {},
   });
 
-  /// v1 (linear order) is still accepted when restoring older .ambackup files.
-  static const formatVersion = 2;
+  /// v3 adds fractional grid dimensions. v1 linear layouts and v2 whole-cell
+  /// grids use the same units and can be restored without changing geometry.
+  static const formatVersion = 3;
   final List<DashboardWidgetInstance> widgets;
   final Map<DashboardViewport, List<DashboardTile>> grids;
 
@@ -215,15 +220,14 @@ final class DashboardLayout {
 
   factory DashboardLayout.fromJson(Object? input) {
     if (input is! Map ||
-        (input['formatVersion'] != 1 &&
-            input['formatVersion'] != formatVersion) ||
+        !const {1, 2, formatVersion}.contains(input['formatVersion']) ||
         input['widgets'] is! List ||
         (input['selectedLocationId'] != null &&
             input['selectedLocationId'] is! String)) {
       throw const FormatException('Unsupported dashboard layout format.');
     }
     final grids = <DashboardViewport, List<DashboardTile>>{};
-    if (input['formatVersion'] == formatVersion) {
+    if (input['formatVersion'] != 1) {
       final rawGrids = input['grids'];
       if (rawGrids is! Map) {
         throw const FormatException('Invalid dashboard grids.');

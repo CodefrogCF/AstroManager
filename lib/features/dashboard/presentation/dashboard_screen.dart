@@ -10,6 +10,7 @@ import '../application/dashboard_layout_controller.dart';
 import '../domain/dashboard_layout.dart';
 import '../domain/dashboard_grid.dart';
 import 'dashboard_editable_grid.dart';
+import 'dashboard_size_fields.dart';
 import 'dashboard_widget_registry.dart';
 import 'widgets/dashboard_widget_state.dart';
 
@@ -72,7 +73,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const SizedBox(height: 16),
           if (_editing) ...[
             const AppText(
-              'Hold the grip to move a widget. Use arrows or Size for accessible editing.',
+              'Drag the grip or use the arrows to move a widget. Select Resize to adjust its size.',
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -595,22 +596,15 @@ class _ConfigureWidgetDialog extends ConsumerStatefulWidget {
 
 class _ConfigureWidgetDialogState
     extends ConsumerState<_ConfigureWidgetDialog> {
+  late final DashboardWidgetSize _initialSize;
   late DashboardWidgetSize _size;
   late Map<String, Object?> _settings;
 
   @override
   void initState() {
     super.initState();
-    final activeSize = DashboardWidgetSize(
-      widget.tile.columns,
-      widget.tile.rows,
-    );
-    _size = widget.definition.supportedSizes.contains(activeSize)
-        ? activeSize
-        : widget.definition.supportedSizes.firstWhere(
-            (size) => size.columns <= widget.viewport.columns,
-            orElse: () => const DashboardWidgetSize(1, 1),
-          );
+    _initialSize = DashboardWidgetSize(widget.tile.columns, widget.tile.rows);
+    _size = _initialSize;
     _settings = {
       for (final setting in widget.definition.settings)
         setting.key: setting.isValid(widget.instance.settings[setting.key])
@@ -628,25 +622,12 @@ class _ConfigureWidgetDialogState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            DropdownButtonFormField<DashboardWidgetSize>(
-              key: const ValueKey('dashboard-widget-size'),
-              initialValue: _size,
-              decoration: InputDecoration(
-                labelText: appTranslate(context, 'Widget size'),
-              ),
-              items: [
-                for (final size in widget.definition.supportedSizes)
-                  if (size.columns <= widget.viewport.columns)
-                    DropdownMenuItem(
-                      value: size,
-                      child: Text('${size.columns} × ${size.rows}'),
-                    ),
-              ],
-              onChanged: (size) {
-                if (size != null) {
-                  setState(() => _size = size);
-                }
-              },
+            DashboardSizeFields(
+              viewport: widget.viewport,
+              sizes: widget.definition.supportedSizes,
+              initialSize: _initialSize,
+              size: _size,
+              onChanged: (size) => setState(() => _size = size),
             ),
             for (final setting in widget.definition.settings)
               if (setting.type == DashboardSettingType.toggle)
