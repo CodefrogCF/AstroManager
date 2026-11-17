@@ -71,5 +71,5 @@ flutter_launcher_icons:
     icon_size: 256
 
   macos:
-    generate: false
+    generate: true
     image_path: "assets/icons/astromanager.png"

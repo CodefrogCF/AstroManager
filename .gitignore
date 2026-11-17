@@ -11,6 +11,7 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+/docs/release-qa-v1.0.0.md
 
 # IntelliJ related
 *.iml

@@ -93,6 +93,7 @@ jobs:
           test -s build/web/index.html
           test -s build/web/sqlite3.wasm
           test -s build/web/drift_worker.dart.js
+          test -s build/web/canvaskit/canvaskit.wasm
 
   windows:
     name: Windows Build
@@ -120,8 +121,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get --enforce-lockfile
 
-      - name: Build Windows
-        run: flutter build windows --debug --no-pub
+      - name: Build Windows release
+        run: flutter build windows --release --no-pub
 
   android:
     name: Android Build
@@ -154,3 +155,44 @@ jobs:
 
       - name: Build Android Debug APK
         run: flutter build apk --debug --no-pub
+
+  apple:
+    name: Apple Release Builds
+    needs: quality
+    runs-on: macos-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Show macOS and Xcode versions
+        run: |
+          sw_vers
+          xcodebuild -version
+
+      - name: Install dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Test shared astronomy and persistence on macOS
+        run: >-
+          flutter test --no-pub
+          test/core/astronomy
+          test/drift/app_database
+          test/features/locations/observing_locations_test.dart
+          test/features/backup/backup_service_test.dart
+
+      - name: Build macOS release
+        run: flutter build macos --release --no-pub
+
+      - name: Compile iOS release without distribution signing
+        run: flutter build ios --release --no-codesign --no-pub

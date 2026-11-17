@@ -16,7 +16,7 @@ AstroManager is an offline-first astrophotography planning application built wit
 | **Advanced planning** | Estimate terrain obstruction, inspect available VIIRS satellite night-light radiance, compare observing locations and design/export mosaic panels. |
 | **Settings and data** | Save observing sites and preferences, configure optional observation-opportunity alerts, and export/restore portable `.ambackup` files. |
 
-The Dashboard offers locally saved, configurable widgets and quick actions. Weather, target-ranking and night-summary dashboard integrations are currently placeholders until their dedicated implementation.
+The Dashboard offers locally saved, configurable widgets and quick actions.
 
 ## First observing night
 
@@ -40,6 +40,7 @@ Native Flutter labels respect system text scaling and screen readers. Some dense
 ## Offline and online features
 
 - **Available locally:** bundled target catalog, saved sites/equipment/projects/sessions, astronomical calculations, mosaic geometry, observation plans and cached information.
+- **Web startup:** the app and its bundled renderer load from the deployment origin. Reloading while that origin is unreachable depends on the deployment and browser cache.
 - **Requires network access when fetching new data:** Open-Meteo forecasts, terrain heights via OpenTopoData, VIIRS night-light values and Aladin Lite's external viewer/survey imagery.
 - **Not a guaranteed forecast or line-of-sight tool:** weather can be outdated; DEM horizons omit buildings and trees; satellite radiance is **not** a measured Bortle class.
 - **Notifications:** optional on Android/iOS, evaluated on app launch, foreground resume or manual check. AstroManager does **not** guarantee continuous background weather monitoring.
@@ -48,7 +49,7 @@ See [Data sources and limitations](docs/data-sources.md) for credits, source con
 
 ## Platforms
 
-The repository contains runners for **Android, iOS, Web and Windows**. Platform availability and plugin support must be verified for each build. The embedded Aladin sky viewer works on supported Web/WebGL and mobile WebView environments; on native Windows, use the Web build for the atlas. Native iOS builds require macOS/Xcode and appropriate signing. Web and Windows do not currently send the mobile opportunity system notifications.
+The repository contains runners for **Android, iOS, Web, Windows and macOS**. The embedded Aladin sky viewer works on supported WebGL browsers and platform WebViews. On native Windows, use the Web build for the atlas. Native Apple builds require macOS and Xcode, and iOS device distribution requires signing. Mobile opportunity system notifications are available on Android and iOS.
 
 ## Build from source
 

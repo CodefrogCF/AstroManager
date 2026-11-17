@@ -144,10 +144,9 @@ class _BackupSettingsSectionState extends ConsumerState<BackupSettingsSection> {
   Future<void> _import() async {
     setState(() => _busy = true);
     try {
-      final picked = await FilePicker.pickFile(
-        type: FileType.custom,
-        allowedExtensions: ['ambackup', 'zip'], // Accept older backups.
-      );
+      // Some system pickers filter by MIME type and cannot resolve .ambackup.
+      // The importer validates the archive contents after selection.
+      final picked = await FilePicker.pickFile();
       if (picked == null || !mounted) {
         return;
       }
