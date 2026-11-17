@@ -120,6 +120,9 @@ abstract final class SkyAtlasProtocol {
   static const identifier = 'astromanager.aladin';
   static const version = 1;
 
+  static bool isValidFieldOfView(num degrees) =>
+      degrees.isFinite && degrees > 0 && degrees <= 360;
+
   static String state({
     CameraFramingFootprint? cameraFrame,
     MosaicFootprint? mosaic,
@@ -133,9 +136,7 @@ abstract final class SkyAtlasProtocol {
     List<SkyAtlasCircleOverlay> overlays = const [],
   }) {
     position.validate();
-    if (!fieldOfViewDegrees.isFinite ||
-        fieldOfViewDegrees < 0.01 ||
-        fieldOfViewDegrees > 180) {
+    if (!isValidFieldOfView(fieldOfViewDegrees)) {
       throw ArgumentError.value(fieldOfViewDegrees, 'fieldOfViewDegrees');
     }
     return jsonEncode({

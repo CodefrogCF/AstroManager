@@ -87,7 +87,7 @@ class SkyAtlasController extends ChangeNotifier {
   }
 
   void setFieldOfView(double degrees) {
-    if (!degrees.isFinite || degrees < 0.01 || degrees > 180) {
+    if (!SkyAtlasProtocol.isValidFieldOfView(degrees)) {
       throw ArgumentError.value(degrees, 'degrees');
     }
     _fieldOfViewDegrees = degrees;
@@ -222,13 +222,16 @@ class SkyAtlasController extends ChangeNotifier {
         }
         onSkyTap?.call(position, tolerance.toDouble());
       case 'viewChanged':
+        // An iframe or WebView can deliver feedback after a newer command.
+        if (event.containsKey('viewRevision') &&
+            event['viewRevision'] != _viewRevision) {
+          return;
+        }
         final position = _eventPosition(event);
         final fov = event['fov'];
         if (position == null ||
             fov is! num ||
-            !fov.isFinite ||
-            fov < 0.01 ||
-            fov > 180) {
+            !SkyAtlasProtocol.isValidFieldOfView(fov)) {
           return;
         }
         _position = position;

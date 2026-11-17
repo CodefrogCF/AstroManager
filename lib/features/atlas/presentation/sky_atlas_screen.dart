@@ -417,6 +417,15 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     if (mounted) setState(() {});
   }
 
+  String get _formattedFieldOfView {
+    final degrees = _controller.fieldOfViewDegrees;
+    if (degrees < 0.001) return '${(degrees * 3600).toStringAsPrecision(3)}″';
+    return '${degrees.toStringAsFixed(degrees < 0.1 ? 4 : 2)}°';
+  }
+
+  bool _matchesFieldOfViewPreset(double degrees) =>
+      (_controller.fieldOfViewDegrees - degrees).abs() < degrees * 1e-6;
+
   void _updateCameraFrame() {
     final inventory = _inventory;
     final selected = _profileId;
@@ -996,9 +1005,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                         vertical: 7,
                       ),
                       child: AppText(
-                        isDome
-                            ? 'Dome'
-                            : '${controller.fieldOfViewDegrees.toStringAsFixed(1)}° FOV',
+                        '$_formattedFieldOfView FOV',
                         key: const ValueKey('atlas-mobile-fov-label'),
                         style: theme.textTheme.labelMedium,
                       ),
@@ -1075,7 +1082,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                           title: AppText(
                             isDome
                                 ? 'Dome · $setupName'
-                                : '${controller.fieldOfViewDegrees.toStringAsFixed(1)}° · $setupName',
+                                : '$_formattedFieldOfView · $setupName',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1225,7 +1232,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                 ChoiceChip(
                   key: ValueKey('atlas-fov-$fov'),
                   label: AppText('${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°'),
-                  selected: _controller.fieldOfViewDegrees == fov,
+                  selected: _matchesFieldOfViewPreset(fov),
                   onSelected: (_) => _controller.setFieldOfView(fov),
                 ),
               if (_selectedObject case final target?)
@@ -1397,7 +1404,12 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                AppText(
+                  'FOV $_formattedFieldOfView',
+                  key: const ValueKey('atlas-desktop-fov-label'),
+                ),
                 ChoiceChip(
                   key: const ValueKey('atlas-mode-detail'),
                   label: const AppText('Detail atlas'),
@@ -1440,9 +1452,6 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                   AppText(
                     'Dec ${controller.position.decDegrees.toStringAsFixed(4)}°',
                   ),
-                  AppText(
-                    'FOV ${controller.fieldOfViewDegrees.toStringAsFixed(2)}°',
-                  ),
                   if (target != null)
                     OutlinedButton.icon(
                       key: const ValueKey('atlas-recenter'),
@@ -1457,7 +1466,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                       label: AppText(
                         '${fov.toStringAsFixed(fov < 1 ? 1 : 0)}°',
                       ),
-                      selected: controller.fieldOfViewDegrees == fov,
+                      selected: _matchesFieldOfViewPreset(fov),
                       onSelected: (_) => controller.setFieldOfView(fov),
                     ),
                 ],

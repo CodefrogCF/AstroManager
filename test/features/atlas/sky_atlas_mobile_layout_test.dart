@@ -106,6 +106,31 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('atlas-fov-0.5')));
     await tester.pump();
     expect(atlas!.fieldOfViewDegrees, 0.5);
+    expect(find.text('0.50° FOV'), findsOneWidget);
+
+    final revision = jsonDecode(atlas!.stateJson)['viewRevision'];
+    void reportZoom(double width) => atlas!.receive(
+      jsonEncode({
+        'protocol': SkyAtlasProtocol.identifier,
+        'version': SkyAtlasProtocol.version,
+        'type': 'viewChanged',
+        'ra': 10.6847,
+        'dec': 41.2688,
+        'fov': width,
+        'viewRevision': revision,
+      }),
+    );
+    reportZoom(0.500000000000001);
+    await tester.pump();
+    expect(
+      tester
+          .widget<ChoiceChip>(find.byKey(const ValueKey('atlas-fov-0.5')))
+          .selected,
+      isTrue,
+    );
+    reportZoom(0.0068);
+    await tester.pump();
+    expect(find.text('0.0068° FOV'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

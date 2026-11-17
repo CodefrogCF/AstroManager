@@ -18,6 +18,7 @@
   let ready = false;
   let queued = null;
   let lastReported = '';
+  let lastReportedRevision = null;
   let feedbackTimer = null;
   let fatalMessage = null;
   // A successful Aladin initialization does not prove the survey tiles load.
@@ -75,7 +76,13 @@
   }
 
   function validFov(value) {
-    return Number.isFinite(value) && value >= 0.01 && value <= 180;
+    return Number.isFinite(value) && value > 0 && value <= 360;
+  }
+
+  function viewPosition() {
+    const center = aladin.getRaDec();
+    // Aladin's WASM viewer can return a Float64Array as well as an Array.
+    return {ra: center?.[0] ?? center?.ra, dec: center?.[1] ?? center?.dec};
   }
 
   function setMarkers(next) {
@@ -273,6 +280,7 @@
         aladin.gotoRaDec(cmd.ra, cmd.dec);
         aladin.setFoV(cmd.fov);
         viewRevision = cmd.viewRevision;
+        scheduleViewReport();
       }
       setMarkers(cmd.markers);
       setOverlays(cmd.overlays);
@@ -362,9 +370,7 @@
     tile.onerror = () => finish(false, 'tile request failed');
     tileProbeTimer = root.setTimeout(() => finish(false, 'tile request timed out'), probeTimeoutMs);
     try {
-      const p = aladin.getRaDec();
-      const ra = Array.isArray(p) ? p[0] : p.ra;
-      const dec = Array.isArray(p) ? p[1] : p.dec;
+      const {ra, dec} = viewPosition();
       tile.src = surveyBase + '/Norder0/Dir0/Npix' + rootTileIndex(ra, dec) + '.jpg';
     } catch (error) {
       finish(false, 'tile check could not start');
@@ -383,23 +389,28 @@
   function reportView() {
     if (!ready) return;
     try {
-      const p = aladin.getRaDec();
-      const f = aladin.getFov();
-      const ra = Array.isArray(p) ? p[0] : p.ra;
-      const dec = Array.isArray(p) ? p[1] : p.dec;
-      const fov = Array.isArray(f) ? f[0] : f;
+      const {ra, dec} = viewPosition();
+      const size = aladin.getFov();
+      const fov = size?.[0] ?? size;
       if (!validPosition(ra, dec) || !validFov(fov)) return;
-      const key = [ra.toFixed(5), dec.toFixed(5), fov.toFixed(5)].join(':');
-      if (key === lastReported) return;
+      const key = [ra.toFixed(5), dec.toFixed(5), fov.toPrecision(8)].join(':');
+      const revision = viewRevision ?? null;
+      const viewChanged = key !== lastReported;
+      if (!viewChanged && revision === lastReportedRevision) return;
       lastReported = key;
-      report('viewChanged', {ra, dec, fov});
-      scheduleImageryProbe();
+      lastReportedRevision = revision;
+      report('viewChanged', {ra, dec, fov, viewRevision: revision});
+      if (viewChanged) scheduleImageryProbe();
     } catch (_) { /* Invalid intermediate map position while dragging. */ }
   }
 
   function scheduleViewReport() {
-    if (feedbackTimer) root.clearTimeout(feedbackTimer);
-    feedbackTimer = root.setTimeout(reportView, 120);
+    // Keep one pending read so continuous gestures cannot postpone feedback.
+    if (feedbackTimer !== null) return;
+    feedbackTimer = root.setTimeout(() => {
+      feedbackTimer = null;
+      reportView();
+    }, 32);
   }
 
   function reportSkyTap(point) {
@@ -440,6 +451,8 @@
         aladin.on('click', reportSkyTap);
         aladin.on('positionChanged', scheduleViewReport);
         aladin.on('zoomChanged', scheduleViewReport);
+        aladin.on('projectionChanged', scheduleViewReport);
+        aladin.on('resizeChanged', scheduleViewReport);
         ready = true;
         report('ready');
         if (queued) { const pending = queued; queued = null; receive(pending); }

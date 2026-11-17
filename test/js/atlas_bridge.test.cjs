@@ -63,6 +63,68 @@ function command(overrides={}) {
     ...overrides,
   });
 }
+
+function flushViewReport(timers) {
+  const entry = [...timers].find(([, timer]) => timer.delay === 32);
+  assert.ok(entry, 'A viewport report is pending');
+  const [id, timer] = entry;
+  timers.delete(id);
+  timer.fn();
+}
+
+test('viewport feedback reads WASM coordinates and reports during continuous zoom', async () => {
+  const {win, atlas, messages, handlers, timers} = fixture();
+  atlas.getRaDec = () => new Float64Array([10.6847, 41.2688]);
+  let width = 3;
+  atlas.getFov = () => [width, width * 2];
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({viewRevision:0})), true);
+  flushViewReport(timers);
+  assert.deepEqual(messages.at(-1), {
+    protocol, version:1, type:'viewChanged', ra:10.6847, dec:41.2688, fov:3, viewRevision:0,
+  });
+
+  width = 2.5;
+  handlers.zoomChanged();
+  const pending = [...timers].find(([, timer]) => timer.delay === 32)[0];
+  width = 2.4;
+  handlers.zoomChanged();
+  assert.equal(timers.has(pending), true);
+  flushViewReport(timers);
+  assert.equal(messages.at(-1).fov, 2.4);
+
+  width = 0.008;
+  handlers.zoomChanged();
+  flushViewReport(timers);
+  assert.equal(messages.at(-1).fov, 0.008);
+});
+
+test('applied presets and projection changes always acknowledge the measured width', async () => {
+  const {win, atlas, messages, handlers, timers} = fixture();
+  atlas.setProjection = () => {};
+  let width = 3;
+  atlas.getFov = () => [width, 90];
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({viewRevision:0})), true);
+  flushViewReport(timers);
+  assert.equal(win.AstroManagerAtlas.receive(command({viewRevision:1})), true);
+  flushViewReport(timers);
+  assert.equal(messages.at(-1).viewRevision, 1);
+  assert.equal(messages.at(-1).fov, 3);
+
+  assert.equal(win.AstroManagerAtlas.receive(command({projection:'dome', fov:180, viewRevision:2})), true);
+  width = 182.5;
+  flushViewReport(timers);
+  assert.equal(messages.at(-1).fov, 182.5);
+  assert.equal(messages.at(-1).viewRevision, 2);
+
+  width = 175.5;
+  handlers.resizeChanged();
+  flushViewReport(timers);
+  assert.equal(messages.at(-1).fov, 175.5);
+});
 test('Aladin controls are hidden by default on phones and can be restored', async () => {
   const fx = fixture();
   const classes = new Set();
@@ -369,9 +431,7 @@ test('late failures from a previous sky center cannot replace a successful tile 
   await new Promise(setImmediate);
   const oldImage = images[0];
   pointing = [185, -40];
-  const report = [...timers.values()].find(item => item.delay === 120);
-  assert.ok(report);
-  report.fn();
+  flushViewReport(timers);
   const nextProbe = [...timers.values()].find(item => item.delay === 1500);
   assert.ok(nextProbe);
   nextProbe.fn();
