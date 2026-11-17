@@ -95,6 +95,83 @@ void main() {
   });
 
   group('Weather forecast service', () {
+    test('shared refresh reaches active and later consumers without a second fetch', () async {
+      final now = DateTime.utc(2026, 11, 1, 18);
+      final old = now.subtract(const Duration(hours: 3));
+      final week = WeatherForecastRequest(
+        latitudeDegrees: request.latitudeDegrees,
+        longitudeDegrees: request.longitudeDegrees,
+        startUtc: request.startUtc,
+        endUtc: request.endUtc.add(const Duration(days: 5)),
+      );
+      final nextNight = WeatherForecastRequest(
+        latitudeDegrees: request.latitudeDegrees,
+        longitudeDegrees: request.longitudeDegrees,
+        startUtc: request.startUtc.add(const Duration(days: 1)),
+        endUtc: request.endUtc.add(const Duration(days: 1)),
+      );
+      final elsewhere = WeatherForecastRequest(
+        latitudeDegrees: request.latitudeDegrees + 0.01,
+        longitudeDegrees: request.longitudeDegrees,
+        startUtc: request.startUtc,
+        endUtc: request.endUtc,
+      );
+      final mock = ControlledWeatherProvider(
+        (request) async =>
+            hourlyTestForecast(request, fetchedAt: request == week ? now : old),
+      );
+      final service = WeatherForecastService(
+        provider: mock,
+        cache: MemoryWeatherCache(),
+        clock: () => now,
+      );
+      addTearDown(service.dispose);
+      final container = ProviderContainer.test(
+        overrides: [weatherForecastServiceProvider.overrideWithValue(service)],
+      );
+      final derived = FutureProvider((ref) async {
+        await Future<void>.value();
+        return (await ref.watch(
+          weatherForecastSnapshotProvider(request).future,
+        )).forecast.fetchedAtUtc;
+      });
+      final subscription = container.listen(derived, (_, _) {});
+      addTearDown(subscription.close);
+      expect(await container.read(derived.future), old);
+      expect(
+        (await container.read(
+          weatherForecastSnapshotProvider(elsewhere).future,
+        )).forecast.fetchedAtUtc,
+        old,
+      );
+
+      // This narrower HTTP request started before the manual download.
+      final pending = Completer<WeatherForecast>();
+      final respond = mock.respond;
+      mock.respond = (request) =>
+          request == nextNight ? pending.future : respond(request);
+      final running = container.read(
+        weatherForecastSnapshotProvider(nextNight).future,
+      );
+      await Future<void>.delayed(Duration.zero);
+      await service.load(week, forceRefresh: true);
+      pending.complete(hourlyTestForecast(nextNight, fetchedAt: old));
+      await container.pump();
+
+      expect(await container.read(derived.future), now);
+      expect((await running).forecast.fetchedAtUtc, now);
+      expect((await service.load(nextNight)).forecast.fetchedAtUtc, now);
+      expect(
+        container
+            .read(weatherForecastSnapshotProvider(elsewhere))
+            .requireValue
+            .forecast
+            .fetchedAtUtc,
+        old,
+      );
+      expect(mock.requests, [request, elsewhere, nextNight, week]);
+    });
+
     test('first call downloads, second uses fresh cache', () async {
       final now = DateTime.utc(2026, 11, 1, 18);
       final provider = ControlledWeatherProvider((_) async => sample(now));

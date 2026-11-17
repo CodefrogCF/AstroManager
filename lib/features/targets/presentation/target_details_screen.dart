@@ -56,6 +56,8 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
   EquipmentInventory? _equipment;
   TargetDetailAnalysisResult? _analysis;
   WeatherForecastSnapshot? _weather;
+  ProviderSubscription<AsyncValue<WeatherForecastSnapshot>>?
+  _weatherSubscription;
   String? _weatherError;
   String? _error;
   bool _busy = true;
@@ -148,6 +150,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
   }
 
   Future<void> _recalculate({int? generation}) async {
+    _weatherSubscription?.close();
     final current = generation ?? ++_generation;
     final object = _object;
     final site = _site;
@@ -175,9 +178,20 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
       WeatherForecastSnapshot? weather;
       String? weatherError;
       try {
-        weather = widget.weatherLoader == null
-            ? await ref.read(weatherForecastSnapshotProvider(request).future)
-            : await widget.weatherLoader!(request);
+        final loader = widget.weatherLoader;
+        if (loader != null) {
+          weather = await loader(request);
+        } else {
+          final forecast = weatherForecastSnapshotProvider(request);
+          _weatherSubscription = ref.listenManual(forecast, (previous, next) {
+            if (mounted &&
+                current == _generation &&
+                weatherForecastWasUpdated(previous, next)) {
+              unawaited(_recalculate());
+            }
+          });
+          weather = await ref.read(forecast.future);
+        }
       } catch (error) {
         weatherError = error.toString();
       }

@@ -71,10 +71,14 @@ class SevenNightWeatherWidget extends StatelessWidget {
         DateTime.utc(value.year, value.month, value.day, value.hour);
     final nightEnd = periods.nights.last.nightEndUtc;
     final dayEnd = periods.days.last.dayEndUtc;
+    final nightStart = periods.nights.first.nightStartUtc;
+    final dayStart = periods.days.first.dayStartUtc;
     final request = WeatherForecastRequest(
       latitudeDegrees: site.latitude,
       longitudeDegrees: site.longitude,
-      startUtc: hourStart(periods.days.first.dayStartUtc),
+      startUtc: hourStart(
+        nightStart.isBefore(dayStart) ? nightStart : dayStart,
+      ),
       endUtc: nightEnd.isAfter(dayEnd) ? nightEnd : dayEnd,
     );
     return _ClearSkyForecast(

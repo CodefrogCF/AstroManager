@@ -82,17 +82,22 @@ void main() {
   testWidgets(
     'the view switches the tile and details using the same forecast',
     (tester) async {
+      final now = DateTime.now().toUtc();
       final provider = ControlledWeatherProvider(
-        (request) async => _mockForecast(request, DateTime.now().toUtc(), 10),
+        (request) async => _mockForecast(request, now, 10),
       );
       await _pumpControlledForecast(tester, provider, MemoryWeatherCache());
       final request = provider.requests.single;
       final periods = SevenNightWeatherAggregator.upcomingPeriods(
         location: _site,
-        nowUtc: request.startUtc.add(const Duration(hours: 12)),
+        nowUtc: now,
       );
       final firstDay = periods.days.first;
-      expect(request.startUtc.isAtSameMomentAs(firstDay.dayStartUtc), isTrue);
+      expect(request.startUtc.isAfter(firstDay.dayStartUtc), isFalse);
+      expect(
+        request.startUtc.isAfter(periods.nights.first.nightStartUtc),
+        isFalse,
+      );
       final dayHours = '${firstDay.civilDayLength.inHours}h';
 
       final selector = find.byKey(const ValueKey('clear-sky-view'));
@@ -116,7 +121,9 @@ void main() {
 
       await tester.tap(selector);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Full day'));
+      await tester.tap(
+        find.widgetWithText(CheckedPopupMenuItem<ClearSkyView>, 'Full day'),
+      );
       await tester.pumpAndSettle();
       expect(selected('Full day'), findsOneWidget);
       expect(
@@ -138,7 +145,9 @@ void main() {
 
       await tester.tap(selector);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Night only'));
+      await tester.tap(
+        find.widgetWithText(CheckedPopupMenuItem<ClearSkyView>, 'Night only'),
+      );
       await tester.pumpAndSettle();
       expect(selected('Night only'), findsOneWidget);
       expect(

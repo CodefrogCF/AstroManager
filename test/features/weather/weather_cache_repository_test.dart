@@ -6,6 +6,8 @@ import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
 import 'package:astromanager/features/weather/domain/repositories/weather_cache_repository.dart';
 
+import '../../support/weather_fakes.dart';
+
 final class FakeWeatherCacheStore implements WeatherCacheStore {
   final Map<String, String> values = {};
 
@@ -63,6 +65,75 @@ WeatherForecast example(
 
 void main() {
   group('Persistent cache repository', () {
+    test(
+      'a newer complete window supersedes an older exact cache entry',
+      () async {
+        final store = FakeWeatherCacheStore();
+        final cache = SharedPreferencesWeatherCacheRepository(store: store);
+        final night = requestAt(2);
+        final week = WeatherForecastRequest(
+          latitudeDegrees: night.latitudeDegrees,
+          longitudeDegrees: night.longitudeDegrees,
+          startUtc: night.startUtc.subtract(const Duration(days: 1)),
+          endUtc: night.endUtc.add(const Duration(days: 5)),
+        );
+        WeatherCacheKey key(WeatherForecastRequest request, {String? model}) =>
+            WeatherCacheKey(providerId: 'mock', model: model, request: request);
+        final old = DateTime.utc(2026, 11, 1);
+        final refreshed = old.add(const Duration(hours: 2));
+        await cache.write(
+          key(night),
+          hourlyTestForecast(night, fetchedAt: old),
+        );
+        await cache.write(
+          key(week),
+          hourlyTestForecast(week, fetchedAt: refreshed),
+        );
+        final incomplete = WeatherForecastRequest(
+          latitudeDegrees: week.latitudeDegrees,
+          longitudeDegrees: week.longitudeDegrees,
+          startUtc: week.startUtc,
+          endUtc: week.endUtc.add(const Duration(days: 1)),
+        );
+        await cache.write(
+          key(incomplete),
+          hourlyTestForecast(
+            incomplete,
+            fetchedAt: refreshed.add(const Duration(hours: 1)),
+            missingHour: night.startUtc.add(const Duration(hours: 1)),
+          ),
+        );
+        await cache.write(
+          key(week, model: 'different-model'),
+          hourlyTestForecast(
+            week,
+            fetchedAt: refreshed.add(const Duration(hours: 2)),
+          ),
+        );
+
+        final reopened = SharedPreferencesWeatherCacheRepository(store: store);
+        final loaded = await reopened.read(key(night));
+        expect(loaded!.fetchedAtUtc, refreshed);
+        expect(
+          loaded.hours,
+          hasLength(night.endUtc.difference(night.startUtc).inHours),
+        );
+        expect(loaded.hours.first.timeUtc, night.startUtc);
+        expect(
+          loaded.hours.last.timeUtc,
+          night.endUtc.subtract(const Duration(hours: 1)),
+        );
+
+        final nearby = WeatherForecastRequest(
+          latitudeDegrees: night.latitudeDegrees + 0.01,
+          longitudeDegrees: night.longitudeDegrees,
+          startUtc: night.startUtc,
+          endUtc: night.endUtc,
+        );
+        expect(await reopened.read(key(nearby)), isNull);
+      },
+    );
+
     test('round-trips complete forecast and original metadata', () async {
       final store = FakeWeatherCacheStore();
       final request = requestAt(1);

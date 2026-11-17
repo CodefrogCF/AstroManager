@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,6 +70,7 @@ class _ObservingSiteComparisonPanelState
   int _revision = 0;
   SiteComparisonReport? _report;
   String? _error;
+  final _weatherSubscriptions = <StreamSubscription<WeatherForecastSnapshot>>[];
 
   @override
   void initState() {
@@ -85,18 +88,33 @@ class _ObservingSiteComparisonPanelState
       _siteIds.addAll(widget.sites.take(2).map((site) => site.id));
     }
     if (oldWidget.sites != widget.sites) {
+      _stopWatchingWeather();
       _revision++;
       _report = null;
     }
   }
 
   void _changed(VoidCallback mutation) {
+    _stopWatchingWeather();
     setState(() {
       mutation();
       _revision++;
       _report = null;
       _error = null;
     });
+  }
+
+  void _stopWatchingWeather() {
+    for (final subscription in _weatherSubscriptions) {
+      unawaited(subscription.cancel());
+    }
+    _weatherSubscriptions.clear();
+  }
+
+  @override
+  void dispose() {
+    _stopWatchingWeather();
+    super.dispose();
   }
 
   List<ObservingLocation> get _selectedSites {
@@ -122,35 +140,39 @@ class _ObservingSiteComparisonPanelState
       '${_date.year}-${_date.month.toString().padLeft(2, '0')}-'
       '${_date.day.toString().padLeft(2, '0')}';
 
-  Future<SiteComparisonInput> _load(
+  WeatherForecastRequest? _forecastRequest(
     ObservingLocation site,
-    bool terrainRequested,
-    bool lightsRequested,
     DateTime selectedDate,
     DateTime now,
-  ) async {
+  ) {
     final night = SolarEvents.calculateForLocalDate(
       location: site,
       localDate: selectedDate,
     );
-    final weatherPossible =
-        night.nightEndUtc.isAfter(now) &&
-        night.nightStartUtc.isBefore(now.add(const Duration(days: 14)));
-    final forecastRequest = WeatherForecastRequest(
+    if (!night.nightEndUtc.isAfter(now) ||
+        !night.nightStartUtc.isBefore(now.add(const Duration(days: 14)))) {
+      return null;
+    }
+    return WeatherForecastRequest(
       latitudeDegrees: site.latitude,
       longitudeDegrees: site.longitude,
       startUtc: night.nightStartUtc,
       endUtc: night.nightEndUtc,
     );
+  }
 
+  Future<SiteComparisonInput> _load(
+    ObservingLocation site,
+    bool terrainRequested,
+    bool lightsRequested,
+    WeatherForecastRequest? forecastRequest,
+  ) async {
     // Keep failures isolated per site and per source: one API failure must not
     // prevent comparison of all available astronomical and cached data.
     final weatherService = ref.read(weatherForecastServiceProvider);
-    final terrainRepository = ref.read(terrainProfileRepositoryProvider);
-    final lightsRepository = ref.read(lightPollutionRepositoryProvider);
     WeatherForecastSnapshot? weather;
     String? weatherError;
-    if (weatherPossible) {
+    if (forecastRequest != null) {
       try {
         weather = await weatherService.load(forecastRequest);
       } catch (error) {
@@ -164,14 +186,16 @@ class _ObservingSiteComparisonPanelState
     String? terrainError;
     if (terrainRequested) {
       try {
-        horizon = await terrainRepository.load(
-          site,
-          const TerrainHorizonOptions(
-            azimuthStepDegrees: 15,
-            maximumDistanceMeters: 15000,
-            distanceStepMeters: 1500,
-          ),
-        );
+        horizon = await ref
+            .read(terrainProfileRepositoryProvider)
+            .load(
+              site,
+              const TerrainHorizonOptions(
+                azimuthStepDegrees: 15,
+                maximumDistanceMeters: 15000,
+                distanceStepMeters: 1500,
+              ),
+            );
       } catch (error) {
         terrainError = error.toString();
       }
@@ -181,10 +205,9 @@ class _ObservingSiteComparisonPanelState
     String? lightError;
     if (lightsRequested) {
       try {
-        lights = await lightsRepository.load(
-          latitude: site.latitude,
-          longitude: site.longitude,
-        );
+        lights = await ref
+            .read(lightPollutionRepositoryProvider)
+            .load(latitude: site.latitude, longitude: site.longitude);
       } catch (error) {
         lightError = error.toString();
       }
@@ -214,6 +237,7 @@ class _ObservingSiteComparisonPanelState
     final includeLights = _nightLights;
     final revision = ++_revision;
     final evaluatedAt = DateTime.now().toUtc();
+    _stopWatchingWeather();
     setState(() {
       _busy = true;
       _completed = 0;
@@ -221,34 +245,78 @@ class _ObservingSiteComparisonPanelState
       _report = null;
     });
     try {
-      final inputs = <SiteComparisonInput>[];
+      final inputs = <String, SiteComparisonInput>{};
+      final pendingWeather = <String, WeatherForecastSnapshot>{};
+      final requests = {
+        for (final site in selected)
+          site.id: _forecastRequest(site, date, evaluatedAt),
+      };
+      final weatherService = ref.read(weatherForecastServiceProvider);
+      final weatherPolicy = ref.read(weatherCachePolicyProvider);
+
+      void publish() {
+        final report = ObservingSiteComparison.compare(
+          target: target,
+          localDate: date,
+          evaluatedAtUtc: DateTime.now().toUtc(),
+          sites: inputs.values.toList(),
+          options: SiteComparisonOptions(
+            compareTerrain: includeTerrain,
+            compareLightPollution: includeLights,
+          ),
+          weatherPolicy: weatherPolicy,
+        );
+        setState(() => _report = report);
+      }
+
+      for (final entry in requests.entries) {
+        final request = entry.value;
+        if (request == null) continue;
+        final siteId = entry.key;
+        _weatherSubscriptions.add(
+          weatherService.manualRefreshesFor(request).listen((snapshot) {
+            if (!mounted || revision != _revision) return;
+            final input = inputs[siteId];
+            if (input == null) {
+              final pending = pendingWeather[siteId];
+              if (pending == null ||
+                  snapshot.forecast.fetchedAtUtc.isAfter(
+                    pending.forecast.fetchedAtUtc,
+                  )) {
+                pendingWeather[siteId] = snapshot;
+              }
+            } else {
+              final updated = _withRefreshedWeather(input, snapshot);
+              if (identical(input, updated)) return;
+              inputs[siteId] = updated;
+              if (inputs.length == selected.length) publish();
+            }
+          }),
+        );
+      }
+
       // The public DEM endpoint is rate-limited; process selected sites one by
       // one instead of launching uncontrolled parallel elevation requests.
       for (final site in selected) {
-        inputs.add(
-          await _load(site, includeTerrain, includeLights, date, evaluatedAt),
+        final input = await _load(
+          site,
+          includeTerrain,
+          includeLights,
+          requests[site.id],
         );
         if (!mounted || revision != _revision) {
           return;
         }
+        inputs[site.id] = _withRefreshedWeather(
+          input,
+          pendingWeather.remove(site.id),
+        );
         setState(() => _completed++);
       }
-      final report = ObservingSiteComparison.compare(
-        target: target,
-        localDate: date,
-        evaluatedAtUtc: evaluatedAt,
-        sites: inputs,
-        options: SiteComparisonOptions(
-          compareTerrain: includeTerrain,
-          compareLightPollution: includeLights,
-        ),
-        weatherPolicy: ref.read(weatherCachePolicyProvider),
-      );
-      if (mounted && revision == _revision) {
-        setState(() => _report = report);
-      }
+      publish();
     } catch (error) {
       if (mounted && revision == _revision) {
+        _stopWatchingWeather();
         setState(() => _error = error.toString());
       }
     } finally {
@@ -256,6 +324,28 @@ class _ObservingSiteComparisonPanelState
         setState(() => _busy = false);
       }
     }
+  }
+
+  SiteComparisonInput _withRefreshedWeather(
+    SiteComparisonInput input,
+    WeatherForecastSnapshot? refreshed,
+  ) {
+    final previous = input.weather;
+    if (refreshed == null ||
+        (previous != null &&
+            !refreshed.forecast.fetchedAtUtc.isAfter(
+              previous.forecast.fetchedAtUtc,
+            ))) {
+      return input;
+    }
+    return SiteComparisonInput(
+      site: input.site,
+      weather: refreshed,
+      terrain: input.terrain,
+      terrainError: input.terrainError,
+      lightPollution: input.lightPollution,
+      lightPollutionError: input.lightPollutionError,
+    );
   }
 
   @override

@@ -5,6 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/site_comparison/presentation/observing_site_comparison_panel.dart';
 import 'package:astromanager/features/targets/domain/models/celestial_object.dart';
+import 'package:astromanager/features/weather/application/weather_providers.dart';
+import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
+
+import '../../support/weather_fakes.dart';
 
 const sites = [
   ObservingLocation(
@@ -49,6 +53,75 @@ const target = CelestialObject(
 );
 
 void main() {
+  testWidgets('a manual forecast refresh recalculates only the matching site', (
+    tester,
+  ) async {
+    final now = DateTime.now().toUtc();
+    final provider = ControlledWeatherProvider(
+      (request) async => hourlyTestForecast(
+        request,
+        fetchedAt: now.subtract(const Duration(hours: 3)),
+      ),
+    );
+    final scope = ProviderContainer.test(
+      overrides: [
+        siteComparisonTargetsProvider.overrideWith((ref) async => [target]),
+        weatherProviderProvider.overrideWithValue(provider),
+        weatherCacheRepositoryProvider.overrideWithValue(MemoryWeatherCache()),
+      ],
+    );
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: scope,
+        child: const MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ObservingSiteComparisonPanel(
+                sites: sites,
+                initiallyExpanded: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('compare-terrain')));
+    await tester.tap(find.byKey(const ValueKey('compare-nightlights')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('compare-run')));
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('site-comparison-error')),
+      findsNothing,
+      reason: tester
+          .widgetList<Text>(find.textContaining('Comparison failed:'))
+          .map((text) => text.data)
+          .join('\n'),
+    );
+    expect(find.text('Weather: unavailable or stale'), findsNWidgets(2));
+    expect(provider.calls, 2);
+
+    final first = provider.requests.first;
+    provider.respond = (request) async =>
+        hourlyTestForecast(request, fetchedAt: now);
+    await scope
+        .read(weatherForecastServiceProvider)
+        .load(
+          WeatherForecastRequest(
+            latitudeDegrees: first.latitudeDegrees,
+            longitudeDegrees: first.longitudeDegrees,
+            startUtc: first.startUtc.subtract(const Duration(days: 1)),
+            endUtc: first.endUtc.add(const Duration(days: 1)),
+          ),
+          forceRefresh: true,
+        );
+    await tester.pumpAndSettle();
+    expect(find.text('Weather: Mock forecast'), findsOneWidget);
+    expect(find.text('Weather: unavailable or stale'), findsOneWidget);
+    expect(provider.calls, 3);
+  });
+
   testWidgets('comparison stays lazy until explicitly expanded', (
     tester,
   ) async {

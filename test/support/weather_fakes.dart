@@ -1,4 +1,5 @@
 import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
+import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
 import 'package:astromanager/features/weather/domain/repositories/weather_cache_repository.dart';
 
@@ -41,4 +42,39 @@ final class ControlledWeatherProvider implements WeatherProvider {
     requests.add(request);
     return respond(request);
   }
+}
+
+WeatherForecast hourlyTestForecast(
+  WeatherForecastRequest request, {
+  required DateTime fetchedAt,
+  double cloudCover = 10,
+  DateTime? missingHour,
+}) {
+  final start = request.startUtc;
+  final hourStart = DateTime.utc(
+    start.year,
+    start.month,
+    start.day,
+    start.hour,
+  );
+  const hour = Duration(hours: 1);
+  return WeatherForecast(
+    provider: const WeatherProviderMetadata(id: 'mock', name: 'Mock'),
+    latitudeDegrees: request.latitudeDegrees,
+    longitudeDegrees: request.longitudeDegrees,
+    issuedAtUtc: fetchedAt,
+    fetchedAtUtc: fetchedAt,
+    hours: [
+      for (
+        var time = start == hourStart ? hourStart : hourStart.add(hour);
+        time.isBefore(request.endUtc);
+        time = time.add(hour)
+      )
+        if (time != missingHour)
+          HourlyWeatherForecast(
+            timeUtc: time,
+            totalCloudCoverPercent: WeatherValue.available(cloudCover),
+          ),
+    ],
+  );
 }

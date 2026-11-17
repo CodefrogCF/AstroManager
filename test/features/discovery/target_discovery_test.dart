@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:astromanager/features/dashboard/domain/dashboard_layout.dart';
+import 'package:astromanager/features/dashboard/presentation/widgets/seven_night_weather_widget.dart';
 import 'package:astromanager/features/discovery/application/discovery_evaluator.dart';
 import 'package:astromanager/features/discovery/data/discovery_repositories.dart';
 import 'package:astromanager/features/discovery/domain/discovery_results.dart';
@@ -17,9 +19,11 @@ import 'package:astromanager/features/targets/domain/models/celestial_object.dar
 import 'package:astromanager/features/targets/presentation/targets_screen.dart';
 import 'package:astromanager/features/weather/application/weather_providers.dart';
 import 'package:astromanager/features/weather/domain/models/weather_cache.dart';
-import 'package:astromanager/features/weather/domain/models/weather_forecast.dart';
-import 'package:astromanager/features/weather/domain/repositories/weather_cache_repository.dart';
+import 'package:astromanager/features/weather/domain/models/weather_error.dart';
+import 'package:astromanager/features/weather/domain/providers/weather_provider.dart';
 import 'package:astromanager/features/weather/data/mock_weather_provider.dart';
+
+import '../../support/weather_fakes.dart';
 
 const north = CelestialObject(
   id: 'polar',
@@ -127,6 +131,7 @@ class FakeEvaluator implements DiscoveryEvaluator {
   final siteIds = <String>[];
   final dates = <DateTime>[];
   final opticalSelections = <bool>[];
+  final forecasts = <WeatherForecastSnapshot?>[];
 
   @override
   Future<List<RankedDiscoveryTarget>> evaluate({
@@ -143,6 +148,7 @@ class FakeEvaluator implements DiscoveryEvaluator {
     siteIds.add(location.id);
     dates.add(localDate);
     opticalSelections.add(optics != null);
+    forecasts.add(weather);
     final start = DateTime.utc(2026, 11, 1, 20);
     final end = start.add(Duration(minutes: minimumDurationMinutes));
     return rankDiscoveryTargets([
@@ -180,17 +186,6 @@ class FakeEvaluator implements DiscoveryEvaluator {
   }
 }
 
-class EmptyWeatherCache implements WeatherCacheRepository {
-  @override
-  Future<WeatherForecast?> read(WeatherCacheKey key) async => null;
-  @override
-  Future<void> write(WeatherCacheKey key, WeatherForecast data) async {}
-  @override
-  Future<void> remove(WeatherCacheKey key) async {}
-  @override
-  Future<void> clear() async {}
-}
-
 void main() {
   late FakeCandidates candidates;
   late FakeFavorites favorites;
@@ -202,7 +197,12 @@ void main() {
     evaluator = FakeEvaluator();
   });
 
-  Future<void> pumpPanel(WidgetTester tester, {bool viaTargets = false}) async {
+  Future<void> pumpPanel(
+    WidgetTester tester, {
+    bool viaTargets = false,
+    bool showDashboardForecast = false,
+    WeatherProvider weatherProvider = const UnconfiguredWeatherProvider(),
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -224,16 +224,35 @@ void main() {
           discoveryCandidateSourceProvider.overrideWithValue(candidates),
           targetFavoritesStoreProvider.overrideWithValue(favorites),
           discoveryEvaluatorProvider.overrideWithValue(evaluator),
-          weatherProviderProvider.overrideWithValue(
-            const UnconfiguredWeatherProvider(),
+          weatherProviderProvider.overrideWithValue(weatherProvider),
+          weatherCacheRepositoryProvider.overrideWithValue(
+            MemoryWeatherCache(),
           ),
-          weatherCacheRepositoryProvider.overrideWithValue(EmptyWeatherCache()),
         ],
         child: MaterialApp(
           home: Scaffold(
-            body: viaTargets
-                ? const TargetsScreen()
-                : const SingleChildScrollView(child: TargetDiscoveryPanel()),
+            body: Column(
+              children: [
+                if (showDashboardForecast)
+                  const SizedBox(
+                    height: 220,
+                    child: SevenNightWeatherWidget(
+                      location: siteA,
+                      instance: DashboardWidgetInstance(
+                        id: 'forecast',
+                        typeId: 'seven-night-weather',
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: viaTargets
+                      ? const TargetsScreen()
+                      : const SingleChildScrollView(
+                          child: TargetDiscoveryPanel(),
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -244,6 +263,55 @@ void main() {
     }
     await tester.pumpAndSettle();
   }
+
+  testWidgets('Dashboard refresh recomputes a covered Targets recommendation', (
+    tester,
+  ) async {
+    final fresh = DateTime.now().toUtc();
+    final stale = fresh.subtract(const Duration(hours: 3));
+    final provider = ControlledWeatherProvider(
+      (request) async =>
+          hourlyTestForecast(request, fetchedAt: stale, cloudCover: 90),
+    );
+    await pumpPanel(
+      tester,
+      showDashboardForecast: true,
+      weatherProvider: provider,
+    );
+    expect(evaluator.forecasts.single!.forecast.fetchedAtUtc, stale);
+    expect(find.textContaining('STALE weather cache'), findsOneWidget);
+    final initialCalls = provider.calls;
+
+    provider.respond = (request) async =>
+        hourlyTestForecast(request, fetchedAt: fresh);
+    final refresh = find.byTooltip('Refresh forecast');
+    await tester.tap(refresh);
+    await tester.pumpAndSettle();
+
+    expect(provider.calls, initialCalls + 1);
+    expect(evaluator.forecasts, hasLength(2));
+    final updated = evaluator.forecasts.last!;
+    expect(updated.forecast.fetchedAtUtc, fresh);
+    expect(updated.forecast.hours.first.totalCloudCoverPercent.value, 10);
+    expect(find.textContaining('Forecast from network'), findsOneWidget);
+    expect(find.textContaining('STALE weather cache'), findsNothing);
+
+    provider.respond = (_) async => throw const WeatherException(
+      type: WeatherErrorType.network,
+      message: 'Offline',
+    );
+    await tester.tap(refresh);
+    await tester.pumpAndSettle();
+
+    expect(provider.calls, initialCalls + 2);
+    expect(evaluator.forecasts, hasLength(2));
+    expect(evaluator.forecasts.last!.forecast.fetchedAtUtc, fresh);
+    expect(find.textContaining('Forecast from network'), findsOneWidget);
+    expect(
+      find.text('Could not refresh. Showing the last forecast.'),
+      findsOneWidget,
+    );
+  });
 
   test('equal scores produce stable ordering by target identifier', () async {
     final evaluated = await evaluator.evaluate(

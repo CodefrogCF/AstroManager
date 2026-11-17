@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/open_meteo_weather_provider.dart';
@@ -25,11 +27,13 @@ final weatherCachePolicyProvider = Provider<WeatherCachePolicy>(
 );
 
 final weatherForecastServiceProvider = Provider<WeatherForecastService>((ref) {
-  return WeatherForecastService(
+  final service = WeatherForecastService(
     provider: ref.watch(weatherProviderProvider),
     cache: ref.watch(weatherCacheRepositoryProvider),
     policy: ref.watch(weatherCachePolicyProvider),
   );
+  ref.onDispose(service.dispose);
+  return service;
 });
 
 /// Only retry transient failures when no cached fallback can be returned.
@@ -48,6 +52,21 @@ final weatherForecastSnapshotProvider =
       WeatherForecastRequest
     >(WeatherForecastSnapshotController.new, retry: weatherForecastRetry);
 
+/// For screens that calculate with an awaited snapshot. The initial load
+/// already resolves their pending calculation, and a failure retains its data.
+bool weatherForecastWasUpdated(
+  AsyncValue<WeatherForecastSnapshot>? previous,
+  AsyncValue<WeatherForecastSnapshot> next,
+) {
+  final update = next.asData?.value;
+  if (update == null || update.refreshError != null || previous == null) {
+    return false;
+  }
+  final prior = previous.value;
+  if (prior == null) return !previous.isLoading;
+  return update.forecast.fetchedAtUtc.isAfter(prior.forecast.fetchedAtUtc);
+}
+
 final class WeatherForecastSnapshotController
     extends AsyncNotifier<WeatherForecastSnapshot> {
   WeatherForecastSnapshotController(this.request);
@@ -55,8 +74,20 @@ final class WeatherForecastSnapshotController
   final WeatherForecastRequest request;
 
   @override
-  Future<WeatherForecastSnapshot> build() =>
-      ref.watch(weatherForecastServiceProvider).load(request);
+  Future<WeatherForecastSnapshot> build() {
+    final service = ref.watch(weatherForecastServiceProvider);
+    final subscription = service.manualRefreshesFor(request).listen((snapshot) {
+      final previous = state.value;
+      if (previous == null ||
+          snapshot.forecast.fetchedAtUtc.isAfter(
+            previous.forecast.fetchedAtUtc,
+          )) {
+        state = AsyncData(snapshot);
+      }
+    });
+    ref.onDispose(() => unawaited(subscription.cancel()));
+    return service.load(request);
+  }
 
   Future<void> refreshForecast() async {
     if (state.isLoading) return;
@@ -69,12 +100,11 @@ final class WeatherForecastSnapshotController
       final error = result.refreshError;
       // A successful download can still be newer than the persisted cache.
       // Keep that in-memory forecast if the next refresh fails.
-      if (error != null &&
-          previous != null &&
-          previous.forecast.fetchedAtUtc.isAfter(
-            result.forecast.fetchedAtUtc,
-          )) {
-        throw error;
+      final latest = refreshRef.mounted ? state.value ?? previous : previous;
+      if (latest != null &&
+          latest.forecast.fetchedAtUtc.isAfter(result.forecast.fetchedAtUtc)) {
+        if (error != null) throw error;
+        return latest;
       }
       return result;
     });

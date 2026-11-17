@@ -55,6 +55,8 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
   String? _searchError;
   String? _weatherError;
   WeatherForecastSnapshot? _weather;
+  ProviderSubscription<AsyncValue<WeatherForecastSnapshot>>?
+  _weatherSubscription;
   int _candidatesConsidered = 0;
   int _generation = 0;
   List<RankedDiscoveryTarget> _ranked = const [];
@@ -146,6 +148,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
 
   Future<void> _recompute() async {
     _debounce?.cancel();
+    _weatherSubscription?.close();
     final site = _site;
     final revision = ++_generation;
     bool current() => mounted && revision == _generation;
@@ -183,16 +186,20 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
       WeatherForecastSnapshot? weather;
       String? weatherError;
       try {
-        weather = await ref.read(
-          weatherForecastSnapshotProvider(
-            WeatherForecastRequest(
-              latitudeDegrees: site.latitude,
-              longitudeDegrees: site.longitude,
-              startUtc: night.nightStartUtc,
-              endUtc: night.nightEndUtc,
-            ),
-          ).future,
+        final forecast = weatherForecastSnapshotProvider(
+          WeatherForecastRequest(
+            latitudeDegrees: site.latitude,
+            longitudeDegrees: site.longitude,
+            startUtc: night.nightStartUtc,
+            endUtc: night.nightEndUtc,
+          ),
         );
+        _weatherSubscription = ref.listenManual(forecast, (previous, next) {
+          if (current() && weatherForecastWasUpdated(previous, next)) {
+            unawaited(_recompute());
+          }
+        });
+        weather = await ref.read(forecast.future);
       } catch (error) {
         // Offline without a cached forecast is a valid partial discovery mode.
         weatherError = error.toString();

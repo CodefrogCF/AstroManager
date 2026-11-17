@@ -103,6 +103,9 @@ final topTargetsProvider = FutureProvider.autoDispose
         localDate: localDate,
       );
       final now = DateTime.now().toUtc();
+      if (!ref.mounted) {
+        throw StateError('Recommendation evaluation cancelled.');
+      }
       WeatherForecastSnapshot? weather;
       String? weatherError;
       // Existing weather cache/provider performs freshness checks. Offline or
@@ -110,7 +113,7 @@ final topTargetsProvider = FutureProvider.autoDispose
       if (night.nightEndUtc.isAfter(now) &&
           night.nightStartUtc.isBefore(now.add(const Duration(days: 14)))) {
         try {
-          weather = await ref.read(
+          weather = await ref.watch(
             weatherForecastSnapshotProvider(
               WeatherForecastRequest(
                 latitudeDegrees: site.latitude,

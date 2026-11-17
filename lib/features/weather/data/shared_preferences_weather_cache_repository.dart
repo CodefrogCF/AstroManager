@@ -48,20 +48,57 @@ final class SharedPreferencesWeatherCacheRepository
   }) : assert(maximumEntries > 0),
        _store = store ?? SharedPreferencesWeatherStore();
 
-  static const prefix = 'astromanager.weather.v1.';
+  static const prefix = WeatherCacheKey.storagePrefix;
   final WeatherCacheStore _store;
   final int maximumEntries;
   Future<void> _lastMutation = Future<void>.value();
 
   @override
   Future<WeatherForecast?> read(WeatherCacheKey key) async {
+    final exact = await _readEntry(key);
+    final Set<String> names;
+    try {
+      names = await _store.getKeys();
+    } catch (_) {
+      return exact;
+    }
+    final coveringKeys = names
+        .map(WeatherCacheKey.tryParseStorageKey)
+        .nonNulls
+        .where((candidate) => candidate != key && candidate.covers(key));
+    final covering = await Future.wait(
+      coveringKeys.map((candidate) async {
+        try {
+          final forecast = await _readEntry(candidate);
+          return forecast == null ? null : candidate.forecastFor(key, forecast);
+        } catch (_) {
+          // One unreadable covering entry must not discard other cached data.
+          return null;
+        }
+      }),
+    );
+    var latest = exact;
+    for (final forecast in covering.nonNulls) {
+      if (latest == null ||
+          forecast.fetchedAtUtc.isAfter(latest.fetchedAtUtc)) {
+        latest = forecast;
+      }
+    }
+    return latest;
+  }
+
+  Future<WeatherForecast?> _readEntry(WeatherCacheKey key) async {
     final raw = await _store.getString(key.storageKey);
     if (raw == null) return null;
     try {
       return WeatherForecastCodec.decode(raw, key);
     } on FormatException {
       // Invalid or obsolete records must not prevent a new forecast download.
-      await _store.remove(key.storageKey);
+      await _mutate(() async {
+        if (await _store.getString(key.storageKey) == raw) {
+          await _store.remove(key.storageKey);
+        }
+      });
       return null;
     }
   }

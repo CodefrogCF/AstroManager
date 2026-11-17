@@ -23,6 +23,28 @@ final class WeatherForecastService {
 
   /// One API request per exact key, even with concurrent callers.
   final Map<WeatherCacheKey, Future<WeatherForecast>> _refreshes = {};
+  final Map<WeatherCacheKey, WeatherForecast> _manualForecasts = {};
+  final _manualRefreshes =
+      StreamController<MapEntry<WeatherCacheKey, WeatherForecast>>.broadcast();
+
+  /// Successful manual downloads that can replace this screen's forecast.
+  Stream<WeatherForecastSnapshot> manualRefreshesFor(
+    WeatherForecastRequest request,
+  ) {
+    final key = _cacheKey(request);
+    return _manualRefreshes.stream
+        .map((entry) => entry.key.forecastFor(key, entry.value))
+        .where((forecast) => forecast != null)
+        .map(
+          (forecast) => _snapshot(
+            forecast!,
+            WeatherForecastOrigin.network,
+            _clock().toUtc(),
+          ),
+        );
+  }
+
+  void dispose() => unawaited(_manualRefreshes.close());
 
   /// Returns a freshness-tagged forecast. Stale data is NEVER marked fresh.
   ///
@@ -36,7 +58,7 @@ final class WeatherForecastService {
   }) async {
     request.validate();
     final key = _cacheKey(request);
-    final stored = await _readSafe(key);
+    var stored = await _readSafe(key);
     final now = _clock().toUtc();
     final fresh = stored != null && policy.isFresh(stored, now);
 
@@ -66,12 +88,14 @@ final class WeatherForecastService {
 
     try {
       final downloaded = await _refreshOnce(key, request);
+      if (forceRefresh) _rememberManualForecast(key, downloaded);
       return _snapshot(
-        downloaded,
+        _withLatestManualForecast(key, downloaded)!,
         WeatherForecastOrigin.network,
         _clock().toUtc(),
       );
     } catch (error) {
+      stored = _withLatestManualForecast(key, stored);
       final weatherError = error is WeatherException
           ? error
           : WeatherException(
@@ -119,12 +143,43 @@ final class WeatherForecastService {
   );
 
   Future<WeatherForecast?> _readSafe(WeatherCacheKey key) async {
+    WeatherForecast? stored;
     try {
-      return await cache.read(key);
+      stored = await cache.read(key);
     } catch (_) {
       // An unavailable cache must not prevent online operation.
-      return null;
     }
+    return _withLatestManualForecast(key, stored);
+  }
+
+  WeatherForecast? _withLatestManualForecast(
+    WeatherCacheKey key,
+    WeatherForecast? latest,
+  ) {
+    for (final entry in _manualForecasts.entries) {
+      if (latest != null &&
+          !entry.value.fetchedAtUtc.isAfter(latest.fetchedAtUtc)) {
+        continue;
+      }
+      latest = entry.key.forecastFor(key, entry.value) ?? latest;
+    }
+    return latest;
+  }
+
+  void _rememberManualForecast(WeatherCacheKey key, WeatherForecast forecast) {
+    if (_manualRefreshes.isClosed) return;
+    final previous = _manualForecasts[key];
+    if (previous != null &&
+        previous.fetchedAtUtc.isAfter(forecast.fetchedAtUtc)) {
+      return;
+    }
+    // A successful download remains usable even if the disk cache is down.
+    _manualForecasts.remove(key);
+    _manualForecasts[key] = forecast;
+    if (_manualForecasts.length > 20) {
+      _manualForecasts.remove(_manualForecasts.keys.first);
+    }
+    _manualRefreshes.add(MapEntry(key, forecast));
   }
 
   Future<WeatherForecast> _refreshOnce(
