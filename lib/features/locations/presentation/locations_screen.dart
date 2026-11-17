@@ -7,7 +7,6 @@ import '../../../core/errors/app_error_message.dart';
 import '../application/observing_locations_controller.dart';
 import '../domain/models/observing_location.dart';
 import '../domain/models/iana_time_zones.dart';
-import '../../light_pollution/presentation/light_pollution_location_panel.dart';
 import '../../site_comparison/presentation/observing_site_comparison_panel.dart';
 import '../../terrain/presentation/terrain_location_panel.dart';
 
@@ -309,12 +308,19 @@ class LocationsScreen extends ConsumerWidget {
                                     )),
                                     site: location,
                                   ),
-                                  LightPollutionLocationPanel(
-                                    key: ValueKey(
-                                      'light-pollution-${location.id}',
+                                  if (location.bortleClass case final bortle?)
+                                    ListTile(
+                                      dense: true,
+                                      title: const AppText(
+                                        'Observer-reported Bortle class',
+                                      ),
+                                      trailing: Text(
+                                        '$bortle/9',
+                                        key: const ValueKey(
+                                          'observer-bortle-class',
+                                        ),
+                                      ),
                                     ),
-                                    site: location,
-                                  ),
                                 ],
                               ),
                             ),

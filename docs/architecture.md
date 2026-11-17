@@ -20,11 +20,11 @@ Application state and dependency injection use `flutter_riverpod`; navigation us
 
 - **Drift/SQLite (`AppDatabase`, schema v7):** saved observing locations with optional observer-reported Bortle classes, equipment and optical profiles, imaging projects and target links, observation sessions and image metadata. Migration tests protect earlier schema versions. Several versioned settings records also live in `app_settings`, including night plans, mosaic plans and opportunity alert configurations.
 - **Attachment binaries:** stored outside SQLite (native application support directory or separate browser IndexedDB). Rows carry opaque storage references and metadata; backup/restore copies content separately when selected.
-- **SharedPreferences:** selected theme and several derived-data caches (for example terrain and VIIRS location readings). Cache contents are not authoritative personal data and need not survive backup restoration.
+- **SharedPreferences:** selected theme and several derived-data caches (for example weather and terrain profiles). Cache contents are not authoritative personal data and need not survive backup restoration.
 - **Bundled target catalog:** OpenNGC snapshot distributed with the app, loaded without a live service.
 - **Portable backups:** `.ambackup` is a versioned ZIP with JSON and optional detached images, validated before transactional restoration. See [Backup format](backup-format.md).
 
-No AstroManager account or remote personal-data sync is part of this architecture. Requests for live weather, terrain, imagery and satellite radiance require network calls to third parties; do not assume that using an offline-first app means no network traffic.
+No AstroManager account or remote personal-data sync is part of this architecture. Requests for live weather, terrain and imagery require network calls to third parties; do not assume that using an offline-first app means no network traffic.
 
 ## Astronomical and planning conventions
 
@@ -34,13 +34,13 @@ No AstroManager account or remote personal-data sync is part of this architectur
 - Session start times store a UTC instant, IANA zone and recorded offset; nonexistent local times are rejected. Exposure integration is `accepted_frames × exposure_seconds` and totals are derived from sessions rather than stored redundantly.
 - Target visibility is a geometric approximation. Optional DEM obstruction requires altitude above both the minimum chosen elevation and the calculated horizon for the target's **azimuth**. Missing DEM bearings remain unknown, not visible.
 - Mosaic panels use a **shared gnomonic tangent plane** and inverse projection to celestial coordinates; angular layout supports rotation, overlap, RA=0 wrap and high declinations. Exported panel positions are ICRS/J2000 degrees and do not command a mount.
-- Weather-aware suitability scores are **heuristics**, not probability guarantees. Available and stale/missing values remain distinct. VIIRS upward radiance is optional for relative comparisons and must never be equated with measured SQM or Bortle.
+- Weather-aware suitability scores are **heuristics**, not probability guarantees. Available and stale/missing values remain distinct. Current 100% cloud cover splits otherwise observable intervals. The saved Bortle class is a modest, optional scoring factor.
 
 Consult the domain implementations in `lib/core/astronomy/`, `lib/features/intelligence/`, `lib/features/terrain/`, `lib/features/mosaic/` and `lib/features/site_comparison/` for exact formulas and defaults.
 
 ## External providers and caching
 
-`lib/features/weather/` wraps Open-Meteo; `lib/features/terrain/` wraps OpenTopoData; `lib/features/light_pollution/` accesses a monthly VIIRS image service; and the atlas uses Aladin Lite / DSS Color imagery. Providers must be replaceable, timeout/error-aware, respectful of source limits and explicit about missing/freshness metadata. Use local results when valid; show stale data clearly when the offline fallback allows it. Full source details are in [Data sources and limitations](data-sources.md).
+`lib/features/weather/` wraps Open-Meteo; `lib/features/terrain/` wraps OpenTopoData; and the atlas uses Aladin Lite / DSS Color imagery. Providers must be replaceable, timeout/error-aware, respectful of source limits and explicit about missing/freshness metadata. Use local results when valid; show stale data clearly when the offline fallback allows it. Full source details are in [Data sources and limitations](data-sources.md).
 
 ## Opportunity notification lifecycle
 

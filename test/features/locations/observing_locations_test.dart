@@ -8,8 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:astromanager/core/database/app_database.dart';
 import 'package:astromanager/core/database/repositories/app_settings_repository.dart';
 import 'package:astromanager/core/errors/app_failure.dart';
-import 'package:astromanager/features/light_pollution/application/light_pollution_providers.dart';
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 
 import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 import 'package:astromanager/features/locations/data/repositories/drift_observing_location_repository.dart';
@@ -433,114 +431,80 @@ void main() {
     }
   });
 
-  testWidgets('observer reports and offline Bortle estimates stay distinct', (
-    tester,
-  ) async {
-    final repository = FakeObservingLocationRepository();
-    var satelliteRequests = 0;
+  testWidgets(
+    'observer-reported Bortle class can be saved, changed and cleared',
+    (tester) async {
+      final repository = FakeObservingLocationRepository();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          observingLocationRepositoryProvider.overrideWithValue(repository),
-          bortleEstimateProvider.overrideWith(
-            (ref, point) async => (classCode: 5, datasetYear: 2024),
-          ),
-          lightPollutionSnapshotProvider.overrideWith((ref, point) {
-            satelliteRequests++;
-            return LightPollutionSnapshot(
-              reading: LightPollutionReading(
-                kind: NightLightKind.satelliteRadiance,
-                value: 2,
-                sourceId: 'fixture',
-                sourceName: 'Test VIIRS',
-                datasetDate: DateTime.utc(2025, 12, 31),
-                latitude: point.latitude,
-                longitude: point.longitude,
-                description: 'Fixture reading',
-              ),
-              fromCache: true,
-              isStale: false,
-            );
-          }),
-        ],
-        child: const MaterialApp(home: Scaffold(body: LocationsScreen())),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Add location'));
-    await tester.pumpAndSettle();
-
-    await tester.enterText(
-      find.byKey(const ValueKey('location-name')),
-      'Test Observatory',
-    );
-
-    await tester.enterText(
-      find.byKey(const ValueKey('location-latitude')),
-      '47.48',
-    );
-
-    await tester.enterText(
-      find.byKey(const ValueKey('location-longitude')),
-      '8.21',
-    );
-
-    expect(find.byKey(const ValueKey('location-timezone')), findsOneWidget);
-    final bortleField = find.byKey(const ValueKey('location-bortle-class'));
-    Future<void> chooseBortle(String label) async {
-      await tester.ensureVisible(bortleField);
-      await tester.tap(bortleField);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(label).last);
-      await tester.pumpAndSettle();
-    }
-
-    await chooseBortle('4');
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(repository.locations, hasLength(1));
-
-    expect(repository.locations.first.name, 'Test Observatory');
-    expect(repository.locations.first.timeZone, 'Etc/UTC');
-
-    expect(repository.locations.first.isDefault, isTrue);
-    expect(repository.locations.first.bortleClass, 4);
-    expect(find.text('Observer-reported Bortle class'), findsOneWidget);
-    expect(find.text('4/9'), findsOneWidget);
-    expect(find.text('Estimated Bortle class'), findsOneWidget);
-    expect(find.text('5 · EOG VIIRS 2024'), findsOneWidget);
-    expect(satelliteRequests, 0);
-    final satellite = find.text('Check satellite data');
-    await tester.ensureVisible(satellite);
-    await tester.tap(satellite);
-    await tester.pumpAndSettle();
-    expect(
-      find.textContaining('Satellite upward radiance: 2.00'),
-      findsOneWidget,
-    );
-    expect(find.text('4/9'), findsOneWidget);
-
-    for (final (choice, value) in [('7', 7), ('Unclassified', null)]) {
-      final edit = find.byTooltip('Edit location');
-      await tester.ensureVisible(edit);
-      await tester.tap(edit);
-      await tester.pumpAndSettle();
-      expect(
-        tester.state<FormFieldState<int>>(bortleField).value,
-        repository.locations.single.bortleClass,
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            observingLocationRepositoryProvider.overrideWithValue(repository),
+          ],
+          child: const MaterialApp(home: Scaffold(body: LocationsScreen())),
+        ),
       );
-      await chooseBortle(choice);
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Add location'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const ValueKey('location-name')),
+        'Test Observatory',
+      );
+
+      await tester.enterText(
+        find.byKey(const ValueKey('location-latitude')),
+        '47.48',
+      );
+
+      await tester.enterText(
+        find.byKey(const ValueKey('location-longitude')),
+        '8.21',
+      );
+
+      expect(find.byKey(const ValueKey('location-timezone')), findsOneWidget);
+      final bortleField = find.byKey(const ValueKey('location-bortle-class'));
+      Future<void> chooseBortle(String label) async {
+        await tester.ensureVisible(bortleField);
+        await tester.tap(bortleField);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label).last);
+        await tester.pumpAndSettle();
+      }
+
+      await chooseBortle('4');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      expect(repository.locations.single.bortleClass, value);
-    }
-    expect(find.byKey(const ValueKey('observer-bortle-class')), findsNothing);
-    expect(find.text('5 · EOG VIIRS 2024'), findsOneWidget);
-  });
+
+      expect(repository.locations, hasLength(1));
+
+      expect(repository.locations.first.name, 'Test Observatory');
+      expect(repository.locations.first.timeZone, 'Etc/UTC');
+
+      expect(repository.locations.first.isDefault, isTrue);
+      expect(repository.locations.first.bortleClass, 4);
+      expect(find.text('Observer-reported Bortle class'), findsOneWidget);
+      expect(find.text('4/9'), findsOneWidget);
+      for (final (choice, value) in [('7', 7), ('Unclassified', null)]) {
+        final edit = find.byTooltip('Edit location');
+        await tester.ensureVisible(edit);
+        await tester.tap(edit);
+        await tester.pumpAndSettle();
+        expect(
+          tester.state<FormFieldState<int>>(bortleField).value,
+          repository.locations.single.bortleClass,
+        );
+        await chooseBortle(choice);
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(repository.locations.single.bortleClass, value);
+      }
+      expect(find.byKey(const ValueKey('observer-bortle-class')), findsNothing);
+    },
+  );
 
   testWidgets('time zone editor uses only selectable IANA identifiers', (
     tester,

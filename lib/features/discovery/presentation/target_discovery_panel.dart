@@ -15,8 +15,6 @@ import '../../equipment/application/equipment_controller.dart';
 import '../../equipment/domain/models/equipment_models.dart';
 import '../../intelligence/domain/models/observation_window.dart';
 import '../../intelligence/domain/models/suitability_score.dart';
-import '../../light_pollution/application/light_pollution_providers.dart';
-import '../../light_pollution/domain/light_pollution.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../targets/application/celestial_catalog_controller.dart';
@@ -24,6 +22,7 @@ import '../../targets/domain/models/celestial_object.dart';
 import '../../weather/application/weather_providers.dart';
 import '../../weather/domain/models/weather_cache.dart';
 import '../../weather/domain/providers/weather_provider.dart';
+import '../../weather/presentation/weather_attribution.dart';
 import '../application/discovery_evaluator.dart';
 import '../data/discovery_repositories.dart';
 import '../domain/discovery_results.dart';
@@ -59,8 +58,6 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
   WeatherForecastSnapshot? _weather;
   ProviderSubscription<AsyncValue<WeatherForecastSnapshot>>?
   _weatherSubscription;
-  ProviderSubscription<AsyncValue<LightPollutionSnapshot?>>?
-  _nightLightsSubscription;
   int _candidatesConsidered = 0;
   int _generation = 0;
   List<RankedDiscoveryTarget> _ranked = const [];
@@ -152,12 +149,12 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
 
   Future<void> _recompute() async {
     _debounce?.cancel();
-    _weatherSubscription?.close();
-    _nightLightsSubscription?.close();
     final site = _site;
     final revision = ++_generation;
     bool current() => mounted && revision == _generation;
     if (site == null) {
+      _weatherSubscription?.close();
+      _weatherSubscription = null;
       if (mounted) {
         setState(() {
           _ranked = const [];
@@ -199,32 +196,20 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             endUtc: night.nightEndUtc,
           ),
         );
-        _weatherSubscription = ref.listenManual(forecast, (previous, next) {
+        final subscription = ref.listenManual(forecast, (previous, next) {
           if (current() && weatherForecastWasUpdated(previous, next)) {
             unawaited(_recompute());
           }
         });
+        // Keep the active snapshot alive while recalculating the same window.
+        _weatherSubscription?.close();
+        _weatherSubscription = subscription;
         weather = await ref.read(forecast.future);
       } catch (error) {
         // Offline without a cached forecast is a valid partial discovery mode.
         weatherError = error.toString();
       }
       if (!current()) return;
-      final cachedLights = cachedNightLightsProvider(
-        lightPollutionRequest(site),
-      );
-      _nightLightsSubscription = ref.listenManual(cachedLights, (
-        previous,
-        next,
-      ) {
-        if (current() &&
-            previous?.hasValue == true &&
-            next.hasValue &&
-            !next.isLoading) {
-          unawaited(_recompute());
-        }
-      });
-      final nightLights = await ref.read(cachedLights.future);
       if (!current()) return;
       OpticalMetrics? optics;
       String? opticalError;
@@ -244,7 +229,6 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             minimumDurationMinutes: _durationMinutes,
             minimumAltitudeDegrees: _minimumAltitude,
             weather: weather,
-            nightLights: nightLights,
             optics: optics,
             isCurrent: current,
           );
@@ -667,6 +651,8 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
           _forecastLabel(_weather, _weatherError),
           key: const ValueKey('discovery-weather-status'),
         ),
+        if (_weather case final snapshot?)
+          WeatherAttribution(snapshot.forecast.provider),
         if (_weatherError != null)
           AppText(
             'Forecast detail: $_weatherError',

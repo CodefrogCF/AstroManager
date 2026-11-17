@@ -132,6 +132,7 @@ abstract final class RecommendationScenarios {
     bool stale = false,
     bool wrongLocation = false,
     List<DateTime>? hoursUtc,
+    Map<DateTime, double> cloudOverrides = const {},
   }) {
     final times =
         hoursUtc ?? [startUtc, startUtc.add(const Duration(hours: 1))];
@@ -149,7 +150,7 @@ abstract final class RecommendationScenarios {
           for (final time in times)
             hour(
               time,
-              cloudPercent: cloudPercent,
+              cloudPercent: cloudOverrides[time] ?? cloudPercent,
               precipitationMm: precipitationMm,
               precipitationProbabilityPercent: precipitationProbabilityPercent,
               missingTotalClouds: missingTotalClouds,

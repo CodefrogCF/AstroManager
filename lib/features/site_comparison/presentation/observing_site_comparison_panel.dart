@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/astronomy/solar_events.dart';
-import '../../light_pollution/application/light_pollution_providers.dart';
-import '../../light_pollution/data/light_pollution_repository.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../projects/data/planned_projects_repository.dart';
 import '../../targets/application/celestial_catalog_controller.dart';
@@ -64,7 +62,6 @@ class _ObservingSiteComparisonPanelState
   String? _targetId;
   DateTime _date = DateTime.now();
   bool _terrain = true;
-  bool _nightLights = true;
   bool _busy = false;
   int _completed = 0;
   int _revision = 0;
@@ -164,7 +161,6 @@ class _ObservingSiteComparisonPanelState
   Future<SiteComparisonInput> _load(
     ObservingLocation site,
     bool terrainRequested,
-    bool lightsRequested,
     WeatherForecastRequest? forecastRequest,
   ) async {
     // Keep failures isolated per site and per source: one API failure must not
@@ -201,26 +197,12 @@ class _ObservingSiteComparisonPanelState
       }
     }
 
-    LightPollutionSnapshot? lights;
-    String? lightError;
-    if (lightsRequested) {
-      try {
-        lights = await ref
-            .read(lightPollutionRepositoryProvider)
-            .load(latitude: site.latitude, longitude: site.longitude);
-      } catch (error) {
-        lightError = error.toString();
-      }
-    }
-
     return SiteComparisonInput(
       site: site,
       weather: weather,
       weatherError: weatherError,
       terrain: horizon,
       terrainError: terrainError,
-      lightPollution: lights,
-      lightPollutionError: lightError,
     );
   }
 
@@ -234,7 +216,6 @@ class _ObservingSiteComparisonPanelState
     }
     final date = _date;
     final includeTerrain = _terrain;
-    final includeLights = _nightLights;
     final revision = ++_revision;
     final evaluatedAt = DateTime.now().toUtc();
     _stopWatchingWeather();
@@ -260,10 +241,7 @@ class _ObservingSiteComparisonPanelState
           localDate: date,
           evaluatedAtUtc: DateTime.now().toUtc(),
           sites: inputs.values.toList(),
-          options: SiteComparisonOptions(
-            compareTerrain: includeTerrain,
-            compareLightPollution: includeLights,
-          ),
+          options: SiteComparisonOptions(compareTerrain: includeTerrain),
           weatherPolicy: weatherPolicy,
         );
         setState(() => _report = report);
@@ -298,12 +276,7 @@ class _ObservingSiteComparisonPanelState
       // The public DEM endpoint is rate-limited; process selected sites one by
       // one instead of launching uncontrolled parallel elevation requests.
       for (final site in selected) {
-        final input = await _load(
-          site,
-          includeTerrain,
-          includeLights,
-          requests[site.id],
-        );
+        final input = await _load(site, includeTerrain, requests[site.id]);
         if (!mounted || revision != _revision) {
           return;
         }
@@ -343,8 +316,6 @@ class _ObservingSiteComparisonPanelState
       weather: refreshed,
       terrain: input.terrain,
       terrainError: input.terrainError,
-      lightPollution: input.lightPollution,
-      lightPollutionError: input.lightPollutionError,
     );
   }
 
@@ -429,14 +400,6 @@ class _ObservingSiteComparisonPanelState
                     onSelected: _busy
                         ? null
                         : (value) => _changed(() => _terrain = value),
-                  ),
-                  FilterChip(
-                    key: const ValueKey('compare-nightlights'),
-                    label: const AppText('Satellite night lights'),
-                    selected: _nightLights,
-                    onSelected: _busy
-                        ? null
-                        : (value) => _changed(() => _nightLights = value),
                   ),
                 ],
               ),
@@ -571,12 +534,9 @@ class _ObservingSiteComparisonPanelState
                   AppText(
                     'Weather: ${!result.weatherUsable ? 'unavailable or stale' : '${result.weather!.forecast.provider.name} forecast'}',
                   ),
-                  if (result.lightPollution?.reading != null)
-                    AppText(
-                      'Night lights: ${result.lightPollution!.reading!.value.toStringAsFixed(2)} '
-                      '${result.lightPollution!.reading!.unit} '
-                      '(${result.lightPollution!.reading!.sourceName}, '
-                      '${result.lightPollution!.reading!.datasetDate.year})',
+                  if (result.site.bortleClass case final bortle?)
+                    Text(
+                      '${appTranslate(context, "Observer-reported Bortle class")} · $bortle/9',
                     ),
                   if (result.missingData.isNotEmpty) ...[
                     const SizedBox(height: 4),

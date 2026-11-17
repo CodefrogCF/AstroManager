@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,11 +8,13 @@ import 'app/app.dart';
 import 'app/theme/app_theme_choice.dart';
 import 'app/theme/theme_controller.dart';
 import 'app/theme/theme_repository.dart';
+import 'core/storage/retired_observing_site_cache.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final repository = SharedPreferencesThemeRepository(SharedPreferencesAsync());
+  final preferences = SharedPreferencesAsync();
+  final repository = SharedPreferencesThemeRepository(preferences);
 
   AppThemeChoice initialTheme;
 
@@ -29,4 +33,5 @@ Future<void> main() async {
       child: const AstroManagerApp(),
     ),
   );
+  unawaited(clearRetiredObservingSiteCache(preferences));
 }

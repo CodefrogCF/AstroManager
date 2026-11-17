@@ -1,9 +1,6 @@
 import 'dart:convert';
 
 import 'package:astromanager/features/dashboard/presentation/widgets/observing_site_conditions_widget.dart';
-import 'package:astromanager/features/light_pollution/application/light_pollution_providers.dart';
-import 'package:astromanager/features/light_pollution/data/light_pollution_repository.dart';
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/locations/presentation/locations_screen.dart';
@@ -37,7 +34,7 @@ const _selected = ObservingLocation(
   isDefault: false,
 );
 
-class _Store implements TerrainProfileStore, LightPollutionCacheStore {
+class _Store implements TerrainProfileStore {
   final _values = <String, String>{};
 
   @override
@@ -52,11 +49,6 @@ class _Store implements TerrainProfileStore, LightPollutionCacheStore {
 
   @override
   Future<void> remove(String key) async => _values.remove(key);
-}
-
-class _NightLights extends Fake implements LightPollutionProvider {
-  @override
-  String get id => 'test-night-lights';
 }
 
 void main() {
@@ -104,12 +96,6 @@ void main() {
                 (ref, notifier) => const [_default, _selected],
               ),
               terrainProfileRepositoryProvider.overrideWithValue(repository),
-              lightPollutionRepositoryProvider.overrideWithValue(
-                LightPollutionRepository(
-                  provider: _NightLights(),
-                  cache: store,
-                ),
-              ),
             ],
             child: const MaterialApp(
               home: Scaffold(

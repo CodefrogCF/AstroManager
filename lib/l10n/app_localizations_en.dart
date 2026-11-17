@@ -22,11 +22,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteBortleObserverReported => 'Observer-reported Bortle class';
 
   @override
-  String get siteBortleEstimate => 'Estimated Bortle class';
+  String get siteBortleFactor => 'Bortle class';
 
   @override
-  String get siteBortleEstimateUnavailable =>
-      'Bortle estimate unavailable for this location.';
+  String get siteBortleNoClass =>
+      'No Bortle class recorded for this observing site.';
+
+  @override
+  String get weatherOvercastWindowExcluded =>
+      '100% cloud cover leaves no continuous window long enough for the minimum session duration.';
+
+  @override
+  String get weatherOvercastVisibleInterval =>
+      'Forecast shows 100% cloud cover throughout the visible dark interval.';
 
   @override
   String get atlasShowCatalogDetails => 'Show catalog details';
@@ -271,9 +279,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ui4025e05099a6 => 'Target exceeds frame';
-
-  @override
-  String get ui4077b1fe737b => 'No valid night-light data at this location.';
 
   @override
   String get ui41def7a0febe => 'Appearance';
@@ -666,9 +671,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uiccc10c286211 => 'Search Messier, NGC and IC objects';
 
   @override
-  String get uiccd63d8a2ab7 => 'Satellite night lights';
-
-  @override
   String get uicdd7bb2816b7 => 'Setup';
 
   @override
@@ -714,9 +716,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get uid88966393d5b => 'Radial step';
-
-  @override
-  String get uid9074210f303 => 'Check satellite data';
 
   @override
   String get uid94e8bb0897a => 'Set up equipment';
@@ -989,10 +988,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'No observing location. Add one in Settings to discover targets.';
 
   @override
-  String get ui01c73659161b =>
-      'No valid night-light data at this location. No darkness classification is inferred.';
-
-  @override
   String get ui183079f3bd54 => 'Not selected';
 
   @override
@@ -1074,10 +1069,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ui183dfe8735d3 => 'Unable to save theme preference.';
-
-  @override
-  String get ui688741deabd8 =>
-      'Upward radiance is not a sky brightness measurement. Nearby lights, terrain, cloud, snow and atmospheric scattering can change actual observing conditions.';
 
   @override
   String get ui1b195062efd6 => 'Use either ISO or gain; leave the other empty.';
@@ -1229,9 +1220,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ui5b6f739130d0 => 'Set as default';
-
-  @override
-  String get uib57187749c45 => 'Refresh satellite data';
 
   @override
   String get uib8d889787970 => 'Delete alert';
@@ -2071,16 +2059,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardSiteConditionsDescription =>
-      'Cached terrain horizon and night-light conditions for the selected site';
+      'Saved terrain horizon and Bortle class for the selected site';
 
   @override
   String get dashboardSiteShowDetails => 'Show environmental details';
 
   @override
   String get dashboardSiteTerrain => 'Terrain horizon';
-
-  @override
-  String get dashboardSiteLight => 'Night-light radiance';
 
   @override
   String get dashboardSiteNoTerrain =>
@@ -2105,10 +2090,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not load elevation data. Check your connection or try again later.';
 
   @override
-  String get dashboardSiteNoLight =>
-      'No cached night-light data. Check the site details to load a sample.';
-
-  @override
   String get dashboardSiteCacheOnly =>
       'Cache only · no automatic data requests';
 
@@ -2123,17 +2104,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.';
 
   @override
-  String get dashboardSiteNotSkyBrightness =>
-      'Satellite radiance is not measured sky brightness or a Bortle class.';
-
-  @override
   String get dashboardSiteSource => 'Source';
-
-  @override
-  String get dashboardSiteDatasetDate => 'Dataset month';
-
-  @override
-  String get dashboardSiteChecked => 'Retrieved';
 
   @override
   String get dashboardSiteProfileDate => 'Profile generated';
@@ -2155,22 +2126,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to read cached site conditions.';
 
   @override
-  String get dashboardSiteKindSatellite => 'Satellite upward radiance';
-
-  @override
-  String get dashboardSiteKindMeasured => 'Measured zenith sky brightness';
-
-  @override
-  String get dashboardSiteKindModeled => 'Modeled zenith sky brightness';
-
-  @override
   String get dashboardSiteMissing => 'Not available';
 
   @override
   String get dashboardSiteCache => 'Cached';
-
-  @override
-  String get dashboardSiteCatalogUpdated => 'Source catalogue updated';
 
   @override
   String get dashboardSiteRefreshCache => 'Refresh cached site data';

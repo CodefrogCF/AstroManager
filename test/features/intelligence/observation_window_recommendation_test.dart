@@ -386,38 +386,41 @@ void main() {
       },
     );
 
-    test('clear weather ranks higher than overcast for the same interval', () {
-      final options = const ObservationWindowOptions(
-        minimumSessionDuration: Duration(hours: 2),
-        maximumSessionDuration: Duration(hours: 2),
-      );
-      final times = [
-        for (
-          var utc = DateTime.utc(2026, 11, 1, 18);
-          utc.isBefore(DateTime.utc(2026, 11, 2, 7));
-          utc = utc.add(const Duration(hours: 1))
-        )
-          utc,
-      ];
-      final clear = recommend(
-        options: options,
-        weather: weatherSnapshot(
-          hours: [for (final utc in times) hour(utc, cloud: 0)],
-        ),
-      );
-      final overcast = recommend(
-        options: options,
-        weather: weatherSnapshot(
-          hours: [for (final utc in times) hour(utc, cloud: 100)],
-        ),
-      );
-      expect(clear.rankedWindows, isNotEmpty);
-      expect(overcast.rankedWindows, isNotEmpty);
-      expect(
-        clear.rankedWindows.first.score.score,
-        greaterThan(overcast.rankedWindows.first.score.score),
-      );
-    });
+    test(
+      'clear weather ranks higher than heavy clouds for the same interval',
+      () {
+        final options = const ObservationWindowOptions(
+          minimumSessionDuration: Duration(hours: 2),
+          maximumSessionDuration: Duration(hours: 2),
+        );
+        final times = [
+          for (
+            var utc = DateTime.utc(2026, 11, 1, 18);
+            utc.isBefore(DateTime.utc(2026, 11, 2, 7));
+            utc = utc.add(const Duration(hours: 1))
+          )
+            utc,
+        ];
+        final clear = recommend(
+          options: options,
+          weather: weatherSnapshot(
+            hours: [for (final utc in times) hour(utc, cloud: 0)],
+          ),
+        );
+        final cloudy = recommend(
+          options: options,
+          weather: weatherSnapshot(
+            hours: [for (final utc in times) hour(utc, cloud: 90)],
+          ),
+        );
+        expect(clear.rankedWindows, isNotEmpty);
+        expect(cloudy.rankedWindows, isNotEmpty);
+        expect(
+          clear.rankedWindows.first.score.score,
+          greaterThan(cloudy.rankedWindows.first.score.score),
+        );
+      },
+    );
   });
 
   group('Validation', () {

@@ -327,6 +327,57 @@ void main() {
     client.close();
   });
 
+  testWidgets('concurrent sites share the public request interval', (
+    tester,
+  ) async {
+    const interval = Duration(seconds: 1);
+    var requests = 0;
+    final client = MockClient((request) async {
+      requests++;
+      return http.Response(
+        '{"status":"OK","results":[{"elevation":500}]}',
+        200,
+      );
+    });
+    addTearDown(client.close);
+    final provider = OpenTopoDataElevationProvider(
+      client: client,
+      betweenRequests: interval,
+    );
+    final first = provider.elevations([const TerrainPoint(47.37, 8.54)]);
+    final second = provider.elevations([const TerrainPoint(47.39, 8.55)]);
+    await tester.pump();
+    expect(requests, 1);
+    await tester.pump(const Duration(milliseconds: 999));
+    expect(requests, 1);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(requests, 2);
+    expect(await first, [500]);
+    expect(await second, [500]);
+    await tester.pump(interval);
+  });
+
+  test('malformed elevation responses omit echoed coordinates', () async {
+    final client = MockClient((_) async {
+      return http.Response('invalid payload for latitude 47.37691', 200);
+    });
+    addTearDown(client.close);
+    final provider = OpenTopoDataElevationProvider(
+      client: client,
+      betweenRequests: Duration.zero,
+    );
+    await expectLater(
+      provider.elevations([const TerrainPoint(47.37691, 8.54)]),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.toString(),
+          'public error',
+          isNot(contains('47.37691')),
+        ),
+      ),
+    );
+  });
+
   test('terrain is optional; high ridges remove available visibility', () {
     final start = DateTime.utc(2026, 11, 2, 18);
     final end = start.add(const Duration(hours: 6));

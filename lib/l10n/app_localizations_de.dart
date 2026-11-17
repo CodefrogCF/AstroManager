@@ -22,11 +22,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get siteBortleObserverReported => 'Selbst angegebene Bortle-Klasse';
 
   @override
-  String get siteBortleEstimate => 'Geschätzte Bortle-Klasse';
+  String get siteBortleFactor => 'Bortle-Klasse';
 
   @override
-  String get siteBortleEstimateUnavailable =>
-      'Für diesen Standort ist keine Bortle-Schätzung verfügbar.';
+  String get siteBortleNoClass =>
+      'Für diesen Beobachtungsort ist keine Bortle-Klasse eingetragen.';
+
+  @override
+  String get weatherOvercastWindowExcluded =>
+      'Bei 100 % Bewölkung bleibt kein zusammenhängendes Zeitfenster in der gewählten Mindestdauer.';
+
+  @override
+  String get weatherOvercastVisibleInterval =>
+      'Für die gesamte sichtbare Zeit bei Dunkelheit sind 100 % Bewölkung vorhergesagt.';
 
   @override
   String get atlasShowCatalogDetails => 'Katalogdetails anzeigen';
@@ -272,10 +280,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ui4025e05099a6 => 'Ziel überschreitet den Bildausschnitt';
-
-  @override
-  String get ui4077b1fe737b =>
-      'An diesem Ort liegen keine gültigen Nachtlichtdaten vor.';
 
   @override
   String get ui41def7a0febe => 'Darstellung';
@@ -671,9 +675,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get uiccc10c286211 => 'Messier-, NGC- und IC-Objekte suchen';
 
   @override
-  String get uiccd63d8a2ab7 => 'Satellitengestütztes Nachtlicht';
-
-  @override
   String get uicdd7bb2816b7 => 'Aufnahme-Setup';
 
   @override
@@ -719,9 +720,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get uid88966393d5b => 'Radialer Abstand';
-
-  @override
-  String get uid9074210f303 => 'Satellitendaten abrufen';
 
   @override
   String get uid94e8bb0897a => 'Ausrüstung einrichten';
@@ -996,10 +994,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Beobachtungsort vorhanden. Füge unter Einstellungen einen Ort hinzu, um Ziele zu finden.';
 
   @override
-  String get ui01c73659161b =>
-      'Für diesen Ort liegen keine gültigen Nachtlichtdaten vor. Es wird keine Dunkelheitsklasse abgeleitet.';
-
-  @override
   String get ui183079f3bd54 => 'Nicht ausgewählt';
 
   @override
@@ -1083,10 +1077,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get ui183dfe8735d3 =>
       'Darstellungseinstellung konnte nicht gespeichert werden.';
-
-  @override
-  String get ui688741deabd8 =>
-      'Aufwärts gerichtete Strahldichte ist keine Messung der Himmelshelligkeit. Lichtquellen, Gelände, Wolken, Schnee und atmosphärische Streuung verändern die tatsächlichen Bedingungen.';
 
   @override
   String get ui1b195062efd6 =>
@@ -1240,9 +1230,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get ui5b6f739130d0 => 'Als Standard festlegen';
-
-  @override
-  String get uib57187749c45 => 'Satellitendaten aktualisieren';
 
   @override
   String get uib8d889787970 => 'Benachrichtigung löschen';
@@ -2101,16 +2088,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboardSiteConditionsDescription =>
-      'Geländehorizont und Nachtlichtdaten aus dem Cache für den gewählten Beobachtungsort';
+      'Gespeicherter Geländehorizont und Bortle-Klasse für den gewählten Beobachtungsort';
 
   @override
   String get dashboardSiteShowDetails => 'Umgebungsdetails anzeigen';
 
   @override
   String get dashboardSiteTerrain => 'Geländehorizont';
-
-  @override
-  String get dashboardSiteLight => 'Nachtlicht-Strahldichte';
 
   @override
   String get dashboardSiteNoTerrain =>
@@ -2136,10 +2120,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Höhendaten konnten nicht geladen werden. Prüfe die Verbindung oder versuche es später erneut.';
 
   @override
-  String get dashboardSiteNoLight =>
-      'Keine Nachtlichtdaten zwischengespeichert. Im Standortdetailbereich abrufen.';
-
-  @override
   String get dashboardSiteCacheOnly =>
       'Nur Cache · keine automatischen Datenabfragen';
 
@@ -2154,17 +2134,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der modellierte Geländehorizont ist keine vermessene Sichtlinie. Unbekannte Richtungen bleiben unbekannt.';
 
   @override
-  String get dashboardSiteNotSkyBrightness =>
-      'Satelliten-Strahldichte ist keine gemessene Himmelshelligkeit und keine Bortle-Klasse.';
-
-  @override
   String get dashboardSiteSource => 'Quelle';
-
-  @override
-  String get dashboardSiteDatasetDate => 'Datensatzmonat';
-
-  @override
-  String get dashboardSiteChecked => 'Abgerufen';
 
   @override
   String get dashboardSiteProfileDate => 'Profil erstellt';
@@ -2186,23 +2156,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zwischengespeicherte Standortbedingungen konnten nicht gelesen werden.';
 
   @override
-  String get dashboardSiteKindSatellite =>
-      'Aufwärts gerichtete Satelliten-Strahldichte';
-
-  @override
-  String get dashboardSiteKindMeasured => 'Gemessene Zenit-Himmelshelligkeit';
-
-  @override
-  String get dashboardSiteKindModeled => 'Modellierte Zenit-Himmelshelligkeit';
-
-  @override
   String get dashboardSiteMissing => 'Nicht verfügbar';
 
   @override
   String get dashboardSiteCache => 'Zwischengespeichert';
-
-  @override
-  String get dashboardSiteCatalogUpdated => 'Quellkatalog aktualisiert';
 
   @override
   String get dashboardSiteRefreshCache =>

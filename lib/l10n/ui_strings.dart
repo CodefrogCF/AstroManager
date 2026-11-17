@@ -2,6 +2,7 @@
 const Map<String, String> appGermanUiStrings = {
   '1.0 = native, 0.8 = reducer, 2.0 = Barlow':
       '1,0 = nativ, 0,8 = Reducer, 2,0 = Barlow',
+  '100% cloud cover leaves no continuous window long enough for the minimum session duration.': 'Bei 100 % Bewölkung bleibt kein zusammenhängendes Zeitfenster in der gewählten Mindestdauer.',
   '12-hour clock (AM/PM)': '12-Stunden-Format (AM/PM)',
   '24-hour clock': '24-Stunden-Format',
   '7-Night Forecast': '7-Nächte-Prognose',
@@ -61,9 +62,8 @@ const Map<String, String> appGermanUiStrings = {
   'Back to Settings': 'Zurück zu Einstellungen',
   'Back to previous section': 'Zurück zum vorherigen Bereich',
   'Backup & restore': 'Sicherung und Wiederherstellung',
+  'Bortle class': 'Bortle-Klasse',
   'Bortle class (optional)': 'Bortle-Klasse (optional)',
-  'Bortle estimate unavailable for this location.':
-      'Für diesen Standort ist keine Bortle-Schätzung verfügbar.',
   'Bright surfaces with Codefrog green accents.':
       'Helle Oberflächen mit grünen Codefrog-Akzenten.',
   'Cache only · no automatic data requests':
@@ -71,7 +71,6 @@ const Map<String, String> appGermanUiStrings = {
   'Cached': 'Zwischengespeichert',
   'Cached terrain at peak bearing':
       'Geländeprofil aus Cache in optimaler Richtung',
-  'Cached terrain horizon and night-light conditions for the selected site': 'Geländehorizont und Nachtlichtdaten aus dem Cache für den gewählten Beobachtungsort',
   'Calculated position': 'Berechnete Position',
   'Calculating terrain horizon (online fetch or local cache)…':
       'Geländehorizont wird berechnet (Netzabruf oder lokaler Cache) …',
@@ -94,7 +93,6 @@ const Map<String, String> appGermanUiStrings = {
   'Center frame': 'Bildausschnitt zentrieren',
   'Center target': 'Ziel zentrieren',
   'Check now': 'Jetzt prüfen',
-  'Check satellite data': 'Satellitendaten abrufen',
   'Checks run at app start, foreground or manually; no continuous background monitoring.': 'Prüfungen erfolgen beim App-Start, im Vordergrund oder manuell; keine fortlaufende Hintergrundüberwachung.',
   'Choose a project for this target:': 'Wähle ein Projekt für dieses Ziel:',
   'Choose a project to log a session':
@@ -164,7 +162,6 @@ const Map<String, String> appGermanUiStrings = {
   'Data sources': 'Datenquellen',
   'Data sources & credits': 'Datenquellen und Urheberhinweise',
   'Data unavailable offline.': 'Daten offline nicht verfügbar.',
-  'Dataset month': 'Datensatzmonat',
   'Date': 'Datum',
   'Default observing location': 'Standard-Beobachtungsort',
   'Delete': 'Löschen',
@@ -209,7 +206,6 @@ const Map<String, String> appGermanUiStrings = {
   'Equipment Inventory': 'Ausrüstungsverzeichnis',
   'Equipment actions': 'Ausrüstungsaktionen',
   'Equipment name': 'Ausrüstungsname',
-  'Estimated Bortle class': 'Geschätzte Bortle-Klasse',
   'Europe/Zurich': 'Europe/Zurich',
   'Evening (night date)': 'Abend (Beobachtungsnacht)',
   'Export backup': 'Sicherung exportieren',
@@ -229,6 +225,7 @@ const Map<String, String> appGermanUiStrings = {
   'Forecast coverage': 'Prognoseabdeckung',
   'Forecast incomplete: uncovered hours are unknown, not clear.':
       'Unvollständige Prognose: Fehlende Stunden sind unbekannt, nicht klar.',
+  'Forecast shows 100% cloud cover throughout the visible dark interval.': 'Für die gesamte sichtbare Zeit bei Dunkelheit sind 100 % Bewölkung vorhergesagt.',
   'Frame': 'Bildausschnitt',
   'Frame at atlas center': 'Am Atlaszentrum ausrichten',
   'Frame count': 'Anzahl Frames',
@@ -314,7 +311,6 @@ const Map<String, String> appGermanUiStrings = {
   'Maximum displayed observations': 'Maximal angezeigte Beobachtungen',
   'Mean equatorial coordinates of date':
       'Mittlere äquatoriale Koordinaten des Datums',
-  'Measured zenith sky brightness': 'Gemessene Zenit-Himmelshelligkeit',
   'Measurement units': 'Maßeinheiten',
   'Merge (no overwrites)': 'Zusammenführen (ohne Überschreiben)',
   'Merge retains existing records and rejects duplicate identifiers. Replace removes all existing user data before restoring the backup.': 'Zusammenführen bewahrt bestehende Datensätze und weist doppelte Kennungen zurück. Ersetzen löscht vor dem Import alle Nutzerdaten.',
@@ -327,7 +323,6 @@ const Map<String, String> appGermanUiStrings = {
   'Minimum session duration (minutes)': 'Minimale Beobachtungsdauer (Minuten)',
   'Minor axis': 'Kleine Achse',
   'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.': 'Der modellierte Geländehorizont ist keine vermessene Sichtlinie. Unbekannte Richtungen bleiben unbekannt.',
-  'Modeled zenith sky brightness': 'Modellierte Zenit-Himmelshelligkeit',
   'Monitored targets': 'Überwachte Ziele',
   'Moon phase and illumination': 'Mondphase und Beleuchtung',
   'Moon separation': 'Mondabstand',
@@ -368,7 +363,8 @@ const Map<String, String> appGermanUiStrings = {
   'Night Planner': 'Nachtplanung',
   'Night only': 'Nur nachts',
   'Night overview': 'Nachtübersicht',
-  'Night-light radiance': 'Nachtlicht-Strahldichte',
+  'No Bortle class recorded for this observing site.':
+      'Für diesen Beobachtungsort ist keine Bortle-Klasse eingetragen.',
   'No account required': 'Kein Konto erforderlich',
   'No active imaging projects. Create one in Projects.':
       'Keine aktiven Aufnahmeprojekte. Erstelle eines unter Projekte.',
@@ -378,7 +374,6 @@ const Map<String, String> appGermanUiStrings = {
   'No astronomical darkness': 'Keine astronomische Dunkelheit',
   'No astronomical darkness during this night.':
       'In dieser Nacht tritt keine astronomische Dunkelheit ein.',
-  'No cached night-light data. Check the site details to load a sample.': 'Keine Nachtlichtdaten zwischengespeichert. Im Standortdetailbereich abrufen.',
   'No candidate targets. Add projects or favorites, or select Catalog.': 'Keine Kandidatenziele. Füge Projekte oder Favoriten hinzu oder wähle den Katalog.',
   'No dashboard widgets. Use Manage widgets to add one.': 'Keine Dashboard-Widgets vorhanden. Füge über „Widgets verwalten“ eines hinzu.',
   'No data available.': 'Keine Daten verfügbar.',
@@ -423,9 +418,6 @@ const Map<String, String> appGermanUiStrings = {
       'Keine bevorstehenden Beobachtungsblöcke an diesem Ort.',
   'No usable elevation data for this site and search radius.': 'Für diesen Standort und Suchradius sind keine nutzbaren Höhendaten verfügbar.',
   'No valid camera + optic profiles. Add an imaging setup in Equipment.': 'Kein gültiges Kamera-/Optikprofil. Erstelle ein Aufnahme-Setup unter Ausrüstung.',
-  'No valid night-light data at this location.':
-      'An diesem Ort liegen keine gültigen Nachtlichtdaten vor.',
-  'No valid night-light data at this location. No darkness classification is inferred.': 'Für diesen Ort liegen keine gültigen Nachtlichtdaten vor. Es wird keine Dunkelheitsklasse abgeleitet.',
   'Not available': 'Nicht verfügbar',
   'Not selected': 'Nicht ausgewählt',
   'Not selected (UTC)': 'Nicht ausgewählt (UTC)',
@@ -519,7 +511,6 @@ const Map<String, String> appGermanUiStrings = {
   'Refresh cached site data': 'Standortdaten aus Cache neu einlesen',
   'Refresh forecast': 'Prognose aktualisieren',
   'Refresh projects': 'Projekte aktualisieren',
-  'Refresh satellite data': 'Satellitendaten aktualisieren',
   'Refresh terrain profile': 'Geländeprofil aktualisieren',
   'Rejected frames': 'Verworfene Frames',
   'Remaining': 'Verbleibend',
@@ -538,14 +529,10 @@ const Map<String, String> appGermanUiStrings = {
   'Restore default widgets': 'Standard-Widgets wiederherstellen',
   'Restore defaults': 'Standard wiederherstellen',
   'Restore frame': 'Bildausschnitt wiederherstellen',
-  'Retrieved': 'Abgerufen',
   'Retry': 'Erneut versuchen',
   'Rotation': 'Drehung',
   'Rows': 'Zeilen',
   'S · 180°': 'S · 180°',
-  'Satellite night lights': 'Satellitengestütztes Nachtlicht',
-  'Satellite radiance is not measured sky brightness or a Bortle class.': 'Satelliten-Strahldichte ist keine gemessene Himmelshelligkeit und keine Bortle-Klasse.',
-  'Satellite upward radiance': 'Aufwärts gerichtete Satelliten-Strahldichte',
   'Save': 'Speichern',
   'Save as project': 'Als Projekt speichern',
   'Save block': 'Block speichern',
@@ -554,6 +541,7 @@ const Map<String, String> appGermanUiStrings = {
   'Save mosaic': 'Mosaik speichern',
   'Save project': 'Projekt speichern',
   'Save session': 'Sitzung speichern',
+  'Saved terrain horizon and Bortle class for the selected site': 'Gespeicherter Geländehorizont und Bortle-Klasse für den gewählten Beobachtungsort',
   'Schedule target': 'Ziel einplanen',
   'Scheduled observing blocks and overlapping plans':
       'Geplante Beobachtungsblöcke und Überschneidungen',
@@ -607,7 +595,6 @@ const Map<String, String> appGermanUiStrings = {
   'Some solar events do not occur during this observing night.':
       'Einige Sonnenereignisse treten in dieser Beobachtungsnacht nicht auf.',
   'Source': 'Quelle',
-  'Source catalogue updated': 'Quellkatalog aktualisiert',
   'Source: OpenNGC (CC BY-SA 4.0). Positions are geometric planning estimates; local terrain and atmospheric refraction are not modeled.': 'Quelle: OpenNGC (CC BY-SA 4.0). Positionen sind geometrische Planungsschätzungen; örtliches Gelände und atmosphärische Refraktion werden nicht modelliert.',
   'Source: OpenNGC · CC BY-SA 4.0\\nEquatorial coordinates: J2000\\nMagnitude: Johnson V, where available': 'Quelle: OpenNGC · CC BY-SA 4.0\\nÄquatoriale Koordinaten: J2000\\nHelligkeit: Johnson V, soweit verfügbar',
   'Stale forecast': 'Veraltete Prognose',
@@ -707,7 +694,6 @@ const Map<String, String> appGermanUiStrings = {
   'Upcoming observing nights': 'Kommende Beobachtungsnächte',
   'Update language': 'Sprache ändern',
   'Updating': 'Wird aktualisiert',
-  'Upward radiance is not a sky brightness measurement. Nearby lights, terrain, cloud, snow and atmospheric scattering can change actual observing conditions.': 'Aufwärts gerichtete Strahldichte ist keine Messung der Himmelshelligkeit. Lichtquellen, Gelände, Wolken, Schnee und atmosphärische Streuung verändern die tatsächlichen Bedingungen.',
   'Usable integration: ': 'Nutzbare Integrationszeit: ',
   'Use Aladin controls': 'Aladin-Bedienelemente anzeigen',
   'Use Manage site data to load a terrain profile.':

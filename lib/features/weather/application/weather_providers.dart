@@ -36,21 +36,25 @@ final weatherForecastServiceProvider = Provider<WeatherForecastService>((ref) {
   return service;
 });
 
-/// Only retry transient failures when no cached fallback can be returned.
+/// Retry transient failures without a cache fallback. An HTTP 429 ends
+/// automatic retries so several screens cannot amplify rate limiting.
 Duration? weatherForecastRetry(int retryCount, Object error) {
-  if (error is! WeatherException || !error.isRetryable || retryCount >= 3) {
+  if (error is! WeatherException ||
+      !error.isRetryable ||
+      error.type == WeatherErrorType.rateLimited ||
+      retryCount >= 3) {
     return null;
   }
   return Duration(milliseconds: 200 * (1 << retryCount));
 }
 
 /// UI-facing result with provenance, staleness and optional refresh error.
-final weatherForecastSnapshotProvider =
-    AsyncNotifierProvider.family<
+final weatherForecastSnapshotProvider = AsyncNotifierProvider.autoDispose
+    .family<
       WeatherForecastSnapshotController,
       WeatherForecastSnapshot,
       WeatherForecastRequest
-    >(WeatherForecastSnapshotController.new, retry: weatherForecastRetry);
+    >(WeatherForecastSnapshotController.new, retry: (_, _) => null);
 
 /// For screens that calculate with an awaited snapshot. The initial load
 /// already resolves their pending calculation, and a failure retains its data.
@@ -74,8 +78,11 @@ final class WeatherForecastSnapshotController
   final WeatherForecastRequest request;
 
   @override
-  Future<WeatherForecastSnapshot> build() {
-    final service = ref.watch(weatherForecastServiceProvider);
+  Future<WeatherForecastSnapshot> build() async {
+    // A one-shot ref.read(provider.future) must finish even without a listener.
+    final requestRef = ref;
+    final load = requestRef.keepAlive();
+    final service = requestRef.watch(weatherForecastServiceProvider);
     final subscription = service.manualRefreshesFor(request).listen((snapshot) {
       final previous = state.value;
       if (previous == null ||
@@ -85,8 +92,21 @@ final class WeatherForecastSnapshotController
         state = AsyncData(snapshot);
       }
     });
-    ref.onDispose(() => unawaited(subscription.cancel()));
-    return service.load(request);
+    requestRef.onDispose(() => unawaited(subscription.cancel()));
+    try {
+      for (var retryCount = 0; ; retryCount++) {
+        try {
+          return await service.load(request);
+        } catch (error) {
+          final delay = weatherForecastRetry(retryCount, error);
+          if (delay == null || !requestRef.mounted) rethrow;
+          await Future<void>.delayed(delay);
+          if (!requestRef.mounted) rethrow;
+        }
+      }
+    } finally {
+      load.close();
+    }
   }
 
   Future<void> refreshForecast() async {
@@ -113,11 +133,18 @@ final class WeatherForecastSnapshotController
 }
 
 /// Backward-compatible forecast-only API. It now benefits from the cache.
-final weatherForecastProvider =
-    FutureProvider.family<WeatherForecast, WeatherForecastRequest>(
-      (ref, request) async =>
-          (await ref.watch(weatherForecastSnapshotProvider(request).future))
-              .forecast,
+final weatherForecastProvider = FutureProvider.autoDispose
+    .family<WeatherForecast, WeatherForecastRequest>(
+      (ref, request) async {
+        final load = ref.keepAlive();
+        try {
+          return (await ref.watch(
+            weatherForecastSnapshotProvider(request).future,
+          )).forecast;
+        } finally {
+          load.close();
+        }
+      },
       // The underlying snapshot provider owns retries; avoid nesting them.
       retry: (retryCount, error) => null,
     );

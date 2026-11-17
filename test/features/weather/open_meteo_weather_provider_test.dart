@@ -124,7 +124,10 @@ void main() {
         final provider = OpenMeteoWeatherProvider(
           client: MockClient((req) async {
             return http.Response(
-              jsonEncode({'error': true, 'reason': 'Service error'}),
+              jsonEncode({
+                'error': true,
+                'reason': 'Echoed request for latitude 47.37691',
+              }),
               entry.key,
               headers: {'retry-after': '15'},
             );
@@ -133,11 +136,13 @@ void main() {
         await expectLater(
           provider.fetchForecast(request),
           throwsA(
-            isA<WeatherException>().having(
-              (error) => error.type,
-              'type',
-              entry.value,
-            ),
+            isA<WeatherException>()
+                .having((error) => error.type, 'type', entry.value)
+                .having(
+                  (error) => error.toString(),
+                  'public error',
+                  isNot(contains('47.37691')),
+                ),
           ),
         );
       }

@@ -18,6 +18,7 @@ import '../../../projects/data/planned_projects_repository.dart';
 import '../../../projects/domain/planned_imaging_project.dart';
 import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/application/weather_providers.dart';
+import '../../../weather/presentation/weather_attribution.dart';
 import '../../application/top_targets_provider.dart';
 import '../../domain/dashboard_layout.dart';
 import '../../domain/top_targets.dart';
@@ -124,10 +125,13 @@ class _TopTargetsContent extends ConsumerWidget {
             if (snapshot == null)
               const AppText('Weather unavailable · provisional scores')
             else ...[
-              Text(
-                snapshot.forecast.provider.name,
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
+              if (snapshot.forecast.provider.attribution == null)
+                Text(
+                  snapshot.forecast.provider.name,
+                  style: Theme.of(context).textTheme.labelSmall,
+                )
+              else
+                WeatherAttribution(snapshot.forecast.provider),
               if (stale) const AppText('Stale weather · provisional scores'),
               if (snapshot.isOfflineFallback) const AppText('Offline cache'),
             ],

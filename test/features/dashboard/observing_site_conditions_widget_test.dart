@@ -2,7 +2,6 @@ import 'package:astromanager/app/router/app_router.dart';
 import 'package:astromanager/features/dashboard/application/observing_site_conditions_provider.dart';
 import 'package:astromanager/features/dashboard/domain/observing_site_conditions.dart';
 import 'package:astromanager/features/dashboard/presentation/widgets/observing_site_conditions_widget.dart';
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/terrain/domain/terrain_horizon.dart';
 import 'package:astromanager/features/terrain/presentation/terrain_horizon_chart.dart';
@@ -19,6 +18,7 @@ const _site = ObservingLocation(
   elevationMeters: 720,
   timeZone: 'Europe/Zurich',
   isDefault: true,
+  bortleClass: 4,
 );
 
 ObservingSiteConditions _fixture() => ObservingSiteConditions(
@@ -38,27 +38,10 @@ ObservingSiteConditions _fixture() => ObservingSiteConditions(
         ),
     ],
   ),
-  nightLights: LightPollutionSnapshot(
-    reading: LightPollutionReading(
-      kind: NightLightKind.satelliteRadiance,
-      value: 2.25,
-      sourceId: 'viirs-fixture',
-      sourceName: 'EOG / NOAA via Esri',
-      datasetDate: DateTime.utc(2025, 12, 31),
-      latitude: _site.latitude,
-      longitude: _site.longitude,
-      description: 'Monthly raw radiance',
-      sourceUrl: 'https://example.test/viirs',
-      license: 'Source: EOG / NOAA / Esri',
-    ),
-    fromCache: true,
-    isStale: false,
-    checkedAtUtc: DateTime.utc(2026, 11, 2),
-  ),
 );
 
 void main() {
-  testWidgets('compact tile shows actual radiance units and stays scrollable', (
+  testWidgets('compact tile shows saved Bortle class and stays scrollable', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(500, 650);
@@ -92,10 +75,10 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('dashboard-site-light-summary')),
+      find.byKey(const ValueKey('dashboard-site-bortle-class')),
       findsOneWidget,
     );
-    expect(find.textContaining('nW/cm²/sr'), findsOneWidget);
+    expect(find.text('Observer-reported Bortle class · 4/9'), findsOneWidget);
     expect(find.textContaining('18/36'), findsOneWidget);
     expect(find.byKey(const ValueKey('dashboard-site-details')), findsNothing);
     expect(tester.takeException(), isNull);
@@ -114,7 +97,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('expanded tile includes source, dataset date and limitations', (
+  testWidgets('expanded tile includes terrain source and limitations', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -136,9 +119,15 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('2025-12'), findsOneWidget);
-    expect(find.textContaining('EOG / NOAA via Esri'), findsOneWidget);
-    expect(find.textContaining('not measured sky brightness'), findsOneWidget);
+    expect(find.textContaining('2026-11-01'), findsOneWidget);
+    expect(
+      find.textContaining('opentopodata:fixture:eudem25m'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Unknown bearings remain unknown'),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('terrain-horizon-plot')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

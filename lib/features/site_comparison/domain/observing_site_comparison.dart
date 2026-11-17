@@ -3,7 +3,6 @@ import '../../../core/astronomy/solar_events.dart';
 import '../../../core/astronomy/target_visibility.dart';
 import '../../intelligence/domain/models/suitability_score.dart';
 import '../../intelligence/domain/services/astrophotography_suitability_scoring.dart';
-import '../../light_pollution/domain/light_pollution.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../targets/domain/models/celestial_object.dart';
 import '../../terrain/domain/terrain_horizon.dart';
@@ -16,32 +15,26 @@ final class SiteComparisonInput {
     required this.site,
     this.weather,
     this.terrain,
-    this.lightPollution,
     this.weatherError,
     this.terrainError,
-    this.lightPollutionError,
   });
 
   final ObservingLocation site;
   final WeatherForecastSnapshot? weather;
   final TerrainHorizonProfile? terrain;
-  final LightPollutionSnapshot? lightPollution;
   final String? weatherError;
   final String? terrainError;
-  final String? lightPollutionError;
 }
 
 final class SiteComparisonOptions {
   const SiteComparisonOptions({
     this.minimumAltitudeDegrees = 30,
     this.compareTerrain = true,
-    this.compareLightPollution = true,
     this.sampleStep = const Duration(minutes: 10),
   });
 
   final double minimumAltitudeDegrees;
   final bool compareTerrain;
-  final bool compareLightPollution;
   final Duration sampleStep;
 }
 
@@ -59,7 +52,6 @@ final class SiteComparisonResult {
     required this.terrainReductionFraction,
     required this.weather,
     required this.weatherUsable,
-    required this.lightPollution,
     required List<String> missingData,
     required List<String> explanations,
   }) : missingData = List.unmodifiable(missingData),
@@ -77,7 +69,6 @@ final class SiteComparisonResult {
   final double? terrainReductionFraction;
   final WeatherForecastSnapshot? weather;
   final bool weatherUsable;
-  final LightPollutionSnapshot? lightPollution;
   final List<String> missingData;
   final List<String> explanations;
 
@@ -129,20 +120,6 @@ abstract final class ObservingSiteComparison {
       }
     }
 
-    // VIIRS is a relative indicator. Readings from unlike sources or monthly
-    // composites must not be compared numerically as if equivalent.
-    final lightDatasets = sites
-        .map((input) => input.lightPollution?.reading)
-        .whereType<LightPollutionReading>()
-        .where((reading) => reading.kind == NightLightKind.satelliteRadiance)
-        .map(
-          (reading) =>
-              '${reading.sourceId}|'
-              '${reading.datasetDate.year}-${reading.datasetDate.month}',
-        )
-        .toSet();
-    final incompatibleLights =
-        options.compareLightPollution && lightDatasets.length > 1;
     final results = <SiteComparisonResult>[
       for (final input in sites)
         _evaluate(
@@ -152,7 +129,6 @@ abstract final class ObservingSiteComparison {
           input,
           options,
           weatherPolicy,
-          incompatibleLights,
         ),
     ];
     results.sort((a, b) {
@@ -184,7 +160,6 @@ abstract final class ObservingSiteComparison {
     SiteComparisonInput input,
     SiteComparisonOptions options,
     WeatherCachePolicy policy,
-    bool incompatibleLights,
   ) {
     final site = input.site;
     final sun = SolarEvents.calculateForLocalDate(
@@ -276,55 +251,6 @@ abstract final class ObservingSiteComparison {
       );
     }
 
-    LightPollutionReading? nightLights;
-    if (options.compareLightPollution) {
-      final snapshot = input.lightPollution;
-      final reading = snapshot?.reading;
-      if (!incompatibleLights &&
-          snapshot != null &&
-          !snapshot.isStale &&
-          reading != null &&
-          reading.kind == NightLightKind.satelliteRadiance &&
-          (reading.latitude - site.latitude).abs() < 0.001 &&
-          (reading.longitude - site.longitude).abs() < 0.001) {
-        nightLights = reading;
-        notes.add(
-          'Night lights: ${reading.value.toStringAsFixed(2)} ${reading.unit}, '
-          '${reading.sourceName} (${reading.datasetDate.year}-${reading.datasetDate.month.toString().padLeft(2, '0')}); satellite radiance, not Bortle/SQM.',
-        );
-      } else {
-        missing.add(
-          incompatibleLights
-              ? 'Satellite night-light datasets differ in source or month; excluded from scoring.'
-              : 'Comparable satellite night-light data unavailable${input.lightPollutionError == null ? '' : ': ${input.lightPollutionError}'}',
-        );
-      }
-    } else {
-      notes.add('Satellite night-light comparison was not requested.');
-    }
-
-    // A common scoring profile for every site, without an imaging-setup/FOV
-    // term (no setup is selected by the user). Optional radiance has modest
-    // weight; weather never receives an optimistic default when unavailable.
-    final weights = options.compareLightPollution
-        ? const SuitabilityWeights(
-            altitude: 0.21,
-            visibleDuration: 0.15,
-            astronomicalDarkness: 0.20,
-            weather: 0.27,
-            moonlight: 0.11,
-            fieldOfView: 0,
-            lightPollution: 0.06,
-          )
-        : const SuitabilityWeights(
-            altitude: 0.23,
-            visibleDuration: 0.16,
-            astronomicalDarkness: 0.21,
-            weather: 0.29,
-            moonlight: 0.11,
-            fieldOfView: 0,
-            lightPollution: 0,
-          );
     final score = AstrophotographySuitabilityScoring.score(
       target: target,
       observer: observer,
@@ -332,9 +258,9 @@ abstract final class ObservingSiteComparison {
       endUtc: sun.nightEndUtc,
       evaluatedAtUtc: evaluated,
       weather: validWeather ? weather : null,
-      lightPollution: nightLights,
+      bortleClass: site.bortleClass,
       profile: SuitabilityScoringProfile(
-        weights: weights,
+        weights: const SuitabilityWeights(fieldOfView: 0),
         minimumAltitudeDegrees: options.minimumAltitudeDegrees,
         goodAltitudeDegrees: 85,
         sampleStep: options.sampleStep,
@@ -395,7 +321,6 @@ abstract final class ObservingSiteComparison {
       terrainReductionFraction: reduction,
       weather: weather,
       weatherUsable: validWeather,
-      lightPollution: input.lightPollution,
       missingData: missing,
       explanations: notes,
     );

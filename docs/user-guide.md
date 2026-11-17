@@ -6,9 +6,9 @@ This guide describes the user-facing functionality in AstroManager `0.6.0`. Menu
 
 Open **Settings → Observing Locations → Add location**. Enter a name, latitude and longitude (WGS84 decimal degrees), elevation in metres and an IANA time zone such as `Europe/Zurich`. You can request the device's location, but location access is optional and the correct time zone must be checked manually. Choose a **default** site for your usual observing location. Saved sites can be edited or deleted.
 
-The site card shows an **Estimated Bortle class** from the bundled model wherever the grid covers the location. Use **Bortle class (optional)** in the location editor to record your own observation on a scale from 1 to 9. Choose **Unclassified** to clear your entry. The saved observation appears separately from the estimate and satellite radiance and is included in backups.
+Use **Bortle class (optional)** in the location editor to record your own observation on a scale from 1 to 9. Choose **Unclassified** to clear your entry. The saved class appears on the site card and in backups. Site comparisons and target scores use it when available.
 
-From the same screen, you can request **Check satellite data** for a site's light-pollution indicator and use **Compare observing sites** to compare at least two saved places for one catalog target and observing date. The comparison reports astronomical darkness, visibility, available weather and optional terrain/night-light indicators, with clear notices for missing data. Scores are estimates, not guarantees.
+Use **Compare observing sites** to compare darkness, visibility, weather and available terrain for a catalog target and date.
 
 ## 2. Set up cameras and optics
 
@@ -81,7 +81,7 @@ In **Settings**, choose Codefrog Light, Codefrog Dark, Astronomy Night or system
 | Atlas tiles do not load | Network/WebGL or WebView support, third-party imagery service availability, and the atlas Retry option. |
 | Forecast is missing | Network, selected site and date, request limits, model coverage or cache staleness. Missing weather is not treated as clear. |
 | Terrain is missing | DEM coverage, online elevation request limits, distance/resolution and saved observer elevation. |
-| Light-pollution value is missing | Selected dataset month, satellite coverage and availability of cloud-free observations. |
+| Bortle class is missing | Edit the observing site to record a class you observed. Unclassified sites are scored using the other factors. |
 | Notification does not appear | Rule enabled, app has run an evaluation, OS permission and notification settings, fresh weather and score/duration thresholds. |
 | Old data is not visible after reinstall | Restore a recent `.ambackup` file; local app/browser storage is not automatically synchronized. |
 
@@ -117,7 +117,7 @@ The initial preset contains a seven-night weather panel, tonight's top targets,
 a night summary, and quick actions. Forecasts and recommendations use the existing
 weather and astronomy services. Quick actions open their respective AstroManager
 screens. An optional **Observing Site** widget shows your selected location,
-cached terrain-horizon coverage, and cached night-light information.
+cached terrain-horizon coverage and the saved Bortle class.
 
 Select **Refresh forecast** in the **7-Night Forecast** widget to request a new
 forecast for the selected observing location. The widget shows when the request
@@ -180,8 +180,7 @@ information for the dashboard's selected observing location. Open **Manage
 site data** and select **Load terrain profile** on the relevant site. Once saved,
 the profile appears on the dashboard and remains available offline. The site
 panel distinguishes missing elevation coverage from request failures. A failed
-refresh leaves the saved terrain profile in place. For night-light data, use
-**Check satellite data** and **Refresh cached site data** on the dashboard.
+refresh leaves the saved terrain profile in place. Use **Refresh cached site data** on the dashboard to reread the saved profile.
 
 The public OpenTopoData endpoint blocks cross-origin browser requests. If the
 Web build cannot load elevation data, use a native AstroManager build to load
@@ -193,26 +192,16 @@ modeling does not account for nearby buildings or trees and is not a guaranteed
 line-of-sight assessment. The details display the profile creation date and
 source.
 
-For night lights, the widget preserves the source's measurement type and units.
-The default VIIRS monthly product represents **satellite upward radiance in
-nW/cm²/sr** (EOG/NOAA via Esri), **not** measured zenith sky brightness, an
-SQM value, or a Bortle rating. The original dataset month, retrieval date,
-provider, attribution, and license notes are shown when available. Stale data
-are marked explicitly. Use **Compare observing sites** to open the existing
-site-comparison panel when multiple saved locations are available.
+The widget shows the observer-reported Bortle class when you have entered one. **Compare observing sites** opens the site comparison for saved locations.
 
 ## Dashboard performance, offline use and accessibility (v0.7)
 
 The visible project widgets share the same session aggregation provider. When
 multiple instances use the same forecast request, the Riverpod provider shares
 its in-flight result; independently configured date ranges or sites may still
-require different requests. Environmental site cards read **only local caches**,
-with terrain and night-light cache reads running concurrently. Hiding a widget
-prevents its content from being mounted and requesting data.
+require different requests. Site cards read the saved terrain profile and the saved Bortle class. Hiding a widget prevents its content from being mounted and requesting data.
 
-Missing weather or satellite data is not evidence of clear conditions. Stale
-forecasts and environmental readings are marked; the dashboard does not imply
-live monitoring. On a narrow display, scroll the card itself to reach long
+Missing or stale forecasts yield provisional scores. A current forecast of 100% cloud cover splits usable intervals at the affected hours. Recommendations and alerts require a remaining continuous window that meets the configured minimum duration. On a narrow display, scroll the card itself to reach long
 content and use **Manage widgets** to hide less frequently needed panels.
 
 Codefrog Light/Dark and Astronomy Night Mode use separate palettes. The night

@@ -1,4 +1,3 @@
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:astromanager/core/astronomy/astronomical_coordinates.dart';
@@ -120,8 +119,7 @@ TargetSuitabilityScore calculate({
   DateTime? asOf,
   WeatherForecastSnapshot? weather,
   OpticalMetrics? optics = matchingOptics,
-  LightPollutionReading? lightPollution,
-  LightPollutionSnapshot? nightLights,
+  int? bortleClass,
   SuitabilityScoringProfile profile = const SuitabilityScoringProfile(),
 }) {
   return AstrophotographySuitabilityScoring.score(
@@ -132,107 +130,41 @@ TargetSuitabilityScore calculate({
     evaluatedAtUtc: asOf ?? evaluated,
     weather: weather,
     optics: optics,
-    lightPollution: lightPollution,
-    nightLights: nightLights,
+    bortleClass: bortleClass,
     profile: profile,
   );
 }
 
 void main() {
-  group('VIIRS night light scoring integration', () {
-    LightPollutionReading reading(double radiance, {double latitude = 47.38}) =>
-        LightPollutionReading(
-          kind: NightLightKind.satelliteRadiance,
-          value: radiance,
-          sourceId: 'test',
-          sourceName: 'Synthetic VIIRS',
-          datasetDate: DateTime.utc(2025, 12, 31),
-          latitude: latitude,
-          longitude: observer.longitudeDegrees,
-          description: 'Test only',
-        );
-
-    test('missing VIIRS has zero weight by default, preserving old scores', () {
-      final old = calculate(weather: forecast());
-      final augmented = calculate(
-        weather: forecast(),
-        lightPollution: reading(2, latitude: observer.latitudeDegrees),
-      );
-      expect(augmented.score, old.score);
-      expect(old.factor(SuitabilityFactor.lightPollution).contribution, 0);
-    });
-
-    test('opt-in weighting ranks lower upward radiance as preferable', () {
-      const profile = SuitabilityScoringProfile(
-        weights: SuitabilityWeights(lightPollution: 0.15),
-      );
-      final dark = calculate(
-        weather: forecast(),
-        profile: profile,
-        lightPollution: reading(0.5, latitude: observer.latitudeDegrees),
-      );
-      final bright = calculate(
-        weather: forecast(),
-        profile: profile,
-        lightPollution: reading(25, latitude: observer.latitudeDegrees),
-      );
+  group('Observer-reported Bortle class', () {
+    test('uses a modest weight and scores darker sites higher', () {
+      final dark = calculate(weather: forecast(), bortleClass: 1);
+      final bright = calculate(weather: forecast(), bortleClass: 9);
+      expect(dark.factor(SuitabilityFactor.bortle).rawScore, 100);
+      expect(bright.factor(SuitabilityFactor.bortle).rawScore, 0);
       expect(
-        dark.factor(SuitabilityFactor.lightPollution).rawScore!,
-        greaterThan(bright.factor(SuitabilityFactor.lightPollution).rawScore!),
+        dark.factor(SuitabilityFactor.bortle).weight,
+        closeTo(0.05, 1e-10),
       );
-      expect(dark.score, greaterThan(bright.score));
+      expect(dark.score - bright.score, closeTo(5, 1e-10));
       expect(
-        dark.factor(SuitabilityFactor.lightPollution).explanation,
-        contains('Synthetic VIIRS · dataset 2025-12-31'),
+        dark.factor(SuitabilityFactor.bortle).explanation,
+        contains('Observer-reported Bortle class 1'),
       );
     });
 
-    test('a cached indicator uses the configured weight until it expires', () {
-      const weights = SuitabilityWeights(lightPollution: 0.15);
-      const profile = SuitabilityScoringProfile(weights: weights);
-      LightPollutionSnapshot cached(Duration age) => LightPollutionSnapshot(
-        reading: reading(5, latitude: observer.latitudeDegrees),
-        fromCache: true,
-        isStale: false,
-        checkedAtUtc: evaluated.subtract(age),
-        maximumAge: const Duration(days: 30),
-      );
-      final fresh = calculate(
+    test('unclassified sites use all other factors without a penalty', () {
+      final result = calculate(weather: forecast());
+      final explicit = calculate(
         weather: forecast(),
-        profile: profile,
-        nightLights: cached(const Duration(days: 30)),
-      ).factor(SuitabilityFactor.lightPollution);
-      expect(fresh.status, SuitabilityDataStatus.complete);
-      expect(fresh.rawScore, 50);
-      expect(
-        fresh.weight,
-        closeTo(weights.lightPollution / weights.total, 1e-10),
+        profile: const SuitabilityScoringProfile(
+          weights: SuitabilityWeights(bortle: 0),
+        ),
       );
-      expect(fresh.contribution, closeTo(50 * fresh.weight, 1e-10));
-      expect(fresh.explanation, contains('Current cached reading'));
-
-      final stale = calculate(
-        weather: forecast(),
-        profile: profile,
-        nightLights: cached(const Duration(days: 31)),
-      ).factor(SuitabilityFactor.lightPollution);
-      expect(stale.status, SuitabilityDataStatus.stale);
-      expect(stale.rawScore, isNull);
-      expect(stale.contribution, 0);
-      expect(stale.weight, fresh.weight);
-      expect(stale.explanation, contains('Stale reading · 0 points'));
-      expect(
-        stale.explanation,
-        contains('Synthetic VIIRS · dataset 2025-12-31'),
-      );
-    });
-
-    test('different location never supplies light pollution score', () {
-      final result = calculate(
-        weather: forecast(),
-        lightPollution: reading(0.2, latitude: 0),
-      );
-      expect(result.factor(SuitabilityFactor.lightPollution).rawScore, isNull);
+      expect(result.factor(SuitabilityFactor.bortle).rawScore, isNull);
+      expect(result.factor(SuitabilityFactor.bortle).weight, 0);
+      expect(result.score, closeTo(explicit.score, 1e-10));
+      expect(result.isProvisional, explicit.isProvisional);
     });
   });
 
@@ -313,7 +245,8 @@ void main() {
         overcast.factor(SuitabilityFactor.weather).rawScore!,
         lessThan(clear.factor(SuitabilityFactor.weather).rawScore!),
       );
-      expect(overcast.score, lessThan(clear.score));
+      expect(overcast.score, 0);
+      expect(overcast.constraints.join(" "), contains("100% cloud cover"));
     });
 
     test('bright daytime interval fails astronomical darkness gate', () {
@@ -371,7 +304,7 @@ void main() {
     });
 
     test('factor weights are configurable', () {
-      final weather = forecast(clouds: 100);
+      final weather = forecast(clouds: 90);
       final defaultScore = calculate(weather: weather);
       final weatherOnly = calculate(
         weather: weather,
@@ -408,6 +341,7 @@ void main() {
           weather: 0,
           moonlight: 0,
           fieldOfView: 0,
+          bortle: 0,
         ).validate(),
         throwsArgumentError,
       );

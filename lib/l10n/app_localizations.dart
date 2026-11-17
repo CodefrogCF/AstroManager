@@ -122,17 +122,29 @@ abstract class AppLocalizations {
   /// **'Observer-reported Bortle class'**
   String get siteBortleObserverReported;
 
-  /// No description provided for @siteBortleEstimate.
+  /// No description provided for @siteBortleFactor.
   ///
   /// In en, this message translates to:
-  /// **'Estimated Bortle class'**
-  String get siteBortleEstimate;
+  /// **'Bortle class'**
+  String get siteBortleFactor;
 
-  /// No description provided for @siteBortleEstimateUnavailable.
+  /// No description provided for @siteBortleNoClass.
   ///
   /// In en, this message translates to:
-  /// **'Bortle estimate unavailable for this location.'**
-  String get siteBortleEstimateUnavailable;
+  /// **'No Bortle class recorded for this observing site.'**
+  String get siteBortleNoClass;
+
+  /// No description provided for @weatherOvercastWindowExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'100% cloud cover leaves no continuous window long enough for the minimum session duration.'**
+  String get weatherOvercastWindowExcluded;
+
+  /// No description provided for @weatherOvercastVisibleInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast shows 100% cloud cover throughout the visible dark interval.'**
+  String get weatherOvercastVisibleInterval;
 
   /// No description provided for @atlasShowCatalogDetails.
   ///
@@ -607,12 +619,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Target exceeds frame'**
   String get ui4025e05099a6;
-
-  /// No description provided for @ui4077b1fe737b.
-  ///
-  /// In en, this message translates to:
-  /// **'No valid night-light data at this location.'**
-  String get ui4077b1fe737b;
 
   /// No description provided for @ui41def7a0febe.
   ///
@@ -1370,12 +1376,6 @@ abstract class AppLocalizations {
   /// **'Search Messier, NGC and IC objects'**
   String get uiccc10c286211;
 
-  /// No description provided for @uiccd63d8a2ab7.
-  ///
-  /// In en, this message translates to:
-  /// **'Satellite night lights'**
-  String get uiccd63d8a2ab7;
-
   /// No description provided for @uicdd7bb2816b7.
   ///
   /// In en, this message translates to:
@@ -1459,12 +1459,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Radial step'**
   String get uid88966393d5b;
-
-  /// No description provided for @uid9074210f303.
-  ///
-  /// In en, this message translates to:
-  /// **'Check satellite data'**
-  String get uid9074210f303;
 
   /// No description provided for @uid94e8bb0897a.
   ///
@@ -1940,12 +1934,6 @@ abstract class AppLocalizations {
   /// **'No observing location. Add one in Settings to discover targets.'**
   String get ui1622af53dbaf;
 
-  /// No description provided for @ui01c73659161b.
-  ///
-  /// In en, this message translates to:
-  /// **'No valid night-light data at this location. No darkness classification is inferred.'**
-  String get ui01c73659161b;
-
   /// No description provided for @ui183079f3bd54.
   ///
   /// In en, this message translates to:
@@ -2083,12 +2071,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to save theme preference.'**
   String get ui183dfe8735d3;
-
-  /// No description provided for @ui688741deabd8.
-  ///
-  /// In en, this message translates to:
-  /// **'Upward radiance is not a sky brightness measurement. Nearby lights, terrain, cloud, snow and atmospheric scattering can change actual observing conditions.'**
-  String get ui688741deabd8;
 
   /// No description provided for @ui1b195062efd6.
   ///
@@ -2389,12 +2371,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set as default'**
   String get ui5b6f739130d0;
-
-  /// No description provided for @uib57187749c45.
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh satellite data'**
-  String get uib57187749c45;
 
   /// No description provided for @uib8d889787970.
   ///
@@ -4007,7 +3983,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardSiteConditionsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Cached terrain horizon and night-light conditions for the selected site'**
+  /// **'Saved terrain horizon and Bortle class for the selected site'**
   String get dashboardSiteConditionsDescription;
 
   /// No description provided for @dashboardSiteShowDetails.
@@ -4021,12 +3997,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terrain horizon'**
   String get dashboardSiteTerrain;
-
-  /// No description provided for @dashboardSiteLight.
-  ///
-  /// In en, this message translates to:
-  /// **'Night-light radiance'**
-  String get dashboardSiteLight;
 
   /// No description provided for @dashboardSiteNoTerrain.
   ///
@@ -4064,12 +4034,6 @@ abstract class AppLocalizations {
   /// **'Could not load elevation data. Check your connection or try again later.'**
   String get terrainRequestFailed;
 
-  /// No description provided for @dashboardSiteNoLight.
-  ///
-  /// In en, this message translates to:
-  /// **'No cached night-light data. Check the site details to load a sample.'**
-  String get dashboardSiteNoLight;
-
   /// No description provided for @dashboardSiteCacheOnly.
   ///
   /// In en, this message translates to:
@@ -4094,29 +4058,11 @@ abstract class AppLocalizations {
   /// **'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.'**
   String get dashboardSiteNotLineOfSight;
 
-  /// No description provided for @dashboardSiteNotSkyBrightness.
-  ///
-  /// In en, this message translates to:
-  /// **'Satellite radiance is not measured sky brightness or a Bortle class.'**
-  String get dashboardSiteNotSkyBrightness;
-
   /// No description provided for @dashboardSiteSource.
   ///
   /// In en, this message translates to:
   /// **'Source'**
   String get dashboardSiteSource;
-
-  /// No description provided for @dashboardSiteDatasetDate.
-  ///
-  /// In en, this message translates to:
-  /// **'Dataset month'**
-  String get dashboardSiteDatasetDate;
-
-  /// No description provided for @dashboardSiteChecked.
-  ///
-  /// In en, this message translates to:
-  /// **'Retrieved'**
-  String get dashboardSiteChecked;
 
   /// No description provided for @dashboardSiteProfileDate.
   ///
@@ -4154,24 +4100,6 @@ abstract class AppLocalizations {
   /// **'Unable to read cached site conditions.'**
   String get dashboardSiteUnavailable;
 
-  /// No description provided for @dashboardSiteKindSatellite.
-  ///
-  /// In en, this message translates to:
-  /// **'Satellite upward radiance'**
-  String get dashboardSiteKindSatellite;
-
-  /// No description provided for @dashboardSiteKindMeasured.
-  ///
-  /// In en, this message translates to:
-  /// **'Measured zenith sky brightness'**
-  String get dashboardSiteKindMeasured;
-
-  /// No description provided for @dashboardSiteKindModeled.
-  ///
-  /// In en, this message translates to:
-  /// **'Modeled zenith sky brightness'**
-  String get dashboardSiteKindModeled;
-
   /// No description provided for @dashboardSiteMissing.
   ///
   /// In en, this message translates to:
@@ -4183,12 +4111,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cached'**
   String get dashboardSiteCache;
-
-  /// No description provided for @dashboardSiteCatalogUpdated.
-  ///
-  /// In en, this message translates to:
-  /// **'Source catalogue updated'**
-  String get dashboardSiteCatalogUpdated;
 
   /// No description provided for @dashboardSiteRefreshCache.
   ///

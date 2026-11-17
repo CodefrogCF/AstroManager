@@ -12,6 +12,7 @@
 .swiftpm/
 migrate_working_dir/
 /docs/release-qa-v1.0.0.md
+/docs/performance-privacy-reliability.md
 
 # IntelliJ related
 *.iml

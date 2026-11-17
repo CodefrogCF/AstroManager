@@ -2,16 +2,11 @@ import 'dart:async';
 import 'dart:js_interop';
 
 import 'package:flutter/material.dart';
-
-import 'dart:ui_web' as ui_web;
-
 import 'package:web/web.dart' as web;
 
 import '../application/sky_atlas_controller.dart';
 
-int _nextViewId = 0;
-
-/// Web: a same-origin Flutter asset iframe and versioned postMessage packets.
+/// Web: an isolated Flutter asset iframe and versioned postMessage packets.
 class AtlasPlatformHost extends StatefulWidget {
   const AtlasPlatformHost({required this.controller, super.key});
   final SkyAtlasController controller;
@@ -21,8 +16,7 @@ class AtlasPlatformHost extends StatefulWidget {
 }
 
 class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
-  late final String _viewType;
-  late final web.HTMLIFrameElement _iframe;
+  web.HTMLIFrameElement? _iframe;
   late final JSFunction _handler;
   int _lastSentRevision = -1;
   bool _sentInitial = false;
@@ -31,27 +25,12 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
   @override
   void initState() {
     super.initState();
-    _viewType = 'astromanager-aladin-${_nextViewId++}';
-    _iframe = web.HTMLIFrameElement()
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.border = '0'
-      ..style.pointerEvents = widget.controller.pointerInputEnabled
-          ? ''
-          : 'none'
-      ..src = Uri.parse(web.document.baseURI)
-          .resolve('assets/assets/atlas/atlas.html')
-          .toString();
-
-    ui_web.platformViewRegistry.registerViewFactory(
-      _viewType,
-      (int id) => _iframe,
-    );
-
     _handler = ((web.Event event) {
       final message = event as web.MessageEvent;
-      if (message.origin != web.window.location.origin ||
-          message.source != _iframe.contentWindow) {
+      final frame = _iframe?.contentWindow;
+      if (frame == null ||
+          message.origin != 'null' ||
+          !frame.strictEquals(message.source).toDart) {
         return;
       }
       final data = message.data.dartify();
@@ -74,9 +53,27 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
     });
   }
 
+  void _configureFrame(Object element) {
+    _iframe = (element as web.HTMLIFrameElement)
+      ..style.width = '100%'
+      ..style.height = '100%'
+      ..style.border = '0'
+      ..style.pointerEvents = widget.controller.pointerInputEnabled
+          ? ''
+          : 'none'
+      // Remote Aladin code must not inherit access to the app's web storage.
+      ..sandbox.add('allow-scripts')
+      ..sandbox.add('allow-popups')
+      ..sandbox.add('allow-popups-to-escape-sandbox')
+      ..referrerPolicy = 'no-referrer'
+      ..src = Uri.parse(web.document.baseURI)
+          .resolve('assets/assets/atlas/atlas.html')
+          .toString();
+  }
+
   void _onChange() {
     // An iframe otherwise captures pointer events even below a Flutter dialog.
-    _iframe.style.pointerEvents = widget.controller.pointerInputEnabled
+    _iframe?.style.pointerEvents = widget.controller.pointerInputEnabled
         ? ''
         : 'none';
     if (widget.controller.status == SkyAtlasStatus.ready ||
@@ -86,13 +83,13 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
   }
 
   void _sendCurrentState() {
+    final frame = _iframe?.contentWindow;
+    if (frame == null) return;
     if (!_sentInitial || _lastSentRevision != widget.controller.revision) {
       _sentInitial = true;
       _lastSentRevision = widget.controller.revision;
-      _iframe.contentWindow?.postMessage(
-        widget.controller.stateJson.toJS,
-        web.window.location.origin.toJS,
-      );
+      // The sandbox has an opaque origin. Send only to this frame's window.
+      frame.postMessage(widget.controller.stateJson.toJS, '*'.toJS);
     }
   }
 
@@ -116,5 +113,8 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
   }
 
   @override
-  Widget build(BuildContext context) => HtmlElementView(viewType: _viewType);
+  Widget build(BuildContext context) => HtmlElementView.fromTagName(
+    tagName: 'iframe',
+    onElementCreated: _configureFrame,
+  );
 }

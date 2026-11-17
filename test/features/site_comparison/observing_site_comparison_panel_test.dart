@@ -87,7 +87,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('compare-terrain')));
-    await tester.tap(find.byKey(const ValueKey('compare-nightlights')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('compare-run')));
     await tester.pumpAndSettle();

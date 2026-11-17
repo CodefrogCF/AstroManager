@@ -15,6 +15,7 @@ import '../../terrain/application/terrain_providers.dart';
 import '../../terrain/data/terrain_profile_repository.dart';
 import '../../terrain/presentation/terrain_horizon_chart.dart';
 import '../../weather/domain/providers/weather_provider.dart';
+import '../../weather/presentation/weather_attribution.dart';
 import '../data/night_plans_repository.dart';
 import '../domain/night_observation_block.dart';
 import '../domain/night_timeline.dart';
@@ -618,6 +619,7 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
             '${snapshot.isStaleAt(now, policy) ? 'STALE cached data' : 'current forecast'}'
             ' · fetched ${snapshot.forecast.fetchedAtUtc.toIso8601String()} UTC.',
           ),
+        if (snapshot != null) WeatherAttribution(snapshot.forecast.provider),
         const SizedBox(height: 8),
       ],
     );

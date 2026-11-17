@@ -1,7 +1,7 @@
 name: astromanager
 description: "Offline-first astrophotography planning, observing logs, and sky atlas."
 publish_to: 'none'
-version: 0.7.1+8
+version: 1.0.0+9
 
 environment:
   sdk: ^3.13.0
@@ -30,6 +30,7 @@ dependencies:
   archive: ^4.6.0
   crypto: ^3.0.6
   flutter_local_notifications: ^22.3.3
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
@@ -51,7 +52,7 @@ flutter:
     - assets/catalog/LICENSE-OpenNGC.txt
     - assets/atlas/atlas.html
     - assets/atlas/atlas_bridge.js
-    - assets/light_pollution/bortle_2024.zip
+    - docs/licenses/meeus_mit_license.txt
 
 flutter_launcher_icons:
   android: true

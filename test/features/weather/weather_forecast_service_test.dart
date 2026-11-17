@@ -95,6 +95,59 @@ void main() {
   });
 
   group('Weather forecast service', () {
+    test(
+      'one-shot read retries transient failures and releases the snapshot',
+      () async {
+        final now = DateTime.utc(2026, 11, 1, 18);
+        var calls = 0;
+        final service = WeatherForecastService(
+          provider: ControlledWeatherProvider((_) async {
+            if (++calls == 1) {
+              throw const WeatherException(
+                type: WeatherErrorType.network,
+                message: 'Temporarily offline',
+              );
+            }
+            return sample(now);
+          }),
+          cache: MemoryWeatherCache(),
+          clock: () => now,
+        );
+        addTearDown(service.dispose);
+        final container = ProviderContainer.test(
+          overrides: [
+            weatherForecastServiceProvider.overrideWithValue(service),
+          ],
+        );
+        final provider = weatherForecastSnapshotProvider(request);
+        expect(
+          (await container.read(provider.future)).forecast.fetchedAtUtc,
+          now,
+        );
+        expect(calls, 2);
+        await container.pump();
+        expect(container.exists(provider), isFalse);
+      },
+    );
+
+    test('rate limits stop automatic retries even with no cached forecast', () {
+      const limited = WeatherException(
+        type: WeatherErrorType.rateLimited,
+        message: 'HTTP 429',
+        retryAfter: Duration(seconds: 120),
+      );
+      const timeout = WeatherException(
+        type: WeatherErrorType.timeout,
+        message: 'Request timed out',
+      );
+      expect(weatherForecastRetry(0, limited), isNull);
+      expect(
+        weatherForecastRetry(0, timeout),
+        const Duration(milliseconds: 200),
+      );
+      expect(weatherForecastRetry(3, timeout), isNull);
+    });
+
     test('shared refresh reaches active and later consumers without a second fetch', () async {
       final now = DateTime.utc(2026, 11, 1, 18);
       final old = now.subtract(const Duration(hours: 3));
@@ -138,6 +191,9 @@ void main() {
       final subscription = container.listen(derived, (_, _) {});
       addTearDown(subscription.close);
       expect(await container.read(derived.future), old);
+      final otherSite = weatherForecastSnapshotProvider(elsewhere);
+      final otherSubscription = container.listen(otherSite, (_, _) {});
+      addTearDown(otherSubscription.close);
       expect(
         (await container.read(
           weatherForecastSnapshotProvider(elsewhere).future,

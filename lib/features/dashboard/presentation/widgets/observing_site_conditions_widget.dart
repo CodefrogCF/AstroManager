@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../l10n/app_text.dart';
-import '../../../light_pollution/domain/light_pollution.dart';
 import '../../../locations/domain/models/observing_location.dart';
 import '../../../terrain/presentation/terrain_horizon_chart.dart';
 import '../../application/observing_site_conditions_provider.dart';
@@ -64,9 +63,7 @@ class _ObservingSiteConditionsWidgetState
         final narrow = constraints.maxWidth < 310;
         final expanded = !narrow || _showDetails;
 
-        // The site identity and actions must remain usable even if reading the
-        // optional terrain/night-light caches is slow or fails. They are not
-        // conditional on a successful snapshot.
+        // Keep the site and its actions accessible while loading terrain.
         return SingleChildScrollView(
           primary: false,
           child: Column(
@@ -182,7 +179,6 @@ class _CachedSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final terrain = snapshot.terrain;
-    final lights = snapshot.nightLightReading;
     final theme = Theme.of(context);
     final staleLabel = appTranslate(context, 'Outdated cached data');
     return Column(
@@ -223,50 +219,17 @@ class _CachedSummary extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.nightlight_outlined,
-              size: 18,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    lights != null &&
-                            lights.kind != NightLightKind.satelliteRadiance
-                        ? _kindLabel(lights.kind)
-                        : 'Night-light radiance',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  if (lights == null)
-                    const AppText('Not available')
-                  else
-                    Text(
-                      '${lights.value.toStringAsFixed(2)} ${lights.unit}'
-                      '${snapshot.nightLights?.isStale == true ? ' · $staleLabel' : ''}',
-                      key: const ValueKey('dashboard-site-light-summary'),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        if (snapshot.site.bortleClass case final bortleClass?) ...[
+          const SizedBox(height: 6),
+          Text(
+            '${appTranslate(context, "Observer-reported Bortle class")} · $bortleClass/9',
+            key: const ValueKey('dashboard-site-bortle-class'),
+          ),
+        ],
       ],
     );
   }
 }
-
-String _kindLabel(NightLightKind kind) => switch (kind) {
-  NightLightKind.satelliteRadiance => 'Satellite upward radiance',
-  NightLightKind.measuredSkyBrightness => 'Measured zenith sky brightness',
-  NightLightKind.modeledSkyBrightness => 'Modeled zenith sky brightness',
-};
 
 class _CachedDetails extends StatelessWidget {
   const _CachedDetails({required this.snapshot, required this.showChart});
@@ -281,7 +244,6 @@ class _CachedDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final terrain = snapshot.terrain;
-    final lights = snapshot.nightLightReading;
     final textStyle = Theme.of(context).textTheme.bodySmall;
     return Column(
       key: const ValueKey('dashboard-site-details'),
@@ -310,43 +272,6 @@ class _CachedDetails extends StatelessWidget {
           ),
           if (showChart && terrain.knownBearings > 0)
             TerrainHorizonChart(profile: terrain),
-        ],
-        const SizedBox(height: 9),
-        if (lights == null)
-          const AppText(
-            'No cached night-light data. Check the site details to load a sample.',
-          )
-        else ...[
-          AppText(_kindLabel(lights.kind)),
-          Text(
-            '${appTranslate(context, 'Dataset month')}: '
-            '${lights.datasetDate.year}-${lights.datasetDate.month.toString().padLeft(2, '0')}',
-            style: textStyle,
-          ),
-          if (snapshot.nightLights?.checkedAtUtc case final DateTime checked)
-            Text(
-              '${appTranslate(context, 'Retrieved')}: ${_date(checked)} UTC',
-              style: textStyle,
-            ),
-          Text(
-            '${appTranslate(context, 'Source')}: ${lights.sourceName}',
-            style: textStyle,
-          ),
-          if (lights.sourceCatalogUpdatedAt case final DateTime updated)
-            Text(
-              '${appTranslate(context, 'Source catalogue updated')}: ${_date(updated)}',
-              style: textStyle,
-            ),
-          Text(lights.description, style: textStyle),
-          if (lights.license case final String license)
-            Text(license, style: textStyle),
-          if (lights.sourceUrl case final String source)
-            SelectableText(source, style: textStyle),
-          if (lights.kind == NightLightKind.satelliteRadiance)
-            const AppText(
-              'Satellite radiance is not measured sky brightness or a Bortle class.',
-              style: TextStyle(fontSize: 11),
-            ),
         ],
       ],
     );

@@ -12,10 +12,6 @@ import 'package:astromanager/features/equipment/application/equipment_controller
 import 'package:astromanager/features/equipment/domain/models/equipment_models.dart';
 import 'package:astromanager/features/intelligence/domain/models/observation_window.dart';
 import 'package:astromanager/features/intelligence/domain/models/suitability_score.dart';
-import 'package:astromanager/features/light_pollution/application/light_pollution_providers.dart';
-import 'package:astromanager/features/light_pollution/data/light_pollution_repository.dart';
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
-import 'package:astromanager/features/light_pollution/presentation/light_pollution_location_panel.dart';
 import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/targets/application/celestial_catalog_controller.dart';
@@ -54,6 +50,7 @@ const galaxy = CelestialObject(
 const siteA = ObservingLocation(
   id: 'a',
   name: 'Site A',
+  bortleClass: 3,
   latitude: 47.48,
   longitude: 8.21,
   elevationMeters: 400,
@@ -146,7 +143,6 @@ class FakeEvaluator implements DiscoveryEvaluator {
     required int minimumDurationMinutes,
     required double minimumAltitudeDegrees,
     required WeatherForecastSnapshot? weather,
-    LightPollutionSnapshot? nightLights,
     required OpticalMetrics? optics,
     required bool Function() isCurrent,
   }) async {
@@ -191,48 +187,6 @@ class FakeEvaluator implements DiscoveryEvaluator {
   }
 }
 
-class MemoryNightLightCache implements LightPollutionCacheStore {
-  final entries = <String, String>{};
-
-  @override
-  Future<String?> getString(String key) async => entries[key];
-
-  @override
-  Future<void> setString(String key, String value) async {
-    entries[key] = value;
-  }
-
-  @override
-  Future<void> remove(String key) async {
-    entries.remove(key);
-  }
-}
-
-class TestNightLightProvider implements LightPollutionProvider {
-  int calls = 0;
-
-  @override
-  String get id => 'test-viirs-v1';
-
-  @override
-  Future<LightPollutionReading?> fetch({
-    required double latitude,
-    required double longitude,
-  }) async {
-    calls++;
-    return LightPollutionReading(
-      kind: NightLightKind.satelliteRadiance,
-      value: 5,
-      sourceId: id,
-      sourceName: 'Test VIIRS satellite composite',
-      datasetDate: DateTime.utc(2025, 12, 31),
-      latitude: latitude,
-      longitude: longitude,
-      description: 'Test monthly radiance',
-    );
-  }
-}
-
 void main() {
   late FakeCandidates candidates;
   late FakeFavorites favorites;
@@ -249,7 +203,6 @@ void main() {
     bool viaTargets = false,
     bool showDashboardForecast = false,
     WeatherProvider weatherProvider = const UnconfiguredWeatherProvider(),
-    LightPollutionRepository? nightLightsRepository,
     DiscoveryEvaluator? rankingEvaluator,
   }) async {
     await tester.pumpWidget(
@@ -275,12 +228,6 @@ void main() {
           discoveryEvaluatorProvider.overrideWithValue(
             rankingEvaluator ?? evaluator,
           ),
-          if (nightLightsRepository != null)
-            lightPollutionRepositoryProvider.overrideWithValue(
-              nightLightsRepository,
-            )
-          else
-            cachedNightLightsProvider.overrideWith((ref, location) => null),
           weatherProviderProvider.overrideWithValue(weatherProvider),
           weatherCacheRepositoryProvider.overrideWithValue(
             MemoryWeatherCache(),
@@ -290,8 +237,6 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                if (nightLightsRepository != null)
-                  const LightPollutionLocationPanel(site: siteA),
                 if (showDashboardForecast)
                   const SizedBox(
                     height: 220,
@@ -323,89 +268,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a Settings fetch fills the matching ranking factor from cache', (
+  testWidgets('saved Bortle class appears in the ranking factor details', (
     tester,
   ) async {
-    final provider = TestNightLightProvider();
-    var now = DateTime.now().toUtc();
-    final checkedDate = now.toIso8601String().split('T').first;
-    final repository = LightPollutionRepository(
-      provider: provider,
-      cache: MemoryNightLightCache(),
-      now: () => now,
-    );
-    addTearDown(repository.dispose);
     await pumpPanel(
       tester,
-      nightLightsRepository: repository,
       rankingEvaluator: const DefaultDiscoveryEvaluator(),
     );
-
-    Future<void> expandFactors() async {
-      final card = find.byKey(const ValueKey('recommendation-polar'));
-      final factor = find.descendant(
-        of: card,
-        matching: find.textContaining('Local satellite night-light indicator:'),
-      );
-      if (factor.evaluate().isNotEmpty) return;
-      final details = find.descendant(
-        of: card,
-        matching: find.textContaining('Why '),
-      );
-      await tester.ensureVisible(details);
-      await tester.pumpAndSettle();
-      await tester.tap(details);
-      await tester.pumpAndSettle();
-    }
-
-    Future<void> chooseSite(String name) async {
-      final selector = find.byKey(const ValueKey('discovery-location'));
-      await tester.ensureVisible(selector);
-      await tester.pumpAndSettle();
-      await tester.tap(selector);
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(name).last);
-      await tester.pumpAndSettle();
-    }
-
-    final missing = find.text(
-      'No satellite night-light reading available for this observing site.',
+    final details = find.descendant(
+      of: find.byKey(const ValueKey('recommendation-polar')),
+      matching: find.textContaining('Why '),
     );
-    await expandFactors();
-    expect(missing, findsOneWidget);
-    expect(provider.calls, 0);
-
-    await tester.tap(find.byKey(const ValueKey('night-lights-a')));
+    await tester.ensureVisible(details);
+    await tester.tap(details);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('light-pollution-value')), findsOneWidget);
-    await expandFactors();
     expect(
-      find.text('Local satellite night-light indicator: 50/100'),
-      findsOneWidget,
+      find.textContaining('Observer-reported Bortle class 3 of 9'),
+      findsWidgets,
     );
-    expect(
-      find.textContaining(
-        'Test VIIRS satellite composite · dataset 2025-12-31',
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.textContaining('Retrieved $checkedDate UTC. Current cached reading'),
-      findsOneWidget,
-    );
-
-    await chooseSite('Site B');
-    await expandFactors();
-    expect(missing, findsOneWidget);
-    expect(find.textContaining('Current cached reading'), findsNothing);
-
-    now = now.add(const Duration(days: 31));
-    await chooseSite('Site A');
-    await expandFactors();
-    expect(find.textContaining('Stale reading · 0 points'), findsOneWidget);
-    expect(find.textContaining('Retrieved $checkedDate UTC'), findsOneWidget);
-    expect(missing, findsNothing);
-    expect(provider.calls, 1);
   });
 
   testWidgets('Dashboard refresh recomputes a covered Targets recommendation', (

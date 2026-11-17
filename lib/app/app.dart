@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/logging/app_logger.dart';
 import '../l10n/app_localizations.dart';
 import '../features/settings/application/app_preferences_controller.dart';
 import '../features/settings/domain/models/app_preferences.dart';
@@ -40,9 +41,9 @@ class _AstroManagerAppState extends ConsumerState<AstroManagerApp>
               ref.invalidate(observationAlertStateProvider);
             }
           })
-          .catchError((Object error) {
+          .catchError((Object _) {
             // Offline and unavailable forecasts must never crash app startup.
-            debugPrint("Observation alerts check skipped: $error");
+            AppLogger.warning('observation_alert_check_failed');
           }),
     );
   }

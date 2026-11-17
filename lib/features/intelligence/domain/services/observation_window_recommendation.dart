@@ -5,7 +5,6 @@ import '../../../../core/astronomy/solar_events.dart';
 import '../../../../core/astronomy/target_visibility.dart';
 import '../../../equipment/domain/models/equipment_models.dart';
 import '../../../locations/domain/models/observing_location.dart';
-import '../../../light_pollution/domain/light_pollution.dart';
 import '../../../targets/domain/models/celestial_object.dart';
 import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/domain/models/weather_forecast.dart';
@@ -31,8 +30,6 @@ abstract final class ObservationWindowRecommendation {
     WeatherForecastSnapshot? weather,
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
-    LightPollutionReading? lightPollution,
-    LightPollutionSnapshot? nightLights,
     SuitabilityScoringProfile scoringProfile =
         const SuitabilityScoringProfile(),
     ObservationWindowOptions options = const ObservationWindowOptions(),
@@ -62,8 +59,7 @@ abstract final class ObservationWindowRecommendation {
       weather: weather,
       cachePolicy: cachePolicy,
       optics: optics,
-      lightPollution: lightPollution,
-      nightLights: nightLights,
+      bortleClass: location.bortleClass,
       scoringProfile: scoringProfile,
       options: options,
     );
@@ -80,8 +76,7 @@ abstract final class ObservationWindowRecommendation {
     WeatherForecastSnapshot? weather,
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
-    LightPollutionReading? lightPollution,
-    LightPollutionSnapshot? nightLights,
+    int? bortleClass,
     SuitabilityScoringProfile scoringProfile =
         const SuitabilityScoringProfile(),
     ObservationWindowOptions options = const ObservationWindowOptions(),
@@ -98,8 +93,7 @@ abstract final class ObservationWindowRecommendation {
       weather: weather,
       cachePolicy: cachePolicy,
       optics: optics,
-      lightPollution: lightPollution,
-      nightLights: nightLights,
+      bortleClass: bortleClass,
       scoringProfile: scoringProfile,
       options: options,
     );
@@ -115,8 +109,7 @@ abstract final class ObservationWindowRecommendation {
     required WeatherForecastSnapshot? weather,
     required WeatherCachePolicy cachePolicy,
     required OpticalMetrics? optics,
-    required LightPollutionReading? lightPollution,
-    required LightPollutionSnapshot? nightLights,
+    required int? bortleClass,
     required SuitabilityScoringProfile scoringProfile,
     required ObservationWindowOptions options,
   }) {
@@ -134,6 +127,21 @@ abstract final class ObservationWindowRecommendation {
 
     final all = <ObservationWindow>[];
     final excluded = <String, String>{};
+    final blockedHours = [
+      if (weather != null &&
+          AstrophotographySuitabilityScoring.weatherMatchesSite(
+            weather.forecast,
+            observer,
+          ) &&
+          AstrophotographySuitabilityScoring.weatherIsCurrent(
+            weather,
+            evaluatedAtUtc,
+            cachePolicy,
+          ))
+        for (final hour in weather.forecast.hours)
+          if (AstrophotographySuitabilityScoring.isFullyOvercast(hour))
+            hour.timeUtc,
+    ]..sort();
     final sortedTargets = [...targets]..sort((a, b) => a.id.compareTo(b.id));
     for (final target in sortedTargets) {
       if (darkness.isEmpty) {
@@ -155,7 +163,10 @@ abstract final class ObservationWindowRecommendation {
         allowedIntervals: darkness,
       );
       final candidatesBefore = all.length;
-      for (final visible in visibility.visibleIntervals) {
+      final eligible = visibility.visibleIntervals
+          .expand((visible) => _splitAtOvercastHours(visible, blockedHours))
+          .toList(growable: false);
+      for (final visible in eligible) {
         for (final duration in _candidateDurations(visible.duration, options)) {
           for (final candidateStart in _candidateStarts(
             visible,
@@ -172,8 +183,7 @@ abstract final class ObservationWindowRecommendation {
               weather: weather,
               cachePolicy: cachePolicy,
               optics: optics,
-              lightPollution: lightPollution,
-              nightLights: nightLights,
+              bortleClass: bortleClass,
               profile: scoringProfile,
             );
             // Numerical sampling around a refined crossing may find a tiny
@@ -222,8 +232,18 @@ abstract final class ObservationWindowRecommendation {
         }
       }
       if (all.length == candidatesBefore) {
+        final overcastBlocksSession =
+            blockedHours.isNotEmpty &&
+            visibility.visibleIntervals.any(
+              (interval) => interval.duration >= options.minimumSessionDuration,
+            ) &&
+            eligible.every(
+              (interval) => interval.duration < options.minimumSessionDuration,
+            );
         excluded[target.id] = visibility.isNeverVisible
             ? 'Target never reaches the minimum altitude during astronomical darkness.'
+            : overcastBlocksSession
+            ? '100% cloud cover leaves no continuous window long enough for the minimum session duration.'
             : 'No continuous visible and dark interval satisfies the minimum session duration.';
       }
     }
@@ -261,6 +281,25 @@ abstract final class ObservationWindowRecommendation {
       rankedWindows: ranked,
       excludedTargets: excluded,
     );
+  }
+
+  static Iterable<VisibilityInterval> _splitAtOvercastHours(
+    VisibilityInterval visible,
+    List<DateTime> blockedHours,
+  ) sync* {
+    var start = visible.startUtc;
+    for (final hourStart in blockedHours) {
+      if (!hourStart.isBefore(visible.endUtc)) break;
+      final hourEnd = hourStart.add(const Duration(hours: 1));
+      if (!hourEnd.isAfter(start)) continue;
+      if (hourStart.isAfter(start)) {
+        yield VisibilityInterval(startUtc: start, endUtc: hourStart);
+      }
+      start = hourEnd;
+    }
+    if (start.isBefore(visible.endUtc)) {
+      yield VisibilityInterval(startUtc: start, endUtc: visible.endUtc);
+    }
   }
 
   static void _validatePeriod(

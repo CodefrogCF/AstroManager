@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
   <title>AstroManager Sky Atlas</title>
   <style>
@@ -37,6 +38,18 @@
        The HiPS surveys still require network access. -->
   <script type="module">
     try {
+      // Aladin reads its viewer settings through localStorage. Give an opaque
+      // web frame its own transient settings without exposing the app origin.
+      if (window.origin === 'null' && window.parent !== window) {
+        const settings = new Map();
+        Object.defineProperty(window, 'localStorage', {
+          value: {
+            getItem: key => settings.get(String(key)) ?? null,
+            setItem: (key, value) => { settings.set(String(key), String(value)); },
+            removeItem: key => { settings.delete(String(key)); },
+          },
+        });
+      }
       const aladinModule = await import(
         'https://cdn.jsdelivr.net/npm/aladin-lite@3.8.1/dist/aladin.min.js'
       );

@@ -7,7 +7,7 @@ enum SuitabilityFactor {
   weather,
   moonlight,
   fieldOfView,
-  lightPollution;
+  bortle;
 
   String get label => switch (this) {
     SuitabilityFactor.altitude => 'Target altitude',
@@ -16,7 +16,7 @@ enum SuitabilityFactor {
     SuitabilityFactor.weather => 'Weather',
     SuitabilityFactor.moonlight => 'Moonlight interference',
     SuitabilityFactor.fieldOfView => 'Optical field of view',
-    SuitabilityFactor.lightPollution => 'Local satellite night-light indicator',
+    SuitabilityFactor.bortle => 'Bortle class',
   };
 }
 
@@ -28,13 +28,13 @@ enum SuitabilityDataStatus { complete, partial, missing, stale }
 /// Any nonnegative finite weights are accepted, provided their sum is > 0.
 final class SuitabilityWeights {
   const SuitabilityWeights({
-    this.altitude = 0.18,
-    this.visibleDuration = 0.12,
-    this.astronomicalDarkness = 0.20,
-    this.weather = 0.28,
-    this.moonlight = 0.14,
-    this.fieldOfView = 0.08,
-    this.lightPollution = 0,
+    this.altitude = 0.15,
+    this.visibleDuration = 0.10,
+    this.astronomicalDarkness = 0.13,
+    this.weather = 0.42,
+    this.moonlight = 0.10,
+    this.fieldOfView = 0.05,
+    this.bortle = 0.05,
   });
 
   final double altitude;
@@ -44,8 +44,8 @@ final class SuitabilityWeights {
   final double moonlight;
   final double fieldOfView;
 
-  /// Opt-in. Raw upward radiance is only a relative site indicator.
-  final double lightPollution;
+  /// Modest site-quality factor. Unclassified sites omit this weight.
+  final double bortle;
 
   double forFactor(SuitabilityFactor factor) => switch (factor) {
     SuitabilityFactor.altitude => altitude,
@@ -54,7 +54,7 @@ final class SuitabilityWeights {
     SuitabilityFactor.weather => weather,
     SuitabilityFactor.moonlight => moonlight,
     SuitabilityFactor.fieldOfView => fieldOfView,
-    SuitabilityFactor.lightPollution => lightPollution,
+    SuitabilityFactor.bortle => bortle,
   };
 
   double get total =>
@@ -64,7 +64,7 @@ final class SuitabilityWeights {
       weather +
       moonlight +
       fieldOfView +
-      lightPollution;
+      bortle;
 
   void validate() {
     for (final factor in SuitabilityFactor.values) {

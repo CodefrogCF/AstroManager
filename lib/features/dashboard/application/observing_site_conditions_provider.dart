@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../light_pollution/application/light_pollution_providers.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../terrain/application/terrain_providers.dart';
 import '../domain/observing_site_conditions.dart';
@@ -17,8 +16,6 @@ final observingSiteConditionsProvider =
           .changesFor(site)
           .listen((_) => ref.invalidateSelf());
       ref.onDispose(changes.cancel);
-      return ObservingSiteConditionsReader(
-        terrainRepository: terrainRepository,
-        lightPollutionRepository: ref.watch(lightPollutionRepositoryProvider),
-      ).read(site);
+      return ObservingSiteConditionsReader(terrainRepository: terrainRepository)
+          .read(site);
     }, retry: (count, error) => null);

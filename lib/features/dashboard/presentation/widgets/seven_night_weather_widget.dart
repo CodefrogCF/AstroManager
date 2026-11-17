@@ -11,6 +11,7 @@ import '../../../locations/domain/models/observing_location.dart';
 import '../../../weather/application/weather_providers.dart';
 import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/domain/providers/weather_provider.dart';
+import '../../../weather/presentation/weather_attribution.dart';
 import '../../domain/dashboard_layout.dart';
 import '../../domain/seven_night_weather.dart';
 import 'dashboard_widget_state.dart';
@@ -301,10 +302,12 @@ class _ClearSkyForecastState extends ConsumerState<_ClearSkyForecast> {
                     ),
                   ),
                 ),
-                if (snapshot.forecast.provider.attribution
-                    case final attribution?) ...[
+                if (snapshot.forecast.provider.attribution != null) ...[
                   const SizedBox(height: 5),
-                  AppText(attribution, style: labelStyle),
+                  WeatherAttribution(
+                    snapshot.forecast.provider,
+                    style: labelStyle,
+                  ),
                 ],
               ],
             );

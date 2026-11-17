@@ -1,9 +1,6 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:astromanager/features/dashboard/domain/observing_site_conditions.dart';
-import 'package:astromanager/features/light_pollution/data/light_pollution_repository.dart';
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/terrain/data/terrain_profile_repository.dart';
 import 'package:astromanager/features/terrain/domain/terrain_horizon.dart';
@@ -39,20 +36,6 @@ class _TerrainSource implements TerrainElevationProvider {
   }
 }
 
-class _NightSource implements LightPollutionProvider {
-  int calls = 0;
-  @override
-  String get id => 'viirs-fixture';
-  @override
-  Future<LightPollutionReading?> fetch({
-    required double latitude,
-    required double longitude,
-  }) async {
-    calls++;
-    throw StateError('Dashboard must not request night-light data');
-  }
-}
-
 class _TerrainStore implements TerrainProfileStore {
   final data = <String, String>{};
   @override
@@ -71,45 +54,6 @@ class _TerrainStore implements TerrainProfileStore {
   Future<Set<String>> getKeys() async => data.keys.toSet();
 }
 
-class _NightStore implements LightPollutionCacheStore {
-  final data = <String, String>{};
-  @override
-  Future<String?> getString(String key) async => data[key];
-  @override
-  Future<void> setString(String key, String value) async {
-    data[key] = value;
-  }
-
-  @override
-  Future<void> remove(String key) async {
-    data.remove(key);
-  }
-}
-
-class _WaitingTerrainStore extends _TerrainStore {
-  final started = Completer<void>();
-  final resume = Completer<void>();
-
-  @override
-  Future<Set<String>> getKeys() async {
-    started.complete();
-    await resume.future;
-    return super.getKeys();
-  }
-}
-
-class _WaitingNightStore extends _NightStore {
-  final started = Completer<void>();
-  final resume = Completer<void>();
-
-  @override
-  Future<String?> getString(String key) async {
-    started.complete();
-    await resume.future;
-    return super.getString(key);
-  }
-}
-
 TerrainHorizonProfile _profile(DateTime created) => TerrainHorizonProfile(
   sourceId: 'opentopodata:fixture:eudem25m',
   createdAtUtc: created,
@@ -126,104 +70,32 @@ TerrainHorizonProfile _profile(DateTime created) => TerrainHorizonProfile(
   ],
 );
 
-LightPollutionReading _reading() => LightPollutionReading(
-  kind: NightLightKind.satelliteRadiance,
-  value: 3.25,
-  sourceId: 'viirs-fixture',
-  sourceName: 'EOG/NOAA via Esri',
-  datasetDate: DateTime.utc(2025, 12, 31),
-  latitude: _site.latitude,
-  longitude: _site.longitude,
-  description: 'Monthly upward radiance, not Bortle or SQM.',
-  sourceUrl: 'https://example.test/viirs',
-  license: 'EOG/NOAA attribution',
-);
-
 void main() {
-  test(
-    'independent terrain and night-light cache reads start concurrently',
-    () async {
-      final terrainStore = _WaitingTerrainStore();
-      final lightStore = _WaitingNightStore();
-      final terrainSource = _TerrainSource();
-      final lightSource = _NightSource();
-      final reader = ObservingSiteConditionsReader(
-        terrainRepository: TerrainProfileRepository(
-          provider: terrainSource,
-          store: terrainStore,
-        ),
-        lightPollutionRepository: LightPollutionRepository(
-          provider: lightSource,
-          cache: lightStore,
-        ),
-      );
-      final pending = reader.read(_site);
-      try {
-        await Future.wait([
-          terrainStore.started.future,
-          lightStore.started.future,
-        ]).timeout(const Duration(seconds: 3));
-      } finally {
-        if (!terrainStore.resume.isCompleted) terrainStore.resume.complete();
-        if (!lightStore.resume.isCompleted) lightStore.resume.complete();
-      }
-      final result = await pending;
-      expect(result.terrain, isNull);
-      expect(result.nightLightReading, isNull);
-      expect(terrainSource.calls, 0);
-      expect(lightSource.calls, 0);
-    },
-  );
-
-  test(
-    'dashboard reads cached terrain and radiance without any network calls',
-    () async {
-      final now = DateTime.now().toUtc();
-      final terrainSource = _TerrainSource();
-      final lightSource = _NightSource();
-      final terrainStore = _TerrainStore();
-      final nightStore = _NightStore();
-      final terrainRepo = TerrainProfileRepository(
-        provider: terrainSource,
-        store: terrainStore,
-      );
-      final lightRepo = LightPollutionRepository(
-        provider: lightSource,
-        cache: nightStore,
-        now: () => now,
-      );
-      await terrainStore.setString(
-        terrainRepo.cacheKey(_site, const TerrainHorizonOptions()),
-        jsonEncode(_profile(now).toJson()),
-      );
-      await nightStore.setString(
-        lightRepo.cacheKey(_site.latitude, _site.longitude),
-        jsonEncode({
-          'checkedAt': now.toIso8601String(),
-          'reading': _reading().toJson(),
-        }),
-      );
-      final reader = ObservingSiteConditionsReader(
-        terrainRepository: terrainRepo,
-        lightPollutionRepository: lightRepo,
-      );
-      final result = await reader.read(_site);
-      expect(result.site.id, 'site-a');
-      expect(result.knownTerrainBearings, 18);
-      expect(result.terrainCoverage, 0.5);
-      expect(result.terrainStale, isFalse);
-      expect(result.nightLightReading?.unit, 'nW/cm²/sr');
-      expect(result.nightLightReading?.kind, NightLightKind.satelliteRadiance);
-      expect(result.nightLights?.checkedAtUtc, now);
-      expect(terrainSource.calls, 0);
-      expect(lightSource.calls, 0);
-      final missing = await reader.read(_other);
-      expect(missing.terrain, isNull);
-      expect(missing.nightLightReading, isNull);
-      expect(terrainSource.calls, 0);
-      expect(lightSource.calls, 0);
-    },
-  );
+  test('dashboard reads saved terrain without network calls', () async {
+    final now = DateTime.now().toUtc();
+    final terrainSource = _TerrainSource();
+    final terrainStore = _TerrainStore();
+    final terrainRepo = TerrainProfileRepository(
+      provider: terrainSource,
+      store: terrainStore,
+    );
+    await terrainStore.setString(
+      terrainRepo.cacheKey(_site, const TerrainHorizonOptions()),
+      jsonEncode(_profile(now).toJson()),
+    );
+    final reader = ObservingSiteConditionsReader(
+      terrainRepository: terrainRepo,
+    );
+    final result = await reader.read(_site);
+    expect(result.site.id, 'site-a');
+    expect(result.knownTerrainBearings, 18);
+    expect(result.terrainCoverage, 0.5);
+    expect(result.terrainStale, isFalse);
+    expect(terrainSource.calls, 0);
+    final missing = await reader.read(_other);
+    expect(missing.terrain, isNull);
+    expect(terrainSource.calls, 0);
+  });
 
   test(
     'an existing non-default terrain resolution is visible without fetch',
@@ -253,10 +125,6 @@ void main() {
       );
       final result = await ObservingSiteConditionsReader(
         terrainRepository: terrainRepo,
-        lightPollutionRepository: LightPollutionRepository(
-          provider: _NightSource(),
-          cache: _NightStore(),
-        ),
       ).read(_site);
       expect(result.terrain?.options.azimuthStepDegrees, 20);
       expect(result.knownTerrainBearings, 18);
@@ -264,84 +132,44 @@ void main() {
     },
   );
 
-  test(
-    'stale readings remain explicitly marked and never trigger refresh',
-    () async {
-      final now = DateTime.now().toUtc();
-      final old = now.subtract(const Duration(days: 40));
-      final terrainSource = _TerrainSource();
-      final lightSource = _NightSource();
-      final terrainStore = _TerrainStore();
-      final nightStore = _NightStore();
-      final terrainRepo = TerrainProfileRepository(
-        provider: terrainSource,
-        store: terrainStore,
-      );
-      final lightRepo = LightPollutionRepository(
-        provider: lightSource,
-        cache: nightStore,
-        now: () => now,
-      );
-      await terrainStore.setString(
-        terrainRepo.cacheKey(_site, const TerrainHorizonOptions()),
-        jsonEncode(_profile(old).toJson()),
-      );
-      await nightStore.setString(
-        lightRepo.cacheKey(_site.latitude, _site.longitude),
-        jsonEncode({
-          'checkedAt': old.toIso8601String(),
-          'reading': _reading().toJson(),
-        }),
-      );
-      final result = await ObservingSiteConditionsReader(
-        terrainRepository: terrainRepo,
-        lightPollutionRepository: lightRepo,
-      ).read(_site);
-      expect(result.terrainStale, isTrue);
-      expect(result.nightLights?.isStale, isTrue);
-      expect(result.terrain?.sourceId, terrainSource.id);
-      expect(terrainSource.calls, 0);
-      expect(lightSource.calls, 0);
-    },
-  );
+  test('stale terrain stays marked and never triggers refresh', () async {
+    final now = DateTime.now().toUtc();
+    final old = now.subtract(const Duration(days: 40));
+    final terrainSource = _TerrainSource();
+    final terrainStore = _TerrainStore();
+    final terrainRepo = TerrainProfileRepository(
+      provider: terrainSource,
+      store: terrainStore,
+    );
+    await terrainStore.setString(
+      terrainRepo.cacheKey(_site, const TerrainHorizonOptions()),
+      jsonEncode(_profile(old).toJson()),
+    );
+    final result = await ObservingSiteConditionsReader(
+      terrainRepository: terrainRepo,
+    ).read(_site);
+    expect(result.terrainStale, isTrue);
+    expect(result.terrain?.sourceId, terrainSource.id);
+    expect(terrainSource.calls, 0);
+  });
 
-  test(
-    'wrong-location and wrong-provider cache entries cannot appear',
-    () async {
-      final now = DateTime.now().toUtc();
-      final terrainSource = _TerrainSource();
-      final lightSource = _NightSource();
-      final terrainStore = _TerrainStore();
-      final lightStore = _NightStore();
-      final terrainRepo = TerrainProfileRepository(
-        provider: terrainSource,
-        store: terrainStore,
-      );
-      final lightRepo = LightPollutionRepository(
-        provider: lightSource,
-        cache: lightStore,
-        now: () => now,
-      );
-      await terrainStore.setString(
-        terrainRepo.cacheKey(_site, const TerrainHorizonOptions()),
-        jsonEncode(_profile(now).toJson()..['source'] = 'wrong-provider'),
-      );
-      await lightStore.setString(
-        lightRepo.cacheKey(_site.latitude, _site.longitude),
-        jsonEncode({
-          'checkedAt': now.toIso8601String(),
-          'reading': _reading().toJson()..['longitude'] = _other.longitude,
-        }),
-      );
-      final result = await ObservingSiteConditionsReader(
-        terrainRepository: terrainRepo,
-        lightPollutionRepository: lightRepo,
-      ).read(_site);
-      expect(result.terrain, isNull);
-      expect(result.nightLightReading, isNull);
-      // A foreign terrain cache entry is ignored, not rewritten or displayed.
-      expect(terrainStore.data.length, 1);
-      expect(lightStore.data, isEmpty);
-    },
-  );
+  test('wrong-provider cache entry cannot appear', () async {
+    final now = DateTime.now().toUtc();
+    final terrainSource = _TerrainSource();
+    final terrainStore = _TerrainStore();
+    final terrainRepo = TerrainProfileRepository(
+      provider: terrainSource,
+      store: terrainStore,
+    );
+    await terrainStore.setString(
+      terrainRepo.cacheKey(_site, const TerrainHorizonOptions()),
+      jsonEncode(_profile(now).toJson()..['source'] = 'wrong-provider'),
+    );
+    final result = await ObservingSiteConditionsReader(
+      terrainRepository: terrainRepo,
+    ).read(_site);
+    expect(result.terrain, isNull);
+    // A foreign terrain cache entry is ignored, not rewritten or displayed.
+    expect(terrainStore.data.length, 1);
+  });
 }

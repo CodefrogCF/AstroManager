@@ -4,8 +4,8 @@ import '../../../../core/astronomy/astronomical_coordinates.dart';
 import '../../../../core/astronomy/lunar_ephemeris.dart';
 import '../../../../core/astronomy/solar_events.dart';
 import '../../../../core/astronomy/target_visibility.dart';
-import '../../../light_pollution/domain/light_pollution.dart';
 import '../../../equipment/domain/models/equipment_models.dart';
+import '../../../locations/domain/models/observing_location.dart';
 import '../../../targets/domain/models/celestial_object.dart';
 import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/domain/models/weather_forecast.dart';
@@ -21,6 +21,27 @@ abstract final class AstrophotographySuitabilityScoring {
   static double _bounded(double value) => value.clamp(0.0, 100.0).toDouble();
   static double _fraction(double value) => value.clamp(0.0, 1.0).toDouble();
 
+  static bool weatherMatchesSite(
+    WeatherForecast? forecast,
+    ObserverPosition observer,
+  ) =>
+      forecast != null &&
+      (forecast.latitudeDegrees - observer.latitudeDegrees).abs() <= 0.02 &&
+      (forecast.longitudeDegrees - observer.longitudeDegrees).abs() <= 0.02;
+
+  static bool weatherIsCurrent(
+    WeatherForecastSnapshot weather,
+    DateTime evaluatedAtUtc,
+    WeatherCachePolicy policy,
+  ) =>
+      !weather.isStale &&
+      weather.origin != WeatherForecastOrigin.staleCache &&
+      weather.origin != WeatherForecastOrigin.staleFallback &&
+      !weather.isStaleAt(evaluatedAtUtc, policy);
+
+  static bool isFullyOvercast(HourlyWeatherForecast hour) =>
+      hour.totalCloudCoverPercent.valueOrNull == 100;
+
   /// Evaluate a single UTC observation interval. [evaluatedAtUtc] is explicit
   /// so freshness checks and scores are repeatable across machines/tests.
   /// Pass the actual [WeatherForecastSnapshot] rather than its bare forecast
@@ -34,13 +55,16 @@ abstract final class AstrophotographySuitabilityScoring {
     WeatherForecastSnapshot? weather,
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
-    LightPollutionReading? lightPollution,
-    LightPollutionSnapshot? nightLights,
+    int? bortleClass,
     SuitabilityScoringProfile profile = const SuitabilityScoringProfile(),
   }) {
     target.validate();
     observer.validate();
     profile.validate();
+    if (bortleClass != null &&
+        !ObservingLocationInput.isValidBortleClass(bortleClass)) {
+      throw ArgumentError.value(bortleClass, 'bortleClass', 'Expected 1 to 9.');
+    }
     if (!startUtc.isUtc ||
         !endUtc.isUtc ||
         !evaluatedAtUtc.isUtc ||
@@ -67,20 +91,14 @@ abstract final class AstrophotographySuitabilityScoring {
     );
 
     final forecast = weather?.forecast;
-    final forecastMatchesObserver =
-        forecast != null &&
-        (forecast.latitudeDegrees - observer.latitudeDegrees).abs() <= 0.02 &&
-        (forecast.longitudeDegrees - observer.longitudeDegrees).abs() <= 0.02;
+    final forecastMatchesObserver = weatherMatchesSite(forecast, observer);
     final validWeather =
         forecastMatchesObserver &&
         weather != null &&
-        !weather.isStale &&
-        weather.origin != WeatherForecastOrigin.staleCache &&
-        weather.origin != WeatherForecastOrigin.staleFallback &&
-        !weather.isStaleAt(evaluatedAtUtc, cachePolicy);
+        weatherIsCurrent(weather, evaluatedAtUtc, cachePolicy);
     final hourlyForecasts = <int, HourlyWeatherForecast>{};
     if (validWeather) {
-      for (final hour in forecast.hours) {
+      for (final hour in weather.forecast.hours) {
         hourlyForecasts[hour.timeUtc.microsecondsSinceEpoch] = hour;
       }
     }
@@ -88,6 +106,7 @@ abstract final class AstrophotographySuitabilityScoring {
     final totalUs = endUtc.difference(startUtc).inMicroseconds;
     var darkUs = 0;
     var usableUs = 0;
+    var overcastUs = 0;
     var moonQualityUs = 0.0;
     double? bestAltitude;
     var weatherQualityUs = 0.0;
@@ -97,7 +116,18 @@ abstract final class AstrophotographySuitabilityScoring {
     var cursor = startUtc;
     while (cursor.isBefore(endUtc)) {
       final suggested = cursor.add(profile.sampleStep);
-      final next = suggested.isAfter(endUtc) ? endUtc : suggested;
+      var next = suggested.isAfter(endUtc) ? endUtc : suggested;
+      final hourStart = DateTime.utc(
+        cursor.year,
+        cursor.month,
+        cursor.day,
+        cursor.hour,
+      );
+      if (validWeather) {
+        final nextHour = hourStart.add(const Duration(hours: 1));
+        if (nextHour.isBefore(next)) next = nextHour;
+      }
+      final reading = hourlyForecasts[hourStart.microsecondsSinceEpoch];
       final spanUs = next.difference(cursor).inMicroseconds;
       final midpoint = DateTime.fromMicrosecondsSinceEpoch(
         cursor.microsecondsSinceEpoch + spanUs ~/ 2,
@@ -120,6 +150,7 @@ abstract final class AstrophotographySuitabilityScoring {
       if (isDark) darkUs += spanUs;
       if (isDark && targetAltitude >= profile.minimumAltitudeDegrees) {
         usableUs += spanUs;
+        if (reading != null && isFullyOvercast(reading)) overcastUs += spanUs;
         if (bestAltitude == null || targetAltitude > bestAltitude) {
           bestAltitude = targetAltitude;
         }
@@ -137,20 +168,11 @@ abstract final class AstrophotographySuitabilityScoring {
             spanUs;
       }
 
-      if (validWeather) {
-        final hourStart = DateTime.utc(
-          midpoint.year,
-          midpoint.month,
-          midpoint.day,
-          midpoint.hour,
-        ).microsecondsSinceEpoch;
-        final reading = hourlyForecasts[hourStart];
-        if (reading != null) {
-          final quality = _weatherQuality(reading);
-          weatherQualityUs += quality.score * spanUs;
-          weatherCoverageUs += quality.coverage * spanUs;
-          if (quality.coverage >= 0.999999) weatherCompleteUs += spanUs;
-        }
+      if (reading != null) {
+        final quality = _weatherQuality(reading);
+        weatherQualityUs += quality.score * spanUs;
+        weatherCoverageUs += quality.coverage * spanUs;
+        if (quality.coverage >= 0.999999) weatherCompleteUs += spanUs;
       }
       cursor = next;
     }
@@ -175,7 +197,8 @@ abstract final class AstrophotographySuitabilityScoring {
     final opticsGrade = _opticalQuality(target: target, optics: optics);
     final results = <SuitabilityFactor, SuitabilityFactorResult>{};
     final weights = profile.weights;
-    final totalWeight = weights.total;
+    final totalWeight =
+        weights.total - (bortleClass == null ? weights.bortle : 0);
 
     void record(
       SuitabilityFactor factor,
@@ -192,7 +215,11 @@ abstract final class AstrophotographySuitabilityScoring {
               : boundedCoverage < 0.999999
               ? SuitabilityDataStatus.partial
               : SuitabilityDataStatus.complete);
-      final normalizedWeight = weights.forFactor(factor) / totalWeight;
+      final normalizedWeight =
+          (factor == SuitabilityFactor.bortle && bortleClass == null) ||
+              totalWeight <= 0
+          ? 0.0
+          : weights.forFactor(factor) / totalWeight;
       results[factor] = SuitabilityFactorResult(
         factor: factor,
         status: dataStatus,
@@ -263,26 +290,13 @@ abstract final class AstrophotographySuitabilityScoring {
       opticsGrade.explanation,
     );
 
-    final reading = nightLights == null ? lightPollution : nightLights.reading;
-    final matchesSite =
-        reading != null &&
-        (reading.latitude - observer.latitudeDegrees).abs() < 0.001 &&
-        (reading.longitude - observer.longitudeDegrees).abs() < 0.001;
-    final staleNightLights =
-        matchesSite && nightLights?.isStaleAt(evaluatedAtUtc) == true;
-    final nightLightScore = matchesSite && !staleNightLights
-        ? SatelliteRadianceIndicator.relativeDarknessScore(reading)
-        : null;
     record(
-      SuitabilityFactor.lightPollution,
-      nightLightScore,
-      nightLightScore == null ? 0 : 1,
-      reading == null
-          ? 'No satellite night-light reading available for this observing site.'
-          : !matchesSite
-          ? 'Night-light data belongs to a different observing location.'
-          : _nightLightDetails(reading, nightLights, stale: staleNightLights),
-      status: staleNightLights ? SuitabilityDataStatus.stale : null,
+      SuitabilityFactor.bortle,
+      bortleClass == null ? null : 100 * (9 - bortleClass) / 8,
+      bortleClass == null ? 0 : 1,
+      bortleClass == null
+          ? 'No Bortle class recorded for this observing site.'
+          : 'Observer-reported Bortle class $bortleClass of 9.',
     );
 
     var score = results.values.fold<double>(
@@ -302,6 +316,15 @@ abstract final class AstrophotographySuitabilityScoring {
       );
     }
     if (constraints.isNotEmpty) score = 0;
+    if (overcastUs > 0) {
+      score *= (usableUs - overcastUs) / usableUs;
+      constraints.add(
+        overcastUs == usableUs
+            ? 'Forecast shows 100% cloud cover throughout the visible dark interval.'
+            : 'Forecast shows 100% cloud cover for '
+                  '${_minutes(Duration(microseconds: overcastUs))} minutes of visible dark time.',
+      );
+    }
     if (weatherCoverage == 0 && weights.weather > 0) {
       score = math.min(score, profile.maximumScoreWithoutWeather);
       constraints.add(
@@ -332,29 +355,6 @@ abstract final class AstrophotographySuitabilityScoring {
       factors: results,
       constraints: constraints,
     );
-  }
-
-  static String _nightLightDetails(
-    LightPollutionReading reading,
-    LightPollutionSnapshot? snapshot, {
-    required bool stale,
-  }) {
-    String date(DateTime utc) => utc.toIso8601String().split('T').first;
-    final checked = snapshot?.checkedAtUtc;
-    final details = [
-      '${reading.kindLabel} ${reading.value.toStringAsFixed(2)} ${reading.unit}',
-      '${reading.sourceName} · dataset ${date(reading.datasetDate)}',
-      if (checked != null) 'Retrieved ${date(checked)} UTC',
-      if (stale)
-        'Stale reading · 0 points'
-      else if (snapshot?.fromCache == true)
-        'Current cached reading',
-      if (reading.kind == NightLightKind.satelliteRadiance)
-        'Relative darkness indicator'
-      else
-        'Relative scoring requires satellite upward radiance',
-    ];
-    return '${details.join('. ')}.';
   }
 
   /// A local, explainable lunar heuristic: Moon below horizon = 100; when
@@ -408,7 +408,11 @@ abstract final class AstrophotographySuitabilityScoring {
     include(hour.windGustMetersPerSecond, 0.04, (v) => 100 * (16 - v) / 11);
     include(hour.relativeHumidityPercent, 0.03, (v) => 100 * (95 - v) / 35);
     include(hour.visibilityMeters, 0.03, (v) => 100 * (v - 1000) / 19000);
-    return _WeatherQuality(_bounded(score), _fraction(coverage));
+    final totalCloudCover = hour.totalCloudCoverPercent.valueOrNull;
+    final cloudPenalty = totalCloudCover == null
+        ? 1.0
+        : _fraction((100 - totalCloudCover) / 50);
+    return _WeatherQuality(_bounded(score * cloudPenalty), _fraction(coverage));
   }
 
   static _OpticalQuality _opticalQuality({

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -28,6 +29,8 @@ final class OpenTopoDataElevationProvider implements TerrainElevationProvider {
   final String dataset;
   final int batchSize;
   final Duration betweenRequests;
+  Future<void> _nextRequestSlot = Future<void>.value();
+
   @override
   String get id => 'opentopodata:${Uri.parse(baseUrl).host}:$dataset';
 
@@ -35,9 +38,6 @@ final class OpenTopoDataElevationProvider implements TerrainElevationProvider {
   Future<List<double?>> elevations(List<TerrainPoint> points) async {
     final heights = <double?>[];
     for (var start = 0; start < points.length; start += batchSize) {
-      if (start > 0 && betweenRequests > Duration.zero) {
-        await Future<void>.delayed(betweenRequests);
-      }
       final batch = points.skip(start).take(batchSize).toList();
       final locations = batch
           .map(
@@ -48,15 +48,18 @@ final class OpenTopoDataElevationProvider implements TerrainElevationProvider {
       final uri = Uri.parse('$baseUrl/v1/$dataset').replace(
         queryParameters: {'locations': locations, 'interpolation': 'bilinear'},
       );
-      final response = await _client
-          .get(uri)
-          .timeout(const Duration(seconds: 25));
+      final response = await _get(uri);
       if (response.statusCode != 200) {
         throw StateError(
           'Elevation service returned HTTP ${response.statusCode}.',
         );
       }
-      final payload = jsonDecode(response.body);
+      final Object? payload;
+      try {
+        payload = jsonDecode(response.body);
+      } on FormatException {
+        throw const FormatException('Malformed elevation service response.');
+      }
       if (payload is! Map<String, dynamic> ||
           payload['status'] != 'OK' ||
           payload['results'] is! List) {
@@ -78,6 +81,24 @@ final class OpenTopoDataElevationProvider implements TerrainElevationProvider {
       }
     }
     return heights;
+  }
+
+  Future<http.Response> _get(Uri uri) async {
+    if (betweenRequests > Duration.zero) {
+      // Share the rate limit across batches and concurrent site requests.
+      final slot = _nextRequestSlot;
+      _nextRequestSlot = slot.then(
+        (_) => Future<void>.delayed(betweenRequests),
+      );
+      await slot;
+    }
+    try {
+      return await _client.get(uri).timeout(const Duration(seconds: 25));
+    } on TimeoutException {
+      throw StateError('Elevation request timed out.');
+    } on Exception {
+      throw StateError('Elevation network request failed.');
+    }
   }
 
   void close() {

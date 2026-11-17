@@ -69,6 +69,7 @@ void main() {
     bool includeWeather = true,
     bool staleWeather = false,
     double clouds = 0,
+    Map<DateTime, double> cloudOverrides = const {},
     bool missingAllWeatherParameters = false,
     bool unavailableLowClouds = false,
     List<DateTime>? hoursUtc,
@@ -81,6 +82,7 @@ void main() {
     weather: includeWeather
         ? RecommendationScenarios.forecast(
             cloudPercent: clouds,
+            cloudOverrides: cloudOverrides,
             stale: staleWeather,
             missingAll: missingAllWeatherParameters,
             unavailableLowClouds: unavailableLowClouds,
@@ -503,14 +505,41 @@ void main() {
 
     test('better cloud conditions improve comparable ranked window scores', () {
       final clear = recommend(clouds: 0);
-      final overcast = recommend(clouds: 100);
+      final cloudy = recommend(clouds: 90);
       expect(clear.rankedWindows, isNotEmpty);
-      expect(overcast.rankedWindows, isNotEmpty);
+      expect(cloudy.rankedWindows, isNotEmpty);
       expect(
         clear.rankedWindows.first.score.score,
-        greaterThan(overcast.rankedWindows.first.score.score),
+        greaterThan(cloudy.rankedWindows.first.score.score),
       );
     });
+
+    test('fresh complete overcast rules out a dark visible window', () {
+      final overcast = recommend(clouds: 100);
+      expect(overcast.rankedWindows, isEmpty);
+      expect(overcast.excludedTargets[target.id], contains('100% cloud cover'));
+      final stale = recommend(clouds: 100, staleWeather: true);
+      expect(stale.rankedWindows, isNotEmpty);
+      expect(stale.rankedWindows.first.isProvisional, isTrue);
+    });
+
+    test(
+      'an exact one-hour opening between overcast hours remains eligible',
+      () {
+        final clearStart = start.add(const Duration(hours: 1));
+        final result = recommend(
+          from: start.add(const Duration(minutes: 17)),
+          to: end.add(const Duration(minutes: 17)),
+          clouds: 100,
+          hoursUtc: [start, clearStart, end],
+          cloudOverrides: {clearStart: 10},
+        );
+        final window = result.rankedWindows.single;
+        expect(window.startUtc, clearStart);
+        expect(window.endUtc, end);
+        expect(window.weatherStatus, WindowWeatherStatus.complete);
+      },
+    );
 
     test('weather coverage and explanations distinguish sparse from stale', () {
       final clear = recommend();

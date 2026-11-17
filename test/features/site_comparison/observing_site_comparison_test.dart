@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/site_comparison/domain/observing_site_comparison.dart';
 import 'package:astromanager/features/targets/domain/models/celestial_object.dart';
@@ -12,6 +11,7 @@ import 'package:astromanager/features/weather/domain/models/weather_value.dart';
 const zurich = ObservingLocation(
   id: 'zurich',
   name: 'Zurich',
+  bortleClass: 2,
   latitude: 47.3769,
   longitude: 8.5417,
   elevationMeters: 408,
@@ -21,6 +21,7 @@ const zurich = ObservingLocation(
 const bern = ObservingLocation(
   id: 'bern',
   name: 'Bern',
+  bortleClass: 8,
   latitude: 46.948,
   longitude: 7.4474,
   elevationMeters: 550,
@@ -116,22 +117,6 @@ TerrainHorizonProfile terrain(ObservingLocation site, double altitude) {
   );
 }
 
-LightPollutionSnapshot lights(ObservingLocation site, double radiance) =>
-    LightPollutionSnapshot(
-      reading: LightPollutionReading(
-        kind: NightLightKind.satelliteRadiance,
-        value: radiance,
-        sourceId: 'test-viirs',
-        sourceName: 'Test VIIRS',
-        datasetDate: DateTime.utc(2025, 12, 1),
-        latitude: site.latitude,
-        longitude: site.longitude,
-        description: 'Test only',
-      ),
-      fromCache: false,
-      isStale: false,
-    );
-
 SiteComparisonReport compare(
   List<SiteComparisonInput> inputs, {
   SiteComparisonOptions options = const SiteComparisonOptions(),
@@ -160,16 +145,10 @@ void main() {
   });
 
   test('same target and local calendar day, with site-specific UTC nights', () {
-    final report = compare(
-      [
-        const SiteComparisonInput(site: zurich),
-        const SiteComparisonInput(site: london),
-      ],
-      options: const SiteComparisonOptions(
-        compareTerrain: false,
-        compareLightPollution: false,
-      ),
-    );
+    final report = compare([
+      const SiteComparisonInput(site: zurich),
+      const SiteComparisonInput(site: london),
+    ], options: const SiteComparisonOptions(compareTerrain: false));
     expect(report.target.id, poleTarget.id);
     expect(report.localDate, localDate);
     final starts = report.rankedSites.map((item) => item.nightStartUtc).toSet();
@@ -183,31 +162,24 @@ void main() {
   });
 
   test('clear forecast improves the score; wrong-site forecast is missing', () {
-    final report = compare(
-      [
-        SiteComparisonInput(site: zurich, weather: weather(zurich, 0)),
-        SiteComparisonInput(site: bern, weather: weather(bern, 100)),
-      ],
-      options: const SiteComparisonOptions(
-        compareTerrain: false,
-        compareLightPollution: false,
-      ),
-    );
+    final report = compare([
+      SiteComparisonInput(site: zurich, weather: weather(zurich, 0)),
+      SiteComparisonInput(site: bern, weather: weather(bern, 100)),
+    ], options: const SiteComparisonOptions(compareTerrain: false));
     expect(report.leader.site.id, 'zurich');
+    expect(report.rankedSites.last.score, 0);
+    expect(
+      report.rankedSites.last.explanations.join(' '),
+      contains('100% cloud cover'),
+    );
     expect(
       report.rankedSites.first.score,
       greaterThan(report.rankedSites.last.score),
     );
-    final mismatch = compare(
-      [
-        SiteComparisonInput(site: zurich, weather: weather(bern, 0)),
-        SiteComparisonInput(site: bern, weather: weather(bern, 100)),
-      ],
-      options: const SiteComparisonOptions(
-        compareTerrain: false,
-        compareLightPollution: false,
-      ),
-    );
+    final mismatch = compare([
+      SiteComparisonInput(site: zurich, weather: weather(bern, 0)),
+      SiteComparisonInput(site: bern, weather: weather(bern, 100)),
+    ], options: const SiteComparisonOptions(compareTerrain: false));
     final zurichResult = mismatch.rankedSites.firstWhere(
       (r) => r.site.id == 'zurich',
     );
@@ -226,7 +198,6 @@ void main() {
         item.missingData.join(' '),
         contains('Terrain horizon unavailable'),
       );
-      expect(item.missingData.join(' '), contains('satellite night-light'));
       expect(item.score, lessThanOrEqualTo(50));
       expect(item.score, inInclusiveRange(0.0, 100.0));
     }
@@ -246,7 +217,7 @@ void main() {
           weather: weather(bern, 0),
           terrain: terrain(bern, -10),
         ),
-      ], options: const SiteComparisonOptions(compareLightPollution: false));
+      ]);
       final obstructed = report.rankedSites.firstWhere(
         (r) => r.site.id == 'zurich',
       );
@@ -260,54 +231,22 @@ void main() {
     },
   );
 
-  test(
-    'lower VIIRS radiance is a preferred relative indicator, not Bortle',
-    () {
-      final report = compare([
-        SiteComparisonInput(
-          site: zurich,
-          weather: weather(zurich, 0),
-          lightPollution: lights(zurich, 0.2),
-        ),
-        SiteComparisonInput(
-          site: bern,
-          weather: weather(bern, 0),
-          lightPollution: lights(bern, 35),
-        ),
-      ], options: const SiteComparisonOptions(compareTerrain: false));
-      final a = report.rankedSites.firstWhere((r) => r.site.id == 'zurich');
-      final b = report.rankedSites.firstWhere((r) => r.site.id == 'bern');
-      expect(a.explanations.join(' '), contains('not Bortle/SQM'));
-      expect(b.explanations.join(' '), contains('nW/cm²/sr'));
-      expect(a.score, greaterThan(b.score));
-    },
-  );
-
-  test('different radiance composite months cannot be scored together', () {
-    final incompatible = LightPollutionSnapshot(
-      reading: LightPollutionReading(
-        kind: NightLightKind.satelliteRadiance,
-        value: 0.1,
-        sourceId: 'test-viirs',
-        sourceName: 'Test VIIRS',
-        datasetDate: DateTime.utc(2026, 1, 1),
-        latitude: bern.latitude,
-        longitude: bern.longitude,
-        description: 'Test only',
-      ),
-      fromCache: false,
-      isStale: false,
-    );
-    final result = compare([
-      SiteComparisonInput(site: zurich, lightPollution: lights(zurich, 2)),
-      SiteComparisonInput(site: bern, lightPollution: incompatible),
+  test('saved Bortle classes affect site comparisons', () {
+    final report = compare([
+      SiteComparisonInput(site: zurich, weather: weather(zurich, 0)),
+      SiteComparisonInput(site: bern, weather: weather(bern, 0)),
     ], options: const SiteComparisonOptions(compareTerrain: false));
+    final dark = report.rankedSites.firstWhere((r) => r.site.id == 'zurich');
+    final bright = report.rankedSites.firstWhere((r) => r.site.id == 'bern');
     expect(
-      result.rankedSites.every(
-        (site) => site.missingData.join(' ').contains('datasets differ'),
-      ),
-      isTrue,
+      dark.explanations.join(' '),
+      contains('Observer-reported Bortle class 2'),
     );
+    expect(
+      bright.explanations.join(' '),
+      contains('Observer-reported Bortle class 8'),
+    );
+    expect(dark.score, greaterThan(bright.score));
   });
 
   test('spring DST observing nights are evaluated in UTC, not assumed 24h', () {
@@ -317,10 +256,7 @@ void main() {
         const SiteComparisonInput(site: london),
       ],
       date: DateTime.utc(2026, 3, 28),
-      options: const SiteComparisonOptions(
-        compareTerrain: false,
-        compareLightPollution: false,
-      ),
+      options: const SiteComparisonOptions(compareTerrain: false),
     );
     // The observing night noon March 28 to noon March 29 crosses DST.
     expect(

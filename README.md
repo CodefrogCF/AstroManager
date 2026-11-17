@@ -1,6 +1,6 @@
 # AstroManager
 
-AstroManager is an offline-first astrophotography planning application built with Flutter. It combines a local celestial-object catalog, observing-site and equipment management, nighttime planning, imaging projects, observation logs, and an interactive sky atlas. Optional online data can refine recommendations with weather forecasts, terrain and satellite night-light information.
+AstroManager is an offline-first astrophotography planning application built with Flutter. It combines a local celestial-object catalog, observing-site and equipment management, nighttime planning, imaging projects, observation logs, and an interactive sky atlas. Weather forecasts, terrain profiles and observer-reported Bortle classes refine recommendations.
 
 **Current application version:** `0.7.0+7`.
 
@@ -13,7 +13,7 @@ AstroManager is an offline-first astrophotography planning application built wit
 | **Night Planner** | Inspect sunset, sunrise, twilight, astronomical darkness, Moon conditions, target altitude and visibility; organize multiple project targets on an interactive timeline. |
 | **Equipment** | Manage cameras, lenses, telescopes and mounts; build reusable optical setups and calculate field of view and image scale. |
 | **Projects** | Organize targets, imaging goals, project status and integration-time targets; log sessions, exposure parameters, notes and optional images. Only accepted frames count toward usable integration time. |
-| **Advanced planning** | Estimate terrain obstruction, inspect available VIIRS satellite night-light radiance, compare observing locations and design/export mosaic panels. |
+| **Advanced planning** | Estimate terrain obstruction, record local sky darkness, compare observing locations and design/export mosaic panels. |
 | **Settings and data** | Save observing sites and preferences, configure optional observation-opportunity alerts, and export/restore portable `.ambackup` files. |
 
 The Dashboard offers locally saved, configurable widgets and quick actions.
@@ -41,8 +41,8 @@ Native Flutter labels respect system text scaling and screen readers. Some dense
 
 - **Available locally:** bundled target catalog, saved sites/equipment/projects/sessions, astronomical calculations, mosaic geometry, observation plans and cached information.
 - **Web startup:** the app and its bundled renderer load from the deployment origin. Reloading while that origin is unreachable depends on the deployment and browser cache.
-- **Requires network access when fetching new data:** Open-Meteo forecasts, terrain heights via OpenTopoData, VIIRS night-light values and Aladin Lite's external viewer/survey imagery.
-- **Not a guaranteed forecast or line-of-sight tool:** weather can be outdated; DEM horizons omit buildings and trees; satellite radiance is **not** a measured Bortle class.
+- **Requires network access when fetching new data:** Open-Meteo forecasts, terrain heights via OpenTopoData and Aladin Lite's external viewer/survey imagery.
+- **Not a guaranteed forecast or line-of-sight tool:** forecasts can be outdated and DEM horizons omit nearby buildings and trees.
 - **Notifications:** optional on Android/iOS, evaluated on app launch, foreground resume or manual check. AstroManager does **not** guarantee continuous background weather monitoring.
 
 See [Data sources and limitations](docs/data-sources.md) for credits, source conditions and scientific limitations.
@@ -72,11 +72,12 @@ Developer checks and contribution guidelines are in [CONTRIBUTING.md](CONTRIBUTI
 - [User guide](docs/user-guide.md) — setup, workflows, backup and alerts.
 - [Architecture and development](docs/architecture.md) — storage, algorithms, extension points and testing.
 - [Data sources and limitations](docs/data-sources.md) — catalog, survey, weather, terrain, light pollution and attribution.
+- [Privacy and network requests](docs/privacy.md)
 - [Backup format](docs/backup-format.md) — portable `.ambackup` structure and restore guarantees.
 
 ## Data
 
-AstroManager stores personal planning records locally; optional provider requests use the location/time required to retrieve data.
+AstroManager stores planning records locally. Weather requests can run automatically for the selected site. [Privacy and network requests](docs/privacy.md) explains what each provider receives.
 
 ## License
 

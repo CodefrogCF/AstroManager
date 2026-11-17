@@ -100,8 +100,8 @@ final class OpenMeteoWeatherProvider implements WeatherProvider {
           explicitlyUnsupported: unsupported,
         );
       }
-      final reason = _errorReason(response.body);
       if (response.statusCode == 400) {
+        final reason = _errorReason(response.body);
         final badVariable = _unsupportedVariable(reason, variables);
         if (badVariable != null) {
           variables.remove(badVariable);
@@ -109,7 +109,7 @@ final class OpenMeteoWeatherProvider implements WeatherProvider {
           continue;
         }
       }
-      throw _httpFailure(response, reason);
+      throw _httpFailure(response);
     }
     throw const WeatherException(
       type: WeatherErrorType.providerUnavailable,
@@ -203,7 +203,7 @@ final class OpenMeteoWeatherProvider implements WeatherProvider {
     return null;
   }
 
-  static WeatherException _httpFailure(http.Response response, String reason) {
+  static WeatherException _httpFailure(http.Response response) {
     final status = response.statusCode;
     final kind = switch (status) {
       401 || 403 => WeatherErrorType.authentication,
@@ -218,9 +218,7 @@ final class OpenMeteoWeatherProvider implements WeatherProvider {
         : null;
     return WeatherException(
       type: kind,
-      message: reason.isNotEmpty
-          ? 'Open-Meteo HTTP $status: $reason'
-          : 'Open-Meteo returned HTTP $status.',
+      message: 'Open-Meteo returned HTTP $status.',
       providerId: id,
       retryAfter: retryAfter,
     );

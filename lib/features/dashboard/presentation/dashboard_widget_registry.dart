@@ -418,7 +418,8 @@ final dashboardWidgetRegistryProvider = Provider<DashboardWidgetRegistry>((
     DashboardWidgetDefinition(
       typeId: 'observing-site',
       title: 'Observing Site',
-      description: 'Cached terrain horizon and night-light conditions for the selected site',
+      description:
+          'Saved terrain horizon and Bortle class for the selected site',
       icon: Icons.place_outlined,
       defaultSize: const DashboardWidgetSize(1, 1),
       supportedSizes: const [

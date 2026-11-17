@@ -30,19 +30,20 @@ algorithms credited to **Sonia Keys (2018)**:
 covered source material. Those authors' contributions are not relicensed by
 AstroManager's Apache-2.0 notice.
 
-## 3. Aladin Lite sky atlas — LGPL-3.0-or-later
+## 3. Aladin Lite sky atlas — GPL v3
 
 - **Library:** Aladin Lite by CDS / Université de Strasbourg / CNRS.
 - **Project:** <https://github.com/cds-astro/aladin-lite>.
-- **License:** GNU Lesser General Public License, version 3 or later,
-  <https://github.com/cds-astro/aladin-lite/blob/master/LICENSE>.
+- **License:** GNU General Public License, version 3, as identified in the
+  [3.8.1 package metadata](https://registry.npmjs.org/aladin-lite/3.8.1) and
+  [CDS documentation](https://aladin.cds.unistra.fr/AladinLite/doc/).
 - **Current integration:** `assets/atlas/atlas.html` loads version `3.8.1`
   as an external ES module via jsDelivr. The library source is not included
   in AstroManager's repository by this integration.
 - **Attribution:** Retain the Aladin logo/link and any notices in the viewer.
 
 If a future release bundles, modifies, or redistributes Aladin Lite itself,
-check and fulfil the LGPL's requirements for that form of distribution.
+check and fulfil the GPL's requirements for that form of distribution.
 
 ## 4. Sky-survey imagery — provider-specific rights
 
@@ -57,7 +58,7 @@ The current atlas displays **DSS2 Color** via the ESA HiPS mirror:
   AstroManager's Apache-2.0 license; do not redistribute tiles or copies
   without verifying the corresponding permissions.
 
-See `docs/atlas-sources-and-resilience.md` for the exact source and credits.
+See [Data sources and limitations](data-sources.md) for the survey credits.
 
 ## 5. Open-Meteo forecasts — CC BY 4.0 data, API usage terms
 
@@ -75,7 +76,8 @@ See `docs/atlas-sources-and-resilience.md` for the exact source and credits.
   server code. That server's AGPL license is distinct from the CC BY data
   license and does not automatically govern the API-consuming application.
 
-See `docs/open-meteo-provider.md` and the provider's current terms.
+See the [Open-Meteo data license](https://open-meteo.com/en/license) and
+[hosted service terms](https://open-meteo.com/en/terms).
 
 ## 6. Terrain elevation — Open Topo Data / Copernicus EU-DEM
 
@@ -91,28 +93,7 @@ See `docs/open-meteo-provider.md` and the provider's current terms.
 
 The generated horizon profile is a model, not verified line-of-sight data.
 
-## 7. Satellite nighttime-light values — EOG / NOAA / Esri
-
-- **Data:** Monthly VIIRS DNB nighttime-light radiance derived from Earth
-  Observation Group (EOG) / NOAA sources.
-- **Current service:** Esri's `NighttimeLightsMDNB` ArcGIS ImageServer.
-- **Credit:** Earth Observation Group, Payne Institute for Public Policy,
-  Colorado School of Mines / NOAA; served via Esri ArcGIS Online.
-- **Restrictions:** Keep the dataset month and the satellite-radiance unit
-  (`nW/cm²/sr`) with displayed values. Provider terms may differ for
-  raw data versus Esri-hosted imagery. The application accesses site-level
-  values; do not bulk-copy or republish hosted tiles without verifying terms.
-
-See `docs/implementation/issue-33-light-pollution.md` for the data product,
-service, limitations, and detailed source references.
-
-## 8. Bundled Bortle estimate grid — EOG / OpenLandMap
-
-- **Source:** VIIRS Nighttime Lights annual average for 2024, Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines. Distributed by Tomislav Hengl in [OpenLandMap's VIIRS annual series](https://doi.org/10.5281/zenodo.17294744), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-- **Changes:** AstroManager resampled the radiance, modeled zenith brightness and encoded a grid of estimated Bortle classes. The derived grid is distributed under CC BY 4.0.
-- **Method:** [Duriscoe et al. (2018)](https://doi.org/10.1016/j.jqsrt.2018.04.028), with the [zenith calibration and class cutoffs published by First Rig](https://firstrig.com/method/sky-brightness).
-
-## 9. Flutter / Dart / package dependencies
+## 7. Flutter / Dart / package dependencies
 
 Dart and Flutter dependencies listed in `pubspec.yaml` retain their own
 copyright and license notices; they are not relicensed by this file.

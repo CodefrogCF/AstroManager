@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/astronomy/solar_events.dart';
 import '../../discovery/application/discovery_evaluator.dart';
 import '../../discovery/data/discovery_repositories.dart';
-import '../../light_pollution/application/light_pollution_providers.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../projects/data/planned_projects_repository.dart';
 import '../../projects/domain/planned_imaging_project.dart';
@@ -143,9 +142,6 @@ final topTargetsProvider = FutureProvider.autoDispose
       if (!ref.mounted) {
         throw StateError('Recommendation evaluation cancelled.');
       }
-      final nightLights = await ref.watch(
-        cachedNightLightsProvider(lightPollutionRequest(site)).future,
-      );
       final evaluated = await evaluator.evaluate(
         targets: chosen,
         location: site,
@@ -154,7 +150,6 @@ final topTargetsProvider = FutureProvider.autoDispose
         minimumDurationMinutes: query.minimumDurationMinutes,
         minimumAltitudeDegrees: 30,
         weather: weather,
-        nightLights: nightLights,
         optics: null,
         isCurrent: () => ref.mounted,
       );
