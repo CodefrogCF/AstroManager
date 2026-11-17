@@ -22,7 +22,7 @@ enum SuitabilityFactor {
 
 /// 'Partial' means the calculation relied on incomplete source parameters.
 /// Missing factors do not contribute an optimistic default score.
-enum SuitabilityDataStatus { complete, partial, missing }
+enum SuitabilityDataStatus { complete, partial, missing, stale }
 
 /// Relative importance, not a universal astronomical calibration.
 /// Any nonnegative finite weights are accepted, provided their sum is > 0.
@@ -134,7 +134,7 @@ final class SuitabilityScoringProfile {
 }
 
 /// Transparent score and weighted contribution for one factor.
-/// Missing factor's [rawScore] is null and [contribution] is zero.
+/// A missing or stale factor has a null [rawScore] and zero [contribution].
 final class SuitabilityFactorResult {
   const SuitabilityFactorResult({
     required this.factor,

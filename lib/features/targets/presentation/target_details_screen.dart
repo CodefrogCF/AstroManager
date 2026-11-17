@@ -14,6 +14,8 @@ import '../../../core/astronomy/target_visibility.dart';
 import '../../equipment/application/equipment_controller.dart';
 import '../../equipment/domain/models/equipment_models.dart';
 import '../../intelligence/domain/models/suitability_score.dart';
+import '../../light_pollution/application/light_pollution_providers.dart';
+import '../../light_pollution/domain/light_pollution.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../projects/data/planned_projects_repository.dart';
@@ -58,6 +60,8 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
   WeatherForecastSnapshot? _weather;
   ProviderSubscription<AsyncValue<WeatherForecastSnapshot>>?
   _weatherSubscription;
+  ProviderSubscription<AsyncValue<LightPollutionSnapshot?>>?
+  _nightLightsSubscription;
   String? _weatherError;
   String? _error;
   bool _busy = true;
@@ -151,6 +155,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
 
   Future<void> _recalculate({int? generation}) async {
     _weatherSubscription?.close();
+    _nightLightsSubscription?.close();
     final current = generation ?? ++_generation;
     final object = _object;
     final site = _site;
@@ -196,6 +201,23 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
         weatherError = error.toString();
       }
       if (!mounted || current != _generation) return;
+      final cachedLights = cachedNightLightsProvider(
+        lightPollutionRequest(site),
+      );
+      _nightLightsSubscription = ref.listenManual(cachedLights, (
+        previous,
+        next,
+      ) {
+        if (mounted &&
+            current == _generation &&
+            previous?.hasValue == true &&
+            next.hasValue &&
+            !next.isLoading) {
+          unawaited(_recalculate());
+        }
+      });
+      final nightLights = await ref.read(cachedLights.future);
+      if (!mounted || current != _generation) return;
       // Yield once before the CPU-only astronomy calculations on Flutter Web.
       await Future<void>.delayed(Duration.zero);
       if (!mounted || current != _generation) return;
@@ -205,6 +227,7 @@ class _TargetDetailsScreenState extends ConsumerState<TargetDetailsScreen> {
         localDate: _date,
         evaluatedAtUtc: DateTime.now().toUtc(),
         weather: weather,
+        nightLights: nightLights,
         inventory: _equipment,
         selectedProfileId: _profileId,
       );

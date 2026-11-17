@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:astromanager/features/light_pollution/data/light_pollution_repository.dart';
 import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/site_comparison/domain/observing_site_comparison.dart';

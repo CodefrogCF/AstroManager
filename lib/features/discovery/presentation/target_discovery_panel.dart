@@ -15,6 +15,8 @@ import '../../equipment/application/equipment_controller.dart';
 import '../../equipment/domain/models/equipment_models.dart';
 import '../../intelligence/domain/models/observation_window.dart';
 import '../../intelligence/domain/models/suitability_score.dart';
+import '../../light_pollution/application/light_pollution_providers.dart';
+import '../../light_pollution/domain/light_pollution.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../targets/application/celestial_catalog_controller.dart';
@@ -57,6 +59,8 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
   WeatherForecastSnapshot? _weather;
   ProviderSubscription<AsyncValue<WeatherForecastSnapshot>>?
   _weatherSubscription;
+  ProviderSubscription<AsyncValue<LightPollutionSnapshot?>>?
+  _nightLightsSubscription;
   int _candidatesConsidered = 0;
   int _generation = 0;
   List<RankedDiscoveryTarget> _ranked = const [];
@@ -149,6 +153,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
   Future<void> _recompute() async {
     _debounce?.cancel();
     _weatherSubscription?.close();
+    _nightLightsSubscription?.close();
     final site = _site;
     final revision = ++_generation;
     bool current() => mounted && revision == _generation;
@@ -205,6 +210,22 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
         weatherError = error.toString();
       }
       if (!current()) return;
+      final cachedLights = cachedNightLightsProvider(
+        lightPollutionRequest(site),
+      );
+      _nightLightsSubscription = ref.listenManual(cachedLights, (
+        previous,
+        next,
+      ) {
+        if (current() &&
+            previous?.hasValue == true &&
+            next.hasValue &&
+            !next.isLoading) {
+          unawaited(_recompute());
+        }
+      });
+      final nightLights = await ref.read(cachedLights.future);
+      if (!current()) return;
       OpticalMetrics? optics;
       String? opticalError;
       try {
@@ -223,6 +244,7 @@ class _TargetDiscoveryPanelState extends ConsumerState<TargetDiscoveryPanel> {
             minimumDurationMinutes: _durationMinutes,
             minimumAltitudeDegrees: _minimumAltitude,
             weather: weather,
+            nightLights: nightLights,
             optics: optics,
             isCurrent: current,
           );

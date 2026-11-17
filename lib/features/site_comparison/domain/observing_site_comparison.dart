@@ -3,7 +3,6 @@ import '../../../core/astronomy/solar_events.dart';
 import '../../../core/astronomy/target_visibility.dart';
 import '../../intelligence/domain/models/suitability_score.dart';
 import '../../intelligence/domain/services/astrophotography_suitability_scoring.dart';
-import '../../light_pollution/data/light_pollution_repository.dart';
 import '../../light_pollution/domain/light_pollution.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../targets/domain/models/celestial_object.dart';

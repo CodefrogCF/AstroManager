@@ -121,6 +121,7 @@ TargetSuitabilityScore calculate({
   WeatherForecastSnapshot? weather,
   OpticalMetrics? optics = matchingOptics,
   LightPollutionReading? lightPollution,
+  LightPollutionSnapshot? nightLights,
   SuitabilityScoringProfile profile = const SuitabilityScoringProfile(),
 }) {
   return AstrophotographySuitabilityScoring.score(
@@ -132,6 +133,7 @@ TargetSuitabilityScore calculate({
     weather: weather,
     optics: optics,
     lightPollution: lightPollution,
+    nightLights: nightLights,
     profile: profile,
   );
 }
@@ -181,7 +183,47 @@ void main() {
       expect(dark.score, greaterThan(bright.score));
       expect(
         dark.factor(SuitabilityFactor.lightPollution).explanation,
-        contains('Not an'),
+        contains('Synthetic VIIRS · dataset 2025-12-31'),
+      );
+    });
+
+    test('a cached indicator uses the configured weight until it expires', () {
+      const weights = SuitabilityWeights(lightPollution: 0.15);
+      const profile = SuitabilityScoringProfile(weights: weights);
+      LightPollutionSnapshot cached(Duration age) => LightPollutionSnapshot(
+        reading: reading(5, latitude: observer.latitudeDegrees),
+        fromCache: true,
+        isStale: false,
+        checkedAtUtc: evaluated.subtract(age),
+        maximumAge: const Duration(days: 30),
+      );
+      final fresh = calculate(
+        weather: forecast(),
+        profile: profile,
+        nightLights: cached(const Duration(days: 30)),
+      ).factor(SuitabilityFactor.lightPollution);
+      expect(fresh.status, SuitabilityDataStatus.complete);
+      expect(fresh.rawScore, 50);
+      expect(
+        fresh.weight,
+        closeTo(weights.lightPollution / weights.total, 1e-10),
+      );
+      expect(fresh.contribution, closeTo(50 * fresh.weight, 1e-10));
+      expect(fresh.explanation, contains('Current cached reading'));
+
+      final stale = calculate(
+        weather: forecast(),
+        profile: profile,
+        nightLights: cached(const Duration(days: 31)),
+      ).factor(SuitabilityFactor.lightPollution);
+      expect(stale.status, SuitabilityDataStatus.stale);
+      expect(stale.rawScore, isNull);
+      expect(stale.contribution, 0);
+      expect(stale.weight, fresh.weight);
+      expect(stale.explanation, contains('Stale reading · 0 points'));
+      expect(
+        stale.explanation,
+        contains('Synthetic VIIRS · dataset 2025-12-31'),
       );
     });
 

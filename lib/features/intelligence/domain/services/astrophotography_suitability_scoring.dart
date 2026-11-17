@@ -35,6 +35,7 @@ abstract final class AstrophotographySuitabilityScoring {
     WeatherCachePolicy cachePolicy = const WeatherCachePolicy(),
     OpticalMetrics? optics,
     LightPollutionReading? lightPollution,
+    LightPollutionSnapshot? nightLights,
     SuitabilityScoringProfile profile = const SuitabilityScoringProfile(),
   }) {
     target.validate();
@@ -180,18 +181,21 @@ abstract final class AstrophotographySuitabilityScoring {
       SuitabilityFactor factor,
       double? rawScore,
       double coverage,
-      String explanation,
-    ) {
+      String explanation, {
+      SuitabilityDataStatus? status,
+    }) {
       final boundedCoverage = _fraction(coverage);
-      final status = boundedCoverage == 0
-          ? SuitabilityDataStatus.missing
-          : boundedCoverage < 0.999999
-          ? SuitabilityDataStatus.partial
-          : SuitabilityDataStatus.complete;
+      final dataStatus =
+          status ??
+          (boundedCoverage == 0
+              ? SuitabilityDataStatus.missing
+              : boundedCoverage < 0.999999
+              ? SuitabilityDataStatus.partial
+              : SuitabilityDataStatus.complete);
       final normalizedWeight = weights.forFactor(factor) / totalWeight;
       results[factor] = SuitabilityFactorResult(
         factor: factor,
-        status: status,
+        status: dataStatus,
         rawScore: rawScore == null ? null : _bounded(rawScore),
         weight: normalizedWeight,
         contribution:
@@ -259,28 +263,26 @@ abstract final class AstrophotographySuitabilityScoring {
       opticsGrade.explanation,
     );
 
-    // Opt-in only: ground radiance cannot be used as measured SQM/Bortle.
-    // An unmatched source location is unknown, not zero light pollution.
+    final reading = nightLights == null ? lightPollution : nightLights.reading;
     final matchesSite =
-        lightPollution != null &&
-        (lightPollution.latitude - observer.latitudeDegrees).abs() < 0.001 &&
-        (lightPollution.longitude - observer.longitudeDegrees).abs() < 0.001;
-    final nightLightScore = matchesSite
-        ? SatelliteRadianceIndicator.relativeDarknessScore(lightPollution)
+        reading != null &&
+        (reading.latitude - observer.latitudeDegrees).abs() < 0.001 &&
+        (reading.longitude - observer.longitudeDegrees).abs() < 0.001;
+    final staleNightLights =
+        matchesSite && nightLights?.isStaleAt(evaluatedAtUtc) == true;
+    final nightLightScore = matchesSite && !staleNightLights
+        ? SatelliteRadianceIndicator.relativeDarknessScore(reading)
         : null;
     record(
       SuitabilityFactor.lightPollution,
       nightLightScore,
       nightLightScore == null ? 0 : 1,
-      lightPollution == null
-          ? 'No night-light dataset supplied. No darkness is inferred.'
+      reading == null
+          ? 'No satellite night-light reading available for this observing site.'
           : !matchesSite
           ? 'Night-light data belongs to a different observing location.'
-          : nightLightScore == null
-          ? 'This dataset is not VIIRS upward radiance; no proxy score.'
-          : 'Optional relative VIIRS upward-radiance comparison, '
-                'dataset ${lightPollution.datasetDate.year}. Not an '
-                'SQM measurement, Bortle class, or actual sky quality.',
+          : _nightLightDetails(reading, nightLights, stale: staleNightLights),
+      status: staleNightLights ? SuitabilityDataStatus.stale : null,
     );
 
     var score = results.values.fold<double>(
@@ -330,6 +332,29 @@ abstract final class AstrophotographySuitabilityScoring {
       factors: results,
       constraints: constraints,
     );
+  }
+
+  static String _nightLightDetails(
+    LightPollutionReading reading,
+    LightPollutionSnapshot? snapshot, {
+    required bool stale,
+  }) {
+    String date(DateTime utc) => utc.toIso8601String().split('T').first;
+    final checked = snapshot?.checkedAtUtc;
+    final details = [
+      '${reading.kindLabel} ${reading.value.toStringAsFixed(2)} ${reading.unit}',
+      '${reading.sourceName} · dataset ${date(reading.datasetDate)}',
+      if (checked != null) 'Retrieved ${date(checked)} UTC',
+      if (stale)
+        'Stale reading · 0 points'
+      else if (snapshot?.fromCache == true)
+        'Current cached reading',
+      if (reading.kind == NightLightKind.satelliteRadiance)
+        'Relative darkness indicator'
+      else
+        'Relative scoring requires satellite upward radiance',
+    ];
+    return '${details.join('. ')}.';
   }
 
   /// A local, explainable lunar heuristic: Moon below horizon = 100; when

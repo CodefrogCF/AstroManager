@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../locations/domain/models/observing_location.dart';
 import '../application/light_pollution_providers.dart';
-import '../data/light_pollution_repository.dart';
 import '../domain/light_pollution.dart';
 
 /// Lazy load: never send a network request for every saved location just

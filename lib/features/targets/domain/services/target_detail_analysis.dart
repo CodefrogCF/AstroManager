@@ -5,6 +5,7 @@ import '../../../../core/astronomy/target_visibility.dart';
 import '../../../equipment/domain/models/equipment_models.dart';
 import '../../../intelligence/domain/models/observation_window.dart';
 import '../../../intelligence/domain/services/observation_window_recommendation.dart';
+import '../../../light_pollution/domain/light_pollution.dart';
 import '../../../locations/domain/models/observing_location.dart';
 import '../../../weather/domain/models/weather_cache.dart';
 import '../../../weather/domain/models/weather_forecast.dart';
@@ -53,6 +54,7 @@ abstract final class TargetDetailAnalysis {
     required DateTime localDate,
     required DateTime evaluatedAtUtc,
     WeatherForecastSnapshot? weather,
+    LightPollutionSnapshot? nightLights,
     EquipmentInventory? inventory,
     String? selectedProfileId,
   }) {
@@ -88,6 +90,7 @@ abstract final class TargetDetailAnalysis {
       localDate: localDate,
       evaluatedAtUtc: evaluatedAtUtc,
       weather: weather,
+      nightLights: nightLights,
       optics: optics,
       options: const ObservationWindowOptions(
         minimumSessionDuration: Duration(minutes: 30),

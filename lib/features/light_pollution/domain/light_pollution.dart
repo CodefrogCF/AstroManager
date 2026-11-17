@@ -102,6 +102,37 @@ final class LightPollutionReading {
   }
 }
 
+/// A location reading and its cache freshness. The sample and retrieval dates
+/// describe separate events.
+final class LightPollutionSnapshot {
+  const LightPollutionSnapshot({
+    required this.reading,
+    required this.fromCache,
+    required this.isStale,
+    this.refreshError,
+    this.checkedAtUtc,
+    this.maximumAge,
+  });
+
+  final LightPollutionReading? reading;
+  final bool fromCache;
+  final bool isStale;
+  final String? refreshError;
+
+  /// When this location/provider value was fetched, distinct from datasetDate.
+  final DateTime? checkedAtUtc;
+
+  final Duration? maximumAge;
+
+  bool isStaleAt(DateTime evaluatedAtUtc) {
+    final checkedAt = checkedAtUtc;
+    final limit = maximumAge;
+    if (isStale || checkedAt == null || limit == null) return isStale;
+    final age = evaluatedAtUtc.difference(checkedAt);
+    return age.isNegative || age > limit;
+  }
+}
+
 /// A conservative, relative comparison of *the same* VIIRS dataset.
 /// 0 means darker and 1 brighter. Not a physical model of sky glow.
 abstract final class SatelliteRadianceIndicator {

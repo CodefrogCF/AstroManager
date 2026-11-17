@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../domain/light_pollution.dart';
+
+export '../domain/light_pollution.dart' show LightPollutionSnapshot;
 
 abstract interface class LightPollutionCacheStore {
   Future<String?> getString(String key);
@@ -26,24 +29,6 @@ final class SharedPreferencesLightPollutionStore
   Future<void> remove(String key) => _preferences.remove(key);
 }
 
-final class LightPollutionSnapshot {
-  const LightPollutionSnapshot({
-    required this.reading,
-    required this.fromCache,
-    required this.isStale,
-    this.refreshError,
-    this.checkedAtUtc,
-  });
-
-  final LightPollutionReading? reading;
-  final bool fromCache;
-  final bool isStale;
-  final String? refreshError;
-
-  /// When this location/provider value was fetched, distinct from datasetDate.
-  final DateTime? checkedAtUtc;
-}
-
 /// Coordinate + provider-version keyed cache. Entries contain their retrieval
 /// date and retain their actual dataset date, never masquerading as live data.
 final class LightPollutionRepository {
@@ -59,10 +44,21 @@ final class LightPollutionRepository {
   final LightPollutionCacheStore _cache;
   final Duration maximumAge;
   final DateTime Function() _now;
+  final _cacheChanges = StreamController<String>.broadcast();
   static const prefix = 'astromanager.light-pollution.v1.';
 
   String cacheKey(double latitude, double longitude) =>
       '$prefix${sha256.convert(utf8.encode('${provider.id}|$latitude|$longitude'))}';
+
+  Stream<void> changesFor({
+    required double latitude,
+    required double longitude,
+  }) {
+    final key = cacheKey(latitude, longitude);
+    return _cacheChanges.stream.where((changed) => changed == key).map((_) {});
+  }
+
+  void dispose() => unawaited(_cacheChanges.close());
 
   Future<({LightPollutionReading reading, DateTime checkedAt})?> _readCache(
     double latitude,
@@ -118,6 +114,7 @@ final class LightPollutionRepository {
       fromCache: true,
       isStale: age.isNegative || age > maximumAge,
       checkedAtUtc: cached.checkedAt,
+      maximumAge: maximumAge,
     );
   }
 
@@ -144,9 +141,11 @@ final class LightPollutionRepository {
         fromCache: true,
         isStale: false,
         checkedAtUtc: cached.checkedAt,
+        maximumAge: maximumAge,
       );
     }
     try {
+      final key = cacheKey(latitude, longitude);
       final value = await provider.fetch(
         latitude: latitude,
         longitude: longitude,
@@ -159,7 +158,7 @@ final class LightPollutionRepository {
           throw const FormatException('Unexpected provider location/source.');
         }
         await _cache.setString(
-          cacheKey(latitude, longitude),
+          key,
           jsonEncode({
             'checkedAt': now.toIso8601String(),
             'reading': value.toJson(),
@@ -167,13 +166,17 @@ final class LightPollutionRepository {
         );
       } else {
         // A genuine no-data result must not be replaced by a stale reading.
-        await _cache.remove(cacheKey(latitude, longitude));
+        await _cache.remove(key);
+      }
+      if ((value != null || cached != null) && !_cacheChanges.isClosed) {
+        _cacheChanges.add(key);
       }
       return LightPollutionSnapshot(
         reading: value,
         fromCache: false,
         isStale: false,
         checkedAtUtc: value == null ? null : now,
+        maximumAge: maximumAge,
       );
     } catch (error) {
       if (cached != null) {
@@ -182,6 +185,7 @@ final class LightPollutionRepository {
           fromCache: true,
           isStale: !cacheFresh,
           checkedAtUtc: cached.checkedAt,
+          maximumAge: maximumAge,
           refreshError: error.toString(),
         );
       }

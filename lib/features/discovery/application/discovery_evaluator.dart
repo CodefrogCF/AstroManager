@@ -4,6 +4,7 @@ import '../../equipment/domain/models/equipment_models.dart';
 import '../../intelligence/domain/models/observation_window.dart';
 import '../../intelligence/domain/models/suitability_score.dart';
 import '../../intelligence/domain/services/observation_window_recommendation.dart';
+import '../../light_pollution/domain/light_pollution.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../targets/domain/models/celestial_object.dart';
 import '../../weather/domain/models/weather_cache.dart';
@@ -18,6 +19,7 @@ abstract interface class DiscoveryEvaluator {
     required int minimumDurationMinutes,
     required double minimumAltitudeDegrees,
     required WeatherForecastSnapshot? weather,
+    LightPollutionSnapshot? nightLights,
     required OpticalMetrics? optics,
     required bool Function() isCurrent,
   });
@@ -35,6 +37,7 @@ final class DefaultDiscoveryEvaluator implements DiscoveryEvaluator {
     required int minimumDurationMinutes,
     required double minimumAltitudeDegrees,
     required WeatherForecastSnapshot? weather,
+    LightPollutionSnapshot? nightLights,
     required OpticalMetrics? optics,
     required bool Function() isCurrent,
   }) async {
@@ -57,6 +60,7 @@ final class DefaultDiscoveryEvaluator implements DiscoveryEvaluator {
         localDate: localDate,
         evaluatedAtUtc: evaluatedAtUtc,
         weather: weather,
+        nightLights: nightLights,
         optics: optics,
         scoringProfile: profile,
         options: options,

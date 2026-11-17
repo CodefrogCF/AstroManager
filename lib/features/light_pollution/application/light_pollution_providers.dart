@@ -11,10 +11,15 @@ final lightPollutionProvider = Provider<LightPollutionProvider>((ref) {
   return provider;
 });
 
-final lightPollutionRepositoryProvider = Provider<LightPollutionRepository>(
-  (ref) =>
-      LightPollutionRepository(provider: ref.watch(lightPollutionProvider)),
-);
+final lightPollutionRepositoryProvider = Provider<LightPollutionRepository>((
+  ref,
+) {
+  final repository = LightPollutionRepository(
+    provider: ref.watch(lightPollutionProvider),
+  );
+  ref.onDispose(repository.dispose);
+  return repository;
+});
 
 /// A family request is stable for a coordinate and independent of site ID.
 typedef LightPollutionRequest = ({double latitude, double longitude});
@@ -29,3 +34,22 @@ final lightPollutionSnapshotProvider =
           .load(latitude: point.latitude, longitude: point.longitude),
       retry: (retryCount, error) => null,
     );
+
+/// Rankings reuse a saved reading without starting a satellite request.
+final cachedNightLightsProvider = FutureProvider.autoDispose
+    .family<LightPollutionSnapshot?, LightPollutionRequest>((ref, point) async {
+      try {
+        final repository = ref.watch(lightPollutionRepositoryProvider);
+        final subscription = repository
+            .changesFor(latitude: point.latitude, longitude: point.longitude)
+            .listen((_) => ref.invalidateSelf());
+        ref.onDispose(subscription.cancel);
+        return await repository.cachedOnly(
+          latitude: point.latitude,
+          longitude: point.longitude,
+        );
+      } catch (_) {
+        // An unavailable cache is a missing input, not a ranking failure.
+        return null;
+      }
+    }, retry: (count, error) => null);

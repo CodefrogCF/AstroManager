@@ -2,7 +2,6 @@ import 'package:astromanager/app/router/app_router.dart';
 import 'package:astromanager/features/dashboard/application/observing_site_conditions_provider.dart';
 import 'package:astromanager/features/dashboard/domain/observing_site_conditions.dart';
 import 'package:astromanager/features/dashboard/presentation/widgets/observing_site_conditions_widget.dart';
-import 'package:astromanager/features/light_pollution/data/light_pollution_repository.dart';
 import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 import 'package:astromanager/features/locations/domain/models/observing_location.dart';
 import 'package:astromanager/features/terrain/domain/terrain_horizon.dart';
