@@ -139,6 +139,31 @@ void main() {
     await tester.pump();
     final rotation = atlas!.cameraFrame!.configuration.rotationDegrees;
     expect(rotation, greaterThan(0));
+
+    final footprint = atlas!.cameraFrame;
+    final rendered = jsonDecode(atlas!.stateJson)['cameraFrame'];
+    await tester.tap(find.byKey(const ValueKey('atlas-mode-dome')));
+    await tester.pump();
+    expect(atlas!.projectionMode, SkyAtlasProjectionMode.skyDome);
+    expect(jsonDecode(atlas!.stateJson)['cameraFrame'], rendered);
+    atlas!.receive(
+      jsonEncode({
+        'protocol': SkyAtlasProtocol.identifier,
+        'version': SkyAtlasProtocol.version,
+        'type': 'viewChanged',
+        'viewRevision': jsonDecode(atlas!.stateJson)['viewRevision'],
+        'ra': 42,
+        'dec': 55,
+        'fov': 90,
+      }),
+    );
+    await tester.pump();
+    expect(atlas!.cameraFrame, same(footprint));
+    await tester.tap(find.byKey(const ValueKey('atlas-mode-detail')));
+    await tester.pump();
+    expect(atlas!.projectionMode, SkyAtlasProjectionMode.detail);
+    expect(jsonDecode(atlas!.stateJson)['cameraFrame'], rendered);
+
     await tester.tap(find.byKey(const ValueKey('frame-save')));
     await tester.pump();
     await tester.pump();

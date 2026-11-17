@@ -276,6 +276,44 @@ test('camera footprint uses a dedicated celestial polyline overlay', async () =>
   assert.equal(commands.filter(c => c[0] === 'remove-overlay').length, 2);
 });
 
+test('sky dome retains the camera outline during viewport changes and removes a disabled frame', async () => {
+  const {win, atlas, commands, handlers, timers} = fixture();
+  atlas.setProjection = value => commands.push(['projection', value]);
+  win.A.polyline = points => ({points});
+  win.A.graphicOverlay = options => ({
+    options,
+    addFootprints(shape) { this.shape = shape; },
+  });
+  const points = [[10, 41], [12, 40.5], [12.5, 41.5], [10.5, 42], [10, 41]];
+  const cameraFrame = {width:2, height:1, rotation:25, points};
+  const frameLayers = () => commands.filter(([type, layer]) =>
+    type === 'overlay' && layer.options.name === 'Camera sensor field of view');
+
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({cameraFrame, viewRevision:0})), true);
+  assert.equal(win.AstroManagerAtlas.receive(command({
+    projection:'dome', fov:180, cameraFrame, viewRevision:1,
+  })), true);
+  assert.equal(frameLayers().length, 2);
+  const domeFrame = frameLayers().at(-1)[1];
+  assert.equal(JSON.stringify(domeFrame.shape.points), JSON.stringify(points));
+
+  atlas.getRaDec = () => [14, 43];
+  atlas.getFov = () => [90, 90];
+  handlers.positionChanged();
+  handlers.zoomChanged();
+  flushViewReport(timers);
+  assert.equal(frameLayers().length, 2);
+  assert.equal(JSON.stringify(domeFrame.shape.points), JSON.stringify(points));
+
+  assert.equal(win.AstroManagerAtlas.receive(command({
+    projection:'dome', cameraFrame:null, viewRevision:1,
+  })), true);
+  assert.ok(commands.some(([type, layer]) => type === 'remove-overlay' && layer === domeFrame));
+  assert.equal(frameLayers().length, 2);
+});
+
 test('malformed camera outlines never draw a footprint', async () => {
   const {win, commands} = fixture();
   win.A.polyline = points => ({points});

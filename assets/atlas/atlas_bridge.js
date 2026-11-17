@@ -285,7 +285,7 @@
       setMarkers(cmd.markers);
       setOverlays(cmd.overlays);
       if (!setDome(mode === 'dome' ? cmd.dome : null)) return false;
-      if (!setCameraFrame(mode === 'detail' ? cmd.cameraFrame : null)) return false;
+      if (!setCameraFrame(cmd.cameraFrame)) return false;
       if (!setMosaic(mode === 'detail' ? cmd.mosaic : null)) return false;
     } catch (error) {
       fatal('Sky atlas command failed: ' + (error && error.message || error));
