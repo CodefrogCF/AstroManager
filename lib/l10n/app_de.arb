@@ -1,6 +1,11 @@
 {
   "@@locale": "de",
   "appName": "AstroManager",
+  "siteBortleOptional": "Bortle-Klasse (optional)",
+  "siteBortleUnclassified": "Nicht eingestuft",
+  "siteBortleObserverReported": "Selbst angegebene Bortle-Klasse",
+  "siteBortleEstimate": "Geschätzte Bortle-Klasse",
+  "siteBortleEstimateUnavailable": "Für diesen Standort ist keine Bortle-Schätzung verfügbar.",
   "atlasShowCatalogDetails": "Katalogdetails anzeigen",
   "atlasCatalogLookupFailed": "Atlasobjekte konnten nicht nachgeschlagen werden.",
   "atlasCatalogCommonNames": "Gebräuchliche Namen",

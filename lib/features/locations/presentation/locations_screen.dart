@@ -350,6 +350,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
   late final TextEditingController _latitudeController;
   late final TextEditingController _longitudeController;
   late final TextEditingController _elevationController;
+  int? _bortleClass;
   late String _selectedTimeZone;
   late final TextEditingController _timeZoneSearchController;
 
@@ -360,6 +361,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
     super.initState();
 
     final location = widget.location;
+    _bortleClass = location?.bortleClass;
 
     _nameController = TextEditingController(text: location?.name ?? '');
 
@@ -464,6 +466,7 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
       longitude: _parseNumber(_longitudeController.text)!,
       elevationMeters: _parseNumber(_elevationController.text)!,
       timeZone: _selectedTimeZone,
+      bortleClass: _bortleClass,
     );
 
     try {
@@ -559,6 +562,24 @@ class _LocationEditorDialogState extends ConsumerState<LocationEditorDialog> {
                     const InputDecoration(labelText: 'Elevation (meters)'),
                   ),
                   validator: (value) => _validateNumber(value, -500, 10000),
+                ),
+
+                const SizedBox(height: 12),
+
+                DropdownButtonFormField<int>(
+                  key: const ValueKey('location-bortle-class'),
+                  initialValue: _bortleClass,
+                  decoration: localizeDecoration(
+                    context,
+                    const InputDecoration(labelText: 'Bortle class (optional)'),
+                  ),
+                  hint: const AppText('Unclassified'),
+                  items: [
+                    const DropdownMenuItem<int>(child: AppText('Unclassified')),
+                    for (var value = 1; value <= 9; value++)
+                      DropdownMenuItem(value: value, child: Text('$value')),
+                  ],
+                  onChanged: (value) => setState(() => _bortleClass = value),
                 ),
 
                 const SizedBox(height: 12),

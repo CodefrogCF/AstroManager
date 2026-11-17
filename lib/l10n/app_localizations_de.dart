@@ -13,6 +13,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appName => 'AstroManager';
 
   @override
+  String get siteBortleOptional => 'Bortle-Klasse (optional)';
+
+  @override
+  String get siteBortleUnclassified => 'Nicht eingestuft';
+
+  @override
+  String get siteBortleObserverReported => 'Selbst angegebene Bortle-Klasse';
+
+  @override
+  String get siteBortleEstimate => 'Geschätzte Bortle-Klasse';
+
+  @override
+  String get siteBortleEstimateUnavailable =>
+      'Für diesen Standort ist keine Bortle-Schätzung verfügbar.';
+
+  @override
   String get atlasShowCatalogDetails => 'Katalogdetails anzeigen';
 
   @override

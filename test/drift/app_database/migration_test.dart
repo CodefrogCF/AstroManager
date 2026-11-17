@@ -37,12 +37,12 @@ void main() {
     }
   });
 
-  test('v4 to v6 creates project and session tables without affecting existing catalog', () async {
+  test('v4 to v7 creates project and session tables without affecting existing catalog', () async {
     final oldSchema = await verifier.schemaAt(4);
     final db = AppDatabase(oldSchema.newConnection());
     try {
       final version = await db.customSelect('PRAGMA user_version').getSingle();
-      expect(version.read<int>('user_version'), 6);
+      expect(version.read<int>('user_version'), 7);
       final tables = await db
           .customSelect(
             "SELECT name FROM sqlite_master WHERE type='table' "

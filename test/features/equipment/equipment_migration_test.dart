@@ -13,7 +13,7 @@ import 'package:astromanager/features/equipment/data/repositories/drift_equipmen
 import 'package:astromanager/features/equipment/domain/models/equipment_models.dart';
 
 void main() {
-  test('migration v2 to v5 preserves existing data', () async {
+  test('migration from v2 preserves existing data', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_equipment_migration_',
     );
@@ -59,6 +59,9 @@ void main() {
         await originalDatabase.customStatement('DROP TABLE optical_profiles');
 
         await originalDatabase.customStatement('DROP TABLE equipment_items');
+        await originalDatabase.customStatement(
+          'ALTER TABLE observing_locations DROP COLUMN bortle_class',
+        );
 
         await originalDatabase.customStatement('PRAGMA user_version = 2');
       } finally {
@@ -102,7 +105,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 6);
+        expect(version.read<int>('user_version'), 7);
 
         final projectTables = await migratedDatabase
             .customSelect(

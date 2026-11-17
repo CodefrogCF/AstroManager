@@ -21,6 +21,11 @@ class ObservingLocations extends Table {
 
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
 
+  IntColumn get bortleClass => integer().nullable().customConstraint(
+    'CHECK (bortle_class IS NULL OR '
+    "(typeof(bortle_class) = 'integer' AND bortle_class BETWEEN 1 AND 9))",
+  )();
+
   @override
   Set<Column> get primaryKey => {id};
 }

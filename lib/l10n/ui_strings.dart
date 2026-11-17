@@ -61,6 +61,9 @@ const Map<String, String> appGermanUiStrings = {
   'Back to Settings': 'Zurück zu Einstellungen',
   'Back to previous section': 'Zurück zum vorherigen Bereich',
   'Backup & restore': 'Sicherung und Wiederherstellung',
+  'Bortle class (optional)': 'Bortle-Klasse (optional)',
+  'Bortle estimate unavailable for this location.':
+      'Für diesen Standort ist keine Bortle-Schätzung verfügbar.',
   'Bright surfaces with Codefrog green accents.':
       'Helle Oberflächen mit grünen Codefrog-Akzenten.',
   'Cache only · no automatic data requests':
@@ -206,6 +209,7 @@ const Map<String, String> appGermanUiStrings = {
   'Equipment Inventory': 'Ausrüstungsverzeichnis',
   'Equipment actions': 'Ausrüstungsaktionen',
   'Equipment name': 'Ausrüstungsname',
+  'Estimated Bortle class': 'Geschätzte Bortle-Klasse',
   'Europe/Zurich': 'Europe/Zurich',
   'Evening (night date)': 'Abend (Beobachtungsnacht)',
   'Export backup': 'Sicherung exportieren',
@@ -440,6 +444,7 @@ const Map<String, String> appGermanUiStrings = {
       'Benachrichtigungen für Beobachtungsmöglichkeiten',
   'Observation session saved.': 'Beobachtungssitzung gespeichert.',
   'Observation sessions': 'Beobachtungssitzungen',
+  'Observer-reported Bortle class': 'Selbst angegebene Bortle-Klasse',
   'Observing': 'Beobachtung',
   'Observing Locations': 'Beobachtungsorte',
   'Observing Site': 'Beobachtungsort',
@@ -695,6 +700,7 @@ const Map<String, String> appGermanUiStrings = {
       'Beobachtungsort konnte nicht gespeichert werden.',
   'Unable to save theme preference.':
       'Darstellungseinstellung konnte nicht gespeichert werden.',
+  'Unclassified': 'Nicht eingestuft',
   'Unknown widget': 'Unbekanntes Widget',
   'Unscheduled darkness': 'Unverplante Dunkelzeit',
   'Upcoming Observation Plans': 'Geplante Beobachtungen',

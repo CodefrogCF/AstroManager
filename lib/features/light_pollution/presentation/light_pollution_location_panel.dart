@@ -24,6 +24,7 @@ class _LightPollutionLocationPanelState
   @override
   Widget build(BuildContext context) {
     final request = lightPollutionRequest(widget.site);
+    final modeled = ref.watch(bortleEstimateProvider(request));
     final display = _enabled
         ? ref.watch(lightPollutionSnapshotProvider(request))
         : null;
@@ -77,6 +78,30 @@ class _LightPollutionLocationPanelState
                 ),
             ],
           ),
+          if (widget.site.bortleClass case final bortleClass?)
+            Wrap(
+              spacing: 8,
+              children: [
+                const AppText('Observer-reported Bortle class'),
+                Text(
+                  '$bortleClass/9',
+                  key: const ValueKey('observer-bortle-class'),
+                ),
+              ],
+            ),
+          if (modeled.value case final estimate?)
+            Wrap(
+              spacing: 8,
+              children: [
+                const AppText('Estimated Bortle class'),
+                Text(
+                  '${estimate.classCode == 8 ? '8–9' : estimate.classCode} '
+                  '· EOG VIIRS ${estimate.datasetYear}',
+                ),
+              ],
+            )
+          else if (!modeled.isLoading)
+            const AppText('Bortle estimate unavailable for this location.'),
           if (display != null)
             display.when(
               loading: () => const LinearProgressIndicator(),

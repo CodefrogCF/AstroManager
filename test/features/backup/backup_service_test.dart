@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:astromanager/core/database/app_database.dart';
 import 'package:astromanager/core/database/repositories/app_settings_repository.dart';
 import 'package:astromanager/features/backup/data/backup_service.dart';
@@ -9,6 +10,7 @@ import 'package:astromanager/features/projects/data/observation_sessions_reposit
 import 'package:astromanager/features/projects/data/planned_projects_repository.dart';
 import 'package:astromanager/features/projects/domain/observation_session.dart';
 import 'package:astromanager/features/projects/domain/planned_imaging_project.dart';
+import 'package:crypto/crypto.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,8 +34,8 @@ final class _Images implements SessionAttachmentStore {
 Future<void> _seed(AppDatabase db, _Images images) async {
   await db.customStatement('''
     INSERT INTO observing_locations
-    (id, name, latitude, longitude, elevation_meters, time_zone, is_default)
-    VALUES ('zurich', 'Zurich', 47.37, 8.54, 410, 'Europe/Zurich', 1)
+    (id, name, latitude, longitude, elevation_meters, time_zone, is_default, bortle_class)
+    VALUES ('zurich', 'Zurich', 47.37, 8.54, 410, 'Europe/Zurich', 1, 4)
   ''');
   await db.customStatement('''
     INSERT INTO equipment_items (id, name, kind)
@@ -122,6 +124,29 @@ Future<Uint8List> _exportSeededBackup(
   }
 }
 
+Uint8List _withLocationRow(
+  Uint8List bytes, {
+  required int schemaVersion,
+  required void Function(Map<String, dynamic>) update,
+}) {
+  final archive = ZipDecoder().decodeBytes(bytes);
+  final manifest = jsonDecode(
+    utf8.decode(archive.findFile('manifest.json')!.readBytes()!),
+  ) as Map<String, dynamic>;
+  final data = jsonDecode(
+    utf8.decode(archive.findFile('data.json')!.readBytes()!),
+  ) as Map<String, dynamic>;
+  update((data['observing_locations'] as List).single as Map<String, dynamic>);
+  final encodedData = utf8.encode(jsonEncode(data));
+  manifest['databaseSchemaVersion'] = schemaVersion;
+  manifest['dataSha256'] = sha256.convert(encodedData).toString();
+  return ZipEncoder().encodeBytes(
+    Archive()
+      ..addFile(ArchiveFile.bytes('data.json', encodedData))
+      ..addFile(ArchiveFile.string('manifest.json', jsonEncode(manifest))),
+  );
+}
+
 void main() {
   test(
     'ZIP round trip preserves data, relationships and image binaries',
@@ -164,12 +189,10 @@ void main() {
             .get('planner.night.v1.zurich.2026-11-02'),
         contains('block1'),
       );
-      expect(
-        (await destination
-            .customSelect('SELECT * FROM observing_locations')
-            .get()),
-        hasLength(1),
-      );
+      final site = await destination
+          .select(destination.observingLocations)
+          .getSingle();
+      expect(site.bortleClass, 4);
       expect(
         (await destination
             .customSelect('SELECT * FROM optical_profiles')
@@ -178,6 +201,46 @@ void main() {
       );
     },
   );
+
+  test('restores a schema 6 site with no Bortle class', () async {
+    final bytes = _withLocationRow(
+      await _exportSeededBackup(_Images(), includeImages: false),
+      schemaVersion: 6,
+      update: (row) => row.remove('bortle_class'),
+    );
+    final destination = AppDatabase(NativeDatabase.memory());
+    addTearDown(destination.close);
+    final backup = AstroBackupService(destination, attachments: _Images());
+
+    expect(backup.inspect(bytes).counts['observing_locations'], 1);
+    await backup.restore(bytes);
+    final site = await destination
+        .select(destination.observingLocations)
+        .getSingle();
+    expect(site.id, 'zurich');
+    expect(site.bortleClass, isNull);
+  });
+
+  test('rejects an invalid Bortle class before restoring any rows', () async {
+    final bytes = await _exportSeededBackup(_Images(), includeImages: false);
+    final destination = AppDatabase(NativeDatabase.memory());
+    addTearDown(destination.close);
+    final backup = AstroBackupService(destination, attachments: _Images());
+
+    for (final invalid in [0, 10, 4.5, '4']) {
+      final invalidBackup = _withLocationRow(
+        bytes,
+        schemaVersion: 7,
+        update: (row) => row['bortle_class'] = invalid,
+      );
+      expect(() => backup.inspect(invalidBackup), throwsFormatException);
+      await expectLater(backup.restore(invalidBackup), throwsFormatException);
+    }
+    expect(
+      await destination.select(destination.observingLocations).get(),
+      isEmpty,
+    );
+  });
 
   test(
     'images can be excluded without importing broken attachment rows',

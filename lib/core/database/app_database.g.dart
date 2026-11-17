@@ -302,6 +302,18 @@ class $ObservingLocationsTable extends ObservingLocations
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _bortleClassMeta = const VerificationMeta(
+    'bortleClass',
+  );
+  @override
+  late final GeneratedColumn<int> bortleClass = GeneratedColumn<int>(
+    'bortle_class',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'CHECK (bortle_class IS NULL OR (typeof(bortle_class) = \'integer\' AND bortle_class BETWEEN 1 AND 9))',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -311,6 +323,7 @@ class $ObservingLocationsTable extends ObservingLocations
     elevationMeters,
     timeZone,
     isDefault,
+    bortleClass,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -378,6 +391,15 @@ class $ObservingLocationsTable extends ObservingLocations
         isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
       );
     }
+    if (data.containsKey('bortle_class')) {
+      context.handle(
+        _bortleClassMeta,
+        bortleClass.isAcceptableOrUnknown(
+          data['bortle_class']!,
+          _bortleClassMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -415,6 +437,10 @@ class $ObservingLocationsTable extends ObservingLocations
         DriftSqlType.bool,
         data['${effectivePrefix}is_default'],
       )!,
+      bortleClass: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bortle_class'],
+      ),
     );
   }
 
@@ -433,6 +459,7 @@ class ObservingLocationRow extends DataClass
   final double elevationMeters;
   final String timeZone;
   final bool isDefault;
+  final int? bortleClass;
   const ObservingLocationRow({
     required this.id,
     required this.name,
@@ -441,6 +468,7 @@ class ObservingLocationRow extends DataClass
     required this.elevationMeters,
     required this.timeZone,
     required this.isDefault,
+    this.bortleClass,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -452,6 +480,9 @@ class ObservingLocationRow extends DataClass
     map['elevation_meters'] = Variable<double>(elevationMeters);
     map['time_zone'] = Variable<String>(timeZone);
     map['is_default'] = Variable<bool>(isDefault);
+    if (!nullToAbsent || bortleClass != null) {
+      map['bortle_class'] = Variable<int>(bortleClass);
+    }
     return map;
   }
 
@@ -464,6 +495,9 @@ class ObservingLocationRow extends DataClass
       elevationMeters: Value(elevationMeters),
       timeZone: Value(timeZone),
       isDefault: Value(isDefault),
+      bortleClass: bortleClass == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bortleClass),
     );
   }
 
@@ -480,6 +514,7 @@ class ObservingLocationRow extends DataClass
       elevationMeters: serializer.fromJson<double>(json['elevationMeters']),
       timeZone: serializer.fromJson<String>(json['timeZone']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
+      bortleClass: serializer.fromJson<int?>(json['bortleClass']),
     );
   }
   @override
@@ -493,6 +528,7 @@ class ObservingLocationRow extends DataClass
       'elevationMeters': serializer.toJson<double>(elevationMeters),
       'timeZone': serializer.toJson<String>(timeZone),
       'isDefault': serializer.toJson<bool>(isDefault),
+      'bortleClass': serializer.toJson<int?>(bortleClass),
     };
   }
 
@@ -504,6 +540,7 @@ class ObservingLocationRow extends DataClass
     double? elevationMeters,
     String? timeZone,
     bool? isDefault,
+    Value<int?> bortleClass = const Value.absent(),
   }) => ObservingLocationRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -512,6 +549,7 @@ class ObservingLocationRow extends DataClass
     elevationMeters: elevationMeters ?? this.elevationMeters,
     timeZone: timeZone ?? this.timeZone,
     isDefault: isDefault ?? this.isDefault,
+    bortleClass: bortleClass.present ? bortleClass.value : this.bortleClass,
   );
   ObservingLocationRow copyWithCompanion(ObservingLocationsCompanion data) {
     return ObservingLocationRow(
@@ -524,6 +562,9 @@ class ObservingLocationRow extends DataClass
           : this.elevationMeters,
       timeZone: data.timeZone.present ? data.timeZone.value : this.timeZone,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      bortleClass: data.bortleClass.present
+          ? data.bortleClass.value
+          : this.bortleClass,
     );
   }
 
@@ -536,7 +577,8 @@ class ObservingLocationRow extends DataClass
           ..write('longitude: $longitude, ')
           ..write('elevationMeters: $elevationMeters, ')
           ..write('timeZone: $timeZone, ')
-          ..write('isDefault: $isDefault')
+          ..write('isDefault: $isDefault, ')
+          ..write('bortleClass: $bortleClass')
           ..write(')'))
         .toString();
   }
@@ -550,6 +592,7 @@ class ObservingLocationRow extends DataClass
     elevationMeters,
     timeZone,
     isDefault,
+    bortleClass,
   );
   @override
   bool operator ==(Object other) =>
@@ -561,7 +604,8 @@ class ObservingLocationRow extends DataClass
           other.longitude == this.longitude &&
           other.elevationMeters == this.elevationMeters &&
           other.timeZone == this.timeZone &&
-          other.isDefault == this.isDefault);
+          other.isDefault == this.isDefault &&
+          other.bortleClass == this.bortleClass);
 }
 
 class ObservingLocationsCompanion
@@ -573,6 +617,7 @@ class ObservingLocationsCompanion
   final Value<double> elevationMeters;
   final Value<String> timeZone;
   final Value<bool> isDefault;
+  final Value<int?> bortleClass;
   final Value<int> rowid;
   const ObservingLocationsCompanion({
     this.id = const Value.absent(),
@@ -582,6 +627,7 @@ class ObservingLocationsCompanion
     this.elevationMeters = const Value.absent(),
     this.timeZone = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.bortleClass = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ObservingLocationsCompanion.insert({
@@ -592,6 +638,7 @@ class ObservingLocationsCompanion
     required double elevationMeters,
     required String timeZone,
     this.isDefault = const Value.absent(),
+    this.bortleClass = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -607,6 +654,7 @@ class ObservingLocationsCompanion
     Expression<double>? elevationMeters,
     Expression<String>? timeZone,
     Expression<bool>? isDefault,
+    Expression<int>? bortleClass,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -617,6 +665,7 @@ class ObservingLocationsCompanion
       if (elevationMeters != null) 'elevation_meters': elevationMeters,
       if (timeZone != null) 'time_zone': timeZone,
       if (isDefault != null) 'is_default': isDefault,
+      if (bortleClass != null) 'bortle_class': bortleClass,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -629,6 +678,7 @@ class ObservingLocationsCompanion
     Value<double>? elevationMeters,
     Value<String>? timeZone,
     Value<bool>? isDefault,
+    Value<int?>? bortleClass,
     Value<int>? rowid,
   }) {
     return ObservingLocationsCompanion(
@@ -639,6 +689,7 @@ class ObservingLocationsCompanion
       elevationMeters: elevationMeters ?? this.elevationMeters,
       timeZone: timeZone ?? this.timeZone,
       isDefault: isDefault ?? this.isDefault,
+      bortleClass: bortleClass ?? this.bortleClass,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -667,6 +718,9 @@ class ObservingLocationsCompanion
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
     }
+    if (bortleClass.present) {
+      map['bortle_class'] = Variable<int>(bortleClass.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -683,6 +737,7 @@ class ObservingLocationsCompanion
           ..write('elevationMeters: $elevationMeters, ')
           ..write('timeZone: $timeZone, ')
           ..write('isDefault: $isDefault, ')
+          ..write('bortleClass: $bortleClass, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2761,6 +2816,7 @@ typedef $$ObservingLocationsTableCreateCompanionBuilder =
       required double elevationMeters,
       required String timeZone,
       Value<bool> isDefault,
+      Value<int?> bortleClass,
       Value<int> rowid,
     });
 typedef $$ObservingLocationsTableUpdateCompanionBuilder =
@@ -2772,6 +2828,7 @@ typedef $$ObservingLocationsTableUpdateCompanionBuilder =
       Value<double> elevationMeters,
       Value<String> timeZone,
       Value<bool> isDefault,
+      Value<int?> bortleClass,
       Value<int> rowid,
     });
 
@@ -2816,6 +2873,11 @@ class $$ObservingLocationsTableFilterComposer
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
     column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bortleClass => $composableBuilder(
+    column: $table.bortleClass,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2863,6 +2925,11 @@ class $$ObservingLocationsTableOrderingComposer
     column: $table.isDefault,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get bortleClass => $composableBuilder(
+    column: $table.bortleClass,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ObservingLocationsTableAnnotationComposer
@@ -2896,6 +2963,11 @@ class $$ObservingLocationsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<int> get bortleClass => $composableBuilder(
+    column: $table.bortleClass,
+    builder: (column) => column,
+  );
 }
 
 class $$ObservingLocationsTableTableManager
@@ -2945,6 +3017,7 @@ class $$ObservingLocationsTableTableManager
                 Value<double> elevationMeters = const Value.absent(),
                 Value<String> timeZone = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
+                Value<int?> bortleClass = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ObservingLocationsCompanion(
                 id: id,
@@ -2954,6 +3027,7 @@ class $$ObservingLocationsTableTableManager
                 elevationMeters: elevationMeters,
                 timeZone: timeZone,
                 isDefault: isDefault,
+                bortleClass: bortleClass,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2965,6 +3039,7 @@ class $$ObservingLocationsTableTableManager
                 required double elevationMeters,
                 required String timeZone,
                 Value<bool> isDefault = const Value.absent(),
+                Value<int?> bortleClass = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ObservingLocationsCompanion.insert(
                 id: id,
@@ -2974,6 +3049,7 @@ class $$ObservingLocationsTableTableManager
                 elevationMeters: elevationMeters,
                 timeZone: timeZone,
                 isDefault: isDefault,
+                bortleClass: bortleClass,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

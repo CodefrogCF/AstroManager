@@ -1,4 +1,6 @@
 import 'package:astromanager/l10n/app_text.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -59,18 +61,76 @@ const _destinations = [
 class _AstroManagerShellState extends State<AstroManagerShell> {
   static const _desktopBreakpoint = 840.0;
   static const _expandedBreakpoint = 1200.0;
+  static const _dashboardIndex = 0;
   static const _settingsIndex = 5;
 
-  int _lastMainIndex = 0;
+  int _lastMainIndex = _dashboardIndex;
+  ({int pointer, Offset start, int direction})? _backSwipe;
 
-  void _navigateTo(int index) {
+  @override
+  void didUpdateWidget(covariant AstroManagerShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final previous = oldWidget.navigationShell.currentIndex;
     final current = widget.navigationShell.currentIndex;
+    if (previous == current) return;
+    _backSwipe = null;
 
-    if (current < _settingsIndex) {
-      _lastMainIndex = current;
+    // Includes Settings opened through links in other sections.
+    if (current == _settingsIndex) {
+      _lastMainIndex = previous;
     }
+  }
 
-    widget.navigationShell.goBranch(index, initialLocation: index == current);
+  void _navigateTo(int index) => widget.navigationShell.goBranch(
+    index,
+    initialLocation: index == widget.navigationShell.currentIndex,
+  );
+
+  void _backFromSectionRoot() {
+    final index = widget.navigationShell.currentIndex;
+    if (index == _dashboardIndex) return;
+    _navigateTo(index == _settingsIndex ? _lastMainIndex : _dashboardIndex);
+  }
+
+  // Cupertino handles swipes on nested routes. Branch roots have no route
+  // underneath them, so their section-level swipe is handled here.
+  Widget _withRootEdgeSwipe(Widget child, double width) {
+    final router = GoRouter.of(context);
+    final direction = Directionality.of(context) == TextDirection.ltr ? 1 : -1;
+    return Listener(
+      onPointerDown: (event) {
+        if (_backSwipe != null) {
+          _backSwipe = null;
+          return;
+        }
+        final fromEdge = direction == 1
+            ? event.localPosition.dx
+            : width - event.localPosition.dx;
+        if (event.kind == PointerDeviceKind.touch &&
+            fromEdge <= 20 &&
+            !router.canPop()) {
+          _backSwipe = (
+            pointer: event.pointer,
+            start: event.position,
+            direction: direction,
+          );
+        }
+      },
+      onPointerCancel: (event) {
+        if (_backSwipe?.pointer == event.pointer) _backSwipe = null;
+      },
+      onPointerUp: (event) {
+        final swipe = _backSwipe;
+        if (swipe == null || swipe.pointer != event.pointer) return;
+        _backSwipe = null;
+        final distance = event.position - swipe.start;
+        final inward = distance.dx * swipe.direction;
+        if (inward >= 60 && inward > distance.dy.abs() && !router.canPop()) {
+          _backFromSectionRoot();
+        }
+      },
+      child: child,
+    );
   }
 
   @override
@@ -85,14 +145,15 @@ class _AstroManagerShellState extends State<AstroManagerShell> {
 
         final isSettings = selectedIndex == _settingsIndex;
 
-        return Scaffold(
+        final scaffold = Scaffold(
           appBar: AppBar(
             title: AppText(_destinations[selectedIndex].label),
             leading: !isDesktop && isSettings
                 ? IconButton(
                     tooltip: appTranslate(context, 'Back to previous section'),
                     icon: const Icon(Icons.arrow_back),
-                    onPressed: () => _navigateTo(_lastMainIndex),
+                    onPressed: () =>
+                        GoRouter.of(context).routerDelegate.popRoute(),
                   )
                 : null,
             actions: [
@@ -145,6 +206,19 @@ class _AstroManagerShellState extends State<AstroManagerShell> {
                       ),
                   ],
                 ),
+        );
+        final isDashboard = selectedIndex == _dashboardIndex;
+        return PopScope<Object?>(
+          canPop: isDashboard,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _backFromSectionRoot();
+          },
+          child:
+              !isDashboard &&
+                  !kIsWeb &&
+                  defaultTargetPlatform == TargetPlatform.iOS
+              ? _withRootEdgeSwipe(scaffold, constraints.maxWidth)
+              : scaffold,
         );
       },
     );

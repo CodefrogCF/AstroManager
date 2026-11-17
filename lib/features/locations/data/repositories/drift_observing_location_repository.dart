@@ -63,6 +63,7 @@ final class DriftObservingLocationRepository
               elevationMeters: location.elevationMeters,
               timeZone: location.timeZone.trim(),
               isDefault: Value(makeDefault),
+              bortleClass: Value(location.bortleClass),
             ),
           );
     });
@@ -130,6 +131,7 @@ final class DriftObservingLocationRepository
       elevationMeters: row.elevationMeters,
       timeZone: row.timeZone,
       isDefault: row.isDefault,
+      bortleClass: row.bortleClass,
     );
   }
 }

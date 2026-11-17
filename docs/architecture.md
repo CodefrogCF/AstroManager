@@ -18,7 +18,7 @@ Application state and dependency injection use `flutter_riverpod`; navigation us
 
 ## Data ownership and persistence
 
-- **Drift/SQLite (`AppDatabase`, schema v6):** saved observing locations, equipment and optical profiles, imaging projects and target links, observation sessions and image metadata. Migration tests protect earlier schema versions. Several versioned settings records also live in `app_settings`, including night plans, mosaic plans and opportunity alert configurations.
+- **Drift/SQLite (`AppDatabase`, schema v7):** saved observing locations with optional observer-reported Bortle classes, equipment and optical profiles, imaging projects and target links, observation sessions and image metadata. Migration tests protect earlier schema versions. Several versioned settings records also live in `app_settings`, including night plans, mosaic plans and opportunity alert configurations.
 - **Attachment binaries:** stored outside SQLite (native application support directory or separate browser IndexedDB). Rows carry opaque storage references and metadata; backup/restore copies content separately when selected.
 - **SharedPreferences:** selected theme and several derived-data caches (for example terrain and VIIRS location readings). Cache contents are not authoritative personal data and need not survive backup restoration.
 - **Bundled target catalog:** OpenNGC snapshot distributed with the app, loaded without a live service.
@@ -93,8 +93,8 @@ saved default location unless the user explicitly selects another site.
 
 `DashboardLayoutController` serializes local layout edits and persists JSON via
 `SettingsDashboardLayoutRepository` using the `dashboard.layout.v1` key in
-`app_settings`. This uses the existing schema v6, is included in `.ambackup`,
-and is validated during restore. The first-run preset includes placeholders for
+`app_settings`. The layout is included in `.ambackup` and validated during
+restore. The first-run preset includes placeholders for
 forecast, target ranking and night conditions until their dedicated data
 widgets are implemented. Quick Actions is immediately operational.
 

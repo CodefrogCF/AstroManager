@@ -15,8 +15,9 @@ import '../../mosaic/domain/mosaic_plan.dart';
 import '../../alerts/domain/observation_alert.dart';
 import '../../settings/domain/models/app_preferences.dart';
 import '../../dashboard/domain/dashboard_layout.dart';
+import '../../locations/domain/models/observing_location.dart';
 
-/// Portable AstroManager backup format v1; application schema v6.
+/// Portable AstroManager backup format v1.
 /// These are user-owned tables only. The bundled OpenNGC catalog can be
 /// regenerated from application assets and is intentionally not exported.
 const backupTables = <String>[
@@ -144,7 +145,7 @@ final class AstroBackupService {
     final manifest = <String, Object?>{
       'format': 'astromanager-backup',
       'formatVersion': 1,
-      'databaseSchemaVersion': 6,
+      'databaseSchemaVersion': _db.schemaVersion,
       'createdAtUtc': DateTime.now().toUtc().toIso8601String(),
       'includesImages': includeImages,
       'theme': theme,
@@ -208,9 +209,10 @@ final class AstroBackupService {
       final manifest = Map<String, dynamic>.from(
         jsonDecode(utf8.decode(entries['manifest.json']!)) as Map,
       );
+      final schemaVersion = manifest['databaseSchemaVersion'];
       if (manifest['format'] != 'astromanager-backup' ||
           manifest['formatVersion'] != 1 ||
-          manifest['databaseSchemaVersion'] != 6) {
+          (schemaVersion != 6 && schemaVersion != _db.schemaVersion)) {
         throw const FormatException(
           'Unsupported backup format or database version.',
         );
@@ -239,6 +241,26 @@ final class AstroBackupService {
                 throw const FormatException(
                   'Nested SQLite values are not allowed.',
                 );
+              }
+              if (table == 'observing_locations') {
+                if (schemaVersion == 6 && !row.containsKey('bortle_class')) {
+                  row['bortle_class'] = null;
+                } else if (schemaVersion == 6 ||
+                    !row.containsKey('bortle_class')) {
+                  throw const FormatException(
+                    'Unexpected columns in observing_locations.',
+                  );
+                }
+                final bortleClass = row['bortle_class'];
+                if (bortleClass != null &&
+                    (bortleClass is! int ||
+                        !ObservingLocationInput.isValidBortleClass(
+                          bortleClass,
+                        ))) {
+                  throw const FormatException(
+                    'Invalid Bortle class in backup.',
+                  );
+                }
               }
               return row;
             })

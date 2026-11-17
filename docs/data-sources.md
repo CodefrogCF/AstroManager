@@ -37,6 +37,20 @@ AstroManager uses a bounded **relative comparison indicator** from satellite rad
 
 Do not scrape/repackage hosted imagery or claim unrestricted rights to Esri-hosted tiles without checking its terms. The implementation requests point values rather than republishing raster imagery.
 
+### Bundled Bortle estimate
+
+The observing-location screen looks up an offline estimate in a grid prepared from the **2024 EOG VIIRS Nighttime Lights annual average** distributed by [Tomislav Hengl and OpenLandMap](https://doi.org/10.5281/zenodo.17294744). It models typical clear, moonless sky brightness at the zenith, then applies the [published First Rig Bortle bins](https://firstrig.com/method/sky-brightness). The brightest bin covers classes 8–9. With the model's reference natural sky of 21.83 mag/arcsec², the darkest result is class 2.
+
+The grid samples one cell per 0.05° (about 5.6 km north to south) between 60°S and 75°N. The result can vary from a local observation because of neighborhood lighting, terrain, aerosols, clouds and the natural sky. Modeled classes are displayed independently of the site's saved observer-reported class and of the optional online radiance reading.
+
+#### Regenerate the grid
+
+1. Download `nightlights.average_viirs.v21_m_500m_s_20240101_20241231_go_epsg4326_v20250904.tif` from the [OpenLandMap record](https://zenodo.org/records/17294744). The generator checks its SHA-256 before reading it.
+2. In a Python 3.12 environment, run `python -m pip install numpy==2.5.5 scipy==1.18.1 rasterio==1.5.2`.
+3. Run `python tool/build_bortle_grid.py <source.tif> assets/light_pollution/bortle_2024.zip`.
+
+The generator averages the pinned 2024 raster's stored samples onto a 1 arcminute grid. Checks against raw monthly EOG radiance at public coordinates confirmed their order of magnitude. It applies the distance-dependent [Duriscoe et al. kernel](https://doi.org/10.1016/j.jqsrt.2018.04.028) with First Rig's zenith coefficients, 300 km cutoff, and a minimum source distance of 1 km. It approximates east-west cell size at the midpoint of each five-degree latitude band and includes neighboring bands and the wrapped longitude edge in the convolution. Unsupported cells use code zero. The archive holds one byte per output cell, format metadata and attribution.
+
 ## Limits of predictions and local data
 
 - A predicted suitability score is a planning heuristic rather than a probability of a successful image or a promise of clear sky.

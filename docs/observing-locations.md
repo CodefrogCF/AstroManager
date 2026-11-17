@@ -31,6 +31,7 @@ Each location contains:
 | Elevation | Meters above mean sea level |
 | Time Zone | IANA identifier |
 | Is Default | Default observing location flag |
+| Bortle Class | Optional observer-reported value from 1 to 9 |
 
 ## Coordinate Conventions
 
@@ -82,12 +83,8 @@ Rules:
 
 Observing locations are stored using Drift and SQLite.
 
-Database schema version: 2
-
-Table: `observing_locations`
-
-The migration from version 1 to version 2 adds the new
-table without deleting existing application settings.
+Schema version 2 introduced the `observing_locations` table. Schema version 7
+adds the optional `bortle_class` column. Earlier sites remain unclassified.
 
 ## GPS
 

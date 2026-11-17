@@ -51,6 +51,7 @@ flutter:
     - assets/catalog/LICENSE-OpenNGC.txt
     - assets/atlas/atlas.html
     - assets/atlas/atlas_bridge.js
+    - assets/light_pollution/bortle_2024.zip
 
 flutter_launcher_icons:
   android: true

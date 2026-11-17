@@ -289,7 +289,7 @@ void main() {
     });
   });
 
-  test('migration v3 to v5 preserves existing settings', () async {
+  test('migration from v3 preserves existing settings', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_catalog_migration_',
     );
@@ -315,6 +315,9 @@ void main() {
           'DROP TABLE celestial_catalog_entries',
         );
 
+        await oldDatabase.customStatement(
+          'ALTER TABLE observing_locations DROP COLUMN bortle_class',
+        );
         await oldDatabase.customStatement('PRAGMA user_version = 3');
       } finally {
         await oldDatabase.close();
@@ -337,7 +340,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(result.read<int>('user_version'), 6);
+        expect(result.read<int>('user_version'), 7);
 
         final projectTables = await migrated
             .customSelect(

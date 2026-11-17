@@ -1,6 +1,6 @@
 # Portable Backup Format (`.ambackup`)
 
-AstroManager's data export is an **offline-created ZIP container** using the extension `.ambackup`. This document describes **format version 1**, as implemented with database schema version **6** in the current source. The `.ambackup` extension does not imply compression beyond ZIP or any encryption. The file picker also accepts earlier `.zip` backups using the same supported format.
+AstroManager's data export is an **offline-created ZIP container** using the extension `.ambackup`. This document describes **format version 1** with database schema version **7**. The `.ambackup` extension does not imply compression beyond ZIP or any encryption. The file picker also accepts earlier `.zip` backups using the same supported format.
 
 ## Archive layout
 
@@ -12,11 +12,13 @@ AstroManager-YYYY-MM-DD.ambackup
     └── <opaque-id>.bin      # only if image attachments were included
 ```
 
-- `manifest.json` identifies `format: "astromanager-backup"`, `formatVersion: 1`, `databaseSchemaVersion: 6`, UTC export time, optional theme, per-table row counts, the SHA-256 digest of `data.json`, and optional image metadata (archive path, length and SHA-256 digest).
+- `manifest.json` identifies `format: "astromanager-backup"`, `formatVersion: 1`, `databaseSchemaVersion: 7`, UTC export time, optional theme, per-table row counts, the SHA-256 digest of `data.json`, and optional image metadata (archive path, length and SHA-256 digest).
 - `data.json` is structured JSON with table names mapped to complete row arrays. It includes `app_settings`, `observing_locations`, `equipment_items`, `optical_profiles`, `imaging_projects`, `imaging_project_targets`, `observation_sessions` and `observation_session_images` when images are included.
 - `images/` contains detached image binaries. If the user excludes images, the exporter omits image attachment rows rather than creating broken references. Image bytes are never stored in SQLite.
 
 Versioned `app_settings` entries include saved night plans, mosaic configurations, opportunity-alert rules and notification deduplication history. The manifest also preserves the selected theme. The bundled OpenNGC catalog, external caches, temporary files and downloaded sky imagery are not included.
+
+Schema 7 records the observer-reported Bortle class in `observing_locations.bortle_class` as an integer from 1 to 9 or `null`. The importer also accepts schema 6 backups and restores their sites as unclassified.
 
 ## Validation and restoration
 

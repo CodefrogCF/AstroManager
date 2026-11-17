@@ -6,6 +6,8 @@ This guide describes the user-facing functionality in AstroManager `0.6.0`. Menu
 
 Open **Settings → Observing Locations → Add location**. Enter a name, latitude and longitude (WGS84 decimal degrees), elevation in metres and an IANA time zone such as `Europe/Zurich`. You can request the device's location, but location access is optional and the correct time zone must be checked manually. Choose a **default** site for your usual observing location. Saved sites can be edited or deleted.
 
+The site card shows an **Estimated Bortle class** from the bundled model wherever the grid covers the location. Use **Bortle class (optional)** in the location editor to record your own observation on a scale from 1 to 9. Choose **Unclassified** to clear your entry. The saved observation appears separately from the estimate and satellite radiance and is included in backups.
+
 From the same screen, you can request **Check satellite data** for a site's light-pollution indicator and use **Compare observing sites** to compare at least two saved places for one catalog target and observing date. The comparison reports astronomical darkness, visibility, available weather and optional terrain/night-light indicators, with clear notices for missing data. Scores are estimates, not guarantees.
 
 ## 2. Set up cameras and optics

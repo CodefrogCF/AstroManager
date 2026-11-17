@@ -106,7 +106,13 @@ The generated horizon profile is a model, not verified line-of-sight data.
 See `docs/implementation/issue-33-light-pollution.md` for the data product,
 service, limitations, and detailed source references.
 
-## 8. Flutter / Dart / package dependencies
+## 8. Bundled Bortle estimate grid — EOG / OpenLandMap
+
+- **Source:** VIIRS Nighttime Lights annual average for 2024, Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines. Distributed by Tomislav Hengl in [OpenLandMap's VIIRS annual series](https://doi.org/10.5281/zenodo.17294744), licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- **Changes:** AstroManager resampled the radiance, modeled zenith brightness and encoded a grid of estimated Bortle classes. The derived grid is distributed under CC BY 4.0.
+- **Method:** [Duriscoe et al. (2018)](https://doi.org/10.1016/j.jqsrt.2018.04.028), with the [zenith calibration and class cutoffs published by First Rig](https://firstrig.com/method/sky-brightness).
+
+## 9. Flutter / Dart / package dependencies
 
 Dart and Flutter dependencies listed in `pubspec.yaml` retain their own
 copyright and license notices; they are not relicensed by this file.

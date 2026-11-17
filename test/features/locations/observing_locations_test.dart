@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:astromanager/core/database/app_database.dart';
 import 'package:astromanager/core/database/repositories/app_settings_repository.dart';
 import 'package:astromanager/core/errors/app_failure.dart';
+import 'package:astromanager/features/light_pollution/application/light_pollution_providers.dart';
+import 'package:astromanager/features/light_pollution/domain/light_pollution.dart';
 
 import 'package:astromanager/features/locations/application/observing_locations_controller.dart';
 import 'package:astromanager/features/locations/data/repositories/drift_observing_location_repository.dart';
@@ -19,6 +21,7 @@ ObservingLocation makeLocation({
   required String id,
   required String name,
   bool isDefault = false,
+  int? bortleClass,
 }) {
   return ObservingLocation(
     id: id,
@@ -28,6 +31,7 @@ ObservingLocation makeLocation({
     elevationMeters: 400,
     timeZone: 'Europe/Zurich',
     isDefault: isDefault,
+    bortleClass: bortleClass,
   );
 }
 
@@ -64,6 +68,7 @@ class FakeObservingLocationRepository implements ObservingLocationRepository {
           elevationMeters: current.elevationMeters,
           timeZone: current.timeZone,
           isDefault: false,
+          bortleClass: current.bortleClass,
         );
       }
     }
@@ -76,6 +81,7 @@ class FakeObservingLocationRepository implements ObservingLocationRepository {
       elevationMeters: location.elevationMeters,
       timeZone: location.timeZone,
       isDefault: shouldBeDefault,
+      bortleClass: location.bortleClass,
     );
 
     if (existingIndex >= 0) {
@@ -98,6 +104,7 @@ class FakeObservingLocationRepository implements ObservingLocationRepository {
         elevationMeters: current.elevationMeters,
         timeZone: current.timeZone,
         isDefault: current.id == id,
+        bortleClass: current.bortleClass,
       );
     }
   }
@@ -178,6 +185,82 @@ void main() {
       expect(input.validate, throwsA(isA<ValidationFailure>()));
     });
   });
+
+  test('schema 6 sites keep their fields and can save or clear a Bortle class', () async {
+    final database = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw.execute('''
+        CREATE TABLE observing_locations (
+          id TEXT NOT NULL PRIMARY KEY,
+          name TEXT NOT NULL,
+          latitude REAL NOT NULL,
+          longitude REAL NOT NULL,
+          elevation_meters REAL NOT NULL,
+          time_zone TEXT NOT NULL,
+          is_default INTEGER NOT NULL DEFAULT 0
+        );
+        INSERT INTO observing_locations VALUES
+          ('legacy', 'Original', 47.48, 8.21, 400, 'Europe/Zurich', 1);
+        PRAGMA user_version = 6;
+      ''');
+        },
+      ),
+    );
+    addTearDown(database.close);
+    final repo = DriftObservingLocationRepository(database);
+    final legacy = (await repo.getAll()).single;
+    expect(legacy.name, 'Original');
+    expect(legacy.isDefault, isTrue);
+    expect(legacy.bortleClass, isNull);
+
+    for (final value in [1, 9, null]) {
+      await repo.save(
+        makeLocation(id: 'legacy', name: legacy.name, bortleClass: value),
+      );
+      final current = (await repo.getAll()).single;
+      expect(current.bortleClass, value);
+      expect(current.toInput().bortleClass, value);
+    }
+    await expectLater(
+      repo.save(makeLocation(id: 'legacy', name: legacy.name, bortleClass: 10)),
+      throwsA(isA<ValidationFailure>()),
+    );
+    await expectLater(
+      database.customStatement(
+        "UPDATE observing_locations SET bortle_class = 4.5 WHERE id = 'legacy'",
+      ),
+      throwsA(isA<Exception>()),
+    );
+    expect((await repo.getAll()).single.bortleClass, isNull);
+  });
+
+  test(
+    'reopening after an interrupted Bortle migration preserves the site',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'astromanager_bortle_',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}locations.sqlite',
+      );
+      final original = AppDatabase(NativeDatabase(file));
+      try {
+        await DriftObservingLocationRepository(original).save(
+          makeLocation(id: 'existing', name: 'Observatory', bortleClass: 6),
+        );
+        await original.customStatement('PRAGMA user_version = 6');
+      } finally {
+        await original.close();
+      }
+      final reopened = AppDatabase(NativeDatabase(file));
+      addTearDown(reopened.close);
+
+      final sites = await DriftObservingLocationRepository(reopened).getAll();
+      expect(sites.single.bortleClass, 6);
+    },
+  );
 
   group('Drift observing location repository', () {
     late AppDatabase database;
@@ -280,7 +363,7 @@ void main() {
     });
   });
 
-  test('migration v1 to v5 preserves settings', () async {
+  test('migration v1 to v7 preserves settings', () async {
     final directory = await Directory.systemTemp.createTemp(
       'astromanager_migration_',
     );
@@ -333,7 +416,7 @@ void main() {
             .customSelect('PRAGMA user_version')
             .getSingle();
 
-        expect(version.read<int>('user_version'), 6);
+        expect(version.read<int>('user_version'), 7);
 
         final projectTables = await migratedDatabase
             .customSelect(
@@ -350,13 +433,36 @@ void main() {
     }
   });
 
-  testWidgets('location editor allows manual entry', (tester) async {
+  testWidgets('observer reports and offline Bortle estimates stay distinct', (
+    tester,
+  ) async {
     final repository = FakeObservingLocationRepository();
+    var satelliteRequests = 0;
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           observingLocationRepositoryProvider.overrideWithValue(repository),
+          bortleEstimateProvider.overrideWith(
+            (ref, point) async => (classCode: 5, datasetYear: 2024),
+          ),
+          lightPollutionSnapshotProvider.overrideWith((ref, point) {
+            satelliteRequests++;
+            return LightPollutionSnapshot(
+              reading: LightPollutionReading(
+                kind: NightLightKind.satelliteRadiance,
+                value: 2,
+                sourceId: 'fixture',
+                sourceName: 'Test VIIRS',
+                datasetDate: DateTime.utc(2025, 12, 31),
+                latitude: point.latitude,
+                longitude: point.longitude,
+                description: 'Fixture reading',
+              ),
+              fromCache: true,
+              isStale: false,
+            );
+          }),
         ],
         child: const MaterialApp(home: Scaffold(body: LocationsScreen())),
       ),
@@ -383,6 +489,16 @@ void main() {
     );
 
     expect(find.byKey(const ValueKey('location-timezone')), findsOneWidget);
+    final bortleField = find.byKey(const ValueKey('location-bortle-class'));
+    Future<void> chooseBortle(String label) async {
+      await tester.ensureVisible(bortleField);
+      await tester.tap(bortleField);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    await chooseBortle('4');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
@@ -392,6 +508,38 @@ void main() {
     expect(repository.locations.first.timeZone, 'Etc/UTC');
 
     expect(repository.locations.first.isDefault, isTrue);
+    expect(repository.locations.first.bortleClass, 4);
+    expect(find.text('Observer-reported Bortle class'), findsOneWidget);
+    expect(find.text('4/9'), findsOneWidget);
+    expect(find.text('Estimated Bortle class'), findsOneWidget);
+    expect(find.text('5 · EOG VIIRS 2024'), findsOneWidget);
+    expect(satelliteRequests, 0);
+    final satellite = find.text('Check satellite data');
+    await tester.ensureVisible(satellite);
+    await tester.tap(satellite);
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Satellite upward radiance: 2.00'),
+      findsOneWidget,
+    );
+    expect(find.text('4/9'), findsOneWidget);
+
+    for (final (choice, value) in [('7', 7), ('Unclassified', null)]) {
+      final edit = find.byTooltip('Edit location');
+      await tester.ensureVisible(edit);
+      await tester.tap(edit);
+      await tester.pumpAndSettle();
+      expect(
+        tester.state<FormFieldState<int>>(bortleField).value,
+        repository.locations.single.bortleClass,
+      );
+      await chooseBortle(choice);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(repository.locations.single.bortleClass, value);
+    }
+    expect(find.byKey(const ValueKey('observer-bortle-class')), findsNothing);
+    expect(find.text('5 · EOG VIIRS 2024'), findsOneWidget);
   });
 
   testWidgets('time zone editor uses only selectable IANA identifiers', (

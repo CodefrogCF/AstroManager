@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
+import 'app_database.steps.dart' show Schema2;
 import 'tables/app_settings.dart';
 import 'tables/observing_locations.dart';
 import 'tables/equipment_tables.dart';
@@ -32,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   // Raw SQL avoids requiring generated Drift table code for this additive
   // migration. Projects are accessed with parameterised custom queries.
@@ -133,7 +134,7 @@ class AppDatabase extends _$AppDatabase {
 
       // v1 -> v2: Observing locations.
       if (from < 2 && to >= 2) {
-        await migrator.createTable(observingLocations);
+        await migrator.createTable(Schema2(database: this).observingLocations);
       }
 
       // v2 -> v3: Equipment and optical profiles.
@@ -156,6 +157,21 @@ class AppDatabase extends _$AppDatabase {
       // v5 -> v6: observation logs, immutable equipment snapshots and images.
       if (from < 6 && to >= 6) {
         await _createObservationSessionTables();
+      }
+
+      // v6 -> v7: optional observer-reported sky darkness class.
+      if (from < 7 && to >= 7) {
+        // Drift records the schema version after the upgrade. An interrupted
+        // upgrade may have already added this column.
+        final columns = await customSelect(
+          'PRAGMA table_info(observing_locations)',
+        ).get();
+        if (!columns.any((row) => row.read<String>('name') == 'bortle_class')) {
+          await migrator.addColumn(
+            observingLocations,
+            observingLocations.bortleClass,
+          );
+        }
       }
     },
 

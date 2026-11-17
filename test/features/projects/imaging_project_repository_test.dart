@@ -32,7 +32,7 @@ void main() {
     );
     await repository.save(project('a'));
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 6);
+    expect(version.read<int>('user_version'), 7);
     final tables =
         (await db
                 .customSelect(

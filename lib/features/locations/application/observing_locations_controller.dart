@@ -45,6 +45,7 @@ class ObservingLocationsController
       elevationMeters: input.elevationMeters,
       timeZone: input.timeZone.trim(),
       isDefault: existing?.isDefault ?? false,
+      bortleClass: input.bortleClass,
     );
 
     await _mutate((repository) => repository.save(location));

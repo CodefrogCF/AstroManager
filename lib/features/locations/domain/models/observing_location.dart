@@ -13,6 +13,7 @@ final class ObservingLocation {
     required this.elevationMeters,
     required this.timeZone,
     required this.isDefault,
+    this.bortleClass,
   });
 
   final String id;
@@ -23,6 +24,9 @@ final class ObservingLocation {
   final String timeZone;
   final bool isDefault;
 
+  /// Observer-reported Bortle class. Null means the site was unclassified.
+  final int? bortleClass;
+
   ObservingLocationInput toInput() {
     return ObservingLocationInput(
       name: name,
@@ -30,6 +34,7 @@ final class ObservingLocation {
       longitude: longitude,
       elevationMeters: elevationMeters,
       timeZone: timeZone,
+      bortleClass: bortleClass,
     );
   }
 
@@ -50,6 +55,7 @@ final class ObservingLocationInput {
     required this.longitude,
     required this.elevationMeters,
     required this.timeZone,
+    this.bortleClass,
   });
 
   final String name;
@@ -57,6 +63,9 @@ final class ObservingLocationInput {
   final double longitude;
   final double elevationMeters;
   final String timeZone;
+  final int? bortleClass;
+
+  static bool isValidBortleClass(int value) => value >= 1 && value <= 9;
 
   void validate() {
     final normalizedName = name.trim();
@@ -85,6 +94,10 @@ final class ObservingLocationInput {
       throw const ValidationFailure(
         'Elevation must be between -500 and 10000 meters.',
       );
+    }
+
+    if (bortleClass case final value? when !isValidBortleClass(value)) {
+      throw const ValidationFailure('Bortle class must be between 1 and 9.');
     }
 
     if (timeZone.trim().isEmpty || timeZone.length > 100) {

@@ -62,7 +62,7 @@ ObservationSession session(
 );
 
 void main() {
-  test('v6 creates session tables and enforces project foreign keys', () async {
+  test('creates session tables and enforces project foreign keys', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
     final sessions = DriftObservationSessionsRepository(
@@ -73,7 +73,7 @@ void main() {
       (await db.customSelect('PRAGMA user_version').getSingle()).read<int>(
         'user_version',
       ),
-      6,
+      7,
     );
     await expectLater(
       sessions.save(session('s1', 'absent')),
@@ -207,7 +207,7 @@ void main() {
     },
   );
 
-  test('upgrades v5 data to v6 without losing project records', () async {
+  test('upgrades v5 data without losing project records', () async {
     final dir = await Directory.systemTemp.createTemp(
       'astromanager_migration_v6_',
     );
@@ -222,6 +222,9 @@ void main() {
     ).save(project('preserved'));
     await first.customStatement('DROP TABLE observation_session_images');
     await first.customStatement('DROP TABLE observation_sessions');
+    await first.customStatement(
+      'ALTER TABLE observing_locations DROP COLUMN bortle_class',
+    );
     await first.close();
     // Simulate a v5 release while preserving its original project row.
     // This intentionally uses raw SQL, not the current app migration path.
@@ -233,7 +236,7 @@ void main() {
       expect(
         (await reopened.customSelect('PRAGMA user_version').getSingle())
             .read<int>('user_version'),
-        6,
+        7,
       );
       final projects = await DriftPlannedProjectsRepository(
         reopened,

@@ -104,6 +104,36 @@ abstract class AppLocalizations {
   /// **'AstroManager'**
   String get appName;
 
+  /// No description provided for @siteBortleOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Bortle class (optional)'**
+  String get siteBortleOptional;
+
+  /// No description provided for @siteBortleUnclassified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unclassified'**
+  String get siteBortleUnclassified;
+
+  /// No description provided for @siteBortleObserverReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Observer-reported Bortle class'**
+  String get siteBortleObserverReported;
+
+  /// No description provided for @siteBortleEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated Bortle class'**
+  String get siteBortleEstimate;
+
+  /// No description provided for @siteBortleEstimateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Bortle estimate unavailable for this location.'**
+  String get siteBortleEstimateUnavailable;
+
   /// No description provided for @atlasShowCatalogDetails.
   ///
   /// In en, this message translates to:
