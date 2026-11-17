@@ -10,12 +10,14 @@ final class ObservingSiteConditions {
     required this.site,
     this.terrain,
     this.terrainStale = false,
+    this.terrainCacheUnreadable = false,
     this.nightLights,
   });
 
   final ObservingLocation site;
   final TerrainHorizonProfile? terrain;
   final bool terrainStale;
+  final bool terrainCacheUnreadable;
   final LightPollutionSnapshot? nightLights;
 
   int get knownTerrainBearings => terrain?.knownBearings ?? 0;
@@ -39,12 +41,17 @@ final class ObservingSiteConditionsReader {
     // Both repositories read local caches only. Independent failures must
     // never suppress the other data source, and neither read needs to block
     // the other (important when multiple dashboard widgets mount together).
-    Future<({TerrainHorizonProfile profile, bool isStale})?>
+    Future<({TerrainHorizonProfile? profile, bool stale, bool failed})>
     readTerrain() async {
       try {
-        return await terrainRepository.cachedAnyForSite(site);
+        final cached = await terrainRepository.cachedAnyForSite(site);
+        return (
+          profile: cached?.profile,
+          stale: cached?.isStale ?? false,
+          failed: false,
+        );
       } catch (_) {
-        return null;
+        return (profile: null, stale: false, failed: true);
       }
     }
 
@@ -65,8 +72,9 @@ final class ObservingSiteConditionsReader {
     final lights = await lightsFuture;
     return ObservingSiteConditions(
       site: site,
-      terrain: terrain?.profile,
-      terrainStale: terrain?.isStale ?? false,
+      terrain: terrain.profile,
+      terrainStale: terrain.stale,
+      terrainCacheUnreadable: terrain.failed,
       nightLights: lights,
     );
   }

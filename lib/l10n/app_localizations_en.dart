@@ -2035,7 +2035,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardSiteNoTerrain =>
-      'No cached terrain profile. Check the site details to load one.';
+      'Use Manage site data to load a terrain profile.';
+
+  @override
+  String get terrainLoadProfile => 'Load terrain profile';
+
+  @override
+  String get terrainCacheEmpty => 'No terrain profile saved for this site.';
+
+  @override
+  String get terrainCacheUnreadable =>
+      'Unable to read the saved terrain profile.';
+
+  @override
+  String get terrainCoverageUnavailable =>
+      'No usable elevation data for this site and search radius.';
+
+  @override
+  String get terrainRequestFailed =>
+      'Could not load elevation data. Check your connection or try again later.';
 
   @override
   String get dashboardSiteNoLight =>

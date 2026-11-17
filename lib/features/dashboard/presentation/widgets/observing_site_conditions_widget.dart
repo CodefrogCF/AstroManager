@@ -206,7 +206,11 @@ class _CachedSummary extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                   if (terrain == null)
-                    const AppText('Not available')
+                    AppText(
+                      snapshot.terrainCacheUnreadable
+                          ? 'Unable to read the saved terrain profile.'
+                          : 'No terrain profile saved for this site.',
+                    )
                   else
                     Text(
                       '${snapshot.knownTerrainBearings}/${terrain.bearings.length} '
@@ -284,11 +288,9 @@ class _CachedDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (terrain == null)
-          const AppText(
-            'No cached terrain profile. Check the site details to load one.',
-          )
-        else ...[
+        if (terrain == null && !snapshot.terrainCacheUnreadable)
+          const AppText('Use Manage site data to load a terrain profile.')
+        else if (terrain != null) ...[
           Text(
             '${appTranslate(context, 'Profile generated')}: ${_date(terrain.createdAtUtc)}',
             style: textStyle,

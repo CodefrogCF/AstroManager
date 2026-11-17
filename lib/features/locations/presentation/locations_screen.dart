@@ -9,6 +9,7 @@ import '../domain/models/observing_location.dart';
 import '../domain/models/iana_time_zones.dart';
 import '../../light_pollution/presentation/light_pollution_location_panel.dart';
 import '../../site_comparison/presentation/observing_site_comparison_panel.dart';
+import '../../terrain/presentation/terrain_location_panel.dart';
 
 class LocationsScreen extends ConsumerWidget {
   const LocationsScreen({super.key, this.showComparison = false});
@@ -298,6 +299,15 @@ class LocationsScreen extends ConsumerWidget {
                                         ),
                                       ],
                                     ),
+                                  ),
+                                  TerrainLocationPanel(
+                                    key: ValueKey((
+                                      location.id,
+                                      location.latitude,
+                                      location.longitude,
+                                      location.elevationMeters,
+                                    )),
+                                    site: location,
                                   ),
                                   LightPollutionLocationPanel(
                                     key: ValueKey(

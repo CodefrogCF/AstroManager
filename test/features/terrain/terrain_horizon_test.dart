@@ -217,10 +217,38 @@ void main() {
           distanceStepMeters: 1000,
         ),
       ),
-      throwsStateError,
+      throwsA(isA<TerrainCoverageUnavailable>()),
     );
     expect(store.values, isEmpty);
   });
+
+  test(
+    'failed refresh retains an expired profile for offline display',
+    () async {
+      final store = _MemoryStore();
+      var offline = false;
+      final provider = _Heights((_) {
+        if (offline) throw StateError('Network unavailable');
+        return 700;
+      });
+      const options = TerrainHorizonOptions();
+      final repo = TerrainProfileRepository(provider: provider, store: store);
+      addTearDown(repo.dispose);
+      final profile = await repo.load(_site, options);
+      final expiredRepo = TerrainProfileRepository(
+        provider: provider,
+        store: store,
+        maximumAge: const Duration(days: -1),
+      );
+      addTearDown(expiredRepo.dispose);
+
+      offline = true;
+      await expectLater(expiredRepo.load(_site, options), throwsStateError);
+      final cached = await expiredRepo.cachedAnyForSite(_site);
+      expect(cached?.profile.createdAtUtc, profile.createdAtUtc);
+      expect(cached?.isStale, isTrue);
+    },
+  );
 
   test(
     'partially missing radial data marks the complete bearing unknown',

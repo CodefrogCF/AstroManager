@@ -11,10 +11,28 @@ final terrainElevationProvider = Provider<TerrainElevationProvider>((ref) {
   return provider;
 });
 
-final terrainProfileRepositoryProvider = Provider<TerrainProfileRepository>(
-  (ref) =>
-      TerrainProfileRepository(provider: ref.watch(terrainElevationProvider)),
-);
+final terrainProfileRepositoryProvider = Provider<TerrainProfileRepository>((
+  ref,
+) {
+  final repository = TerrainProfileRepository(
+    provider: ref.watch(terrainElevationProvider),
+  );
+  ref.onDispose(repository.dispose);
+  return repository;
+});
+
+final cachedTerrainProfileProvider = FutureProvider.autoDispose
+    .family<
+      ({TerrainHorizonProfile profile, bool isStale})?,
+      ObservingLocation
+    >((ref, site) {
+      final repository = ref.watch(terrainProfileRepositoryProvider);
+      final changes = repository
+          .changesFor(site)
+          .listen((_) => ref.invalidateSelf());
+      ref.onDispose(changes.cancel);
+      return repository.cachedAnyForSite(site);
+    }, retry: (count, error) => null);
 
 /// A record is used to give the provider stable family equality semantics.
 typedef TerrainRequest = ({
@@ -24,17 +42,36 @@ typedef TerrainRequest = ({
   int distanceStep,
 });
 
-final terrainHorizonProvider =
-    FutureProvider.family<TerrainHorizonProfile, TerrainRequest>(
-      (ref, request) => ref
-          .watch(terrainProfileRepositoryProvider)
-          .load(
-            request.site,
-            TerrainHorizonOptions(
-              azimuthStepDegrees: request.azimuthStep,
-              maximumDistanceMeters: request.rangeMeters,
-              distanceStepMeters: request.distanceStep,
-            ),
-          ),
+final terrainHorizonProvider = AsyncNotifierProvider.autoDispose
+    .family<TerrainHorizonController, TerrainHorizonProfile, TerrainRequest>(
+      TerrainHorizonController.new,
       retry: (count, error) => null,
     );
+
+final class TerrainHorizonController
+    extends AsyncNotifier<TerrainHorizonProfile> {
+  TerrainHorizonController(this.request);
+
+  final TerrainRequest request;
+
+  TerrainHorizonOptions get _options => TerrainHorizonOptions(
+    azimuthStepDegrees: request.azimuthStep,
+    maximumDistanceMeters: request.rangeMeters,
+    distanceStepMeters: request.distanceStep,
+  );
+
+  @override
+  Future<TerrainHorizonProfile> build() =>
+      ref.watch(terrainProfileRepositoryProvider).load(request.site, _options);
+
+  Future<void> refreshProfile() async {
+    if (state.isLoading) return;
+    final refreshRef = ref;
+    final repository = refreshRef.read(terrainProfileRepositoryProvider);
+    state = const AsyncLoading();
+    final result = await AsyncValue.guard(
+      () => repository.load(request.site, _options, forceRefresh: true),
+    );
+    if (refreshRef.mounted) state = result;
+  }
+}

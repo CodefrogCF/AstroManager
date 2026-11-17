@@ -3935,8 +3935,38 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardSiteNoTerrain.
   ///
   /// In en, this message translates to:
-  /// **'No cached terrain profile. Check the site details to load one.'**
+  /// **'Use Manage site data to load a terrain profile.'**
   String get dashboardSiteNoTerrain;
+
+  /// No description provided for @terrainLoadProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Load terrain profile'**
+  String get terrainLoadProfile;
+
+  /// No description provided for @terrainCacheEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No terrain profile saved for this site.'**
+  String get terrainCacheEmpty;
+
+  /// No description provided for @terrainCacheUnreadable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read the saved terrain profile.'**
+  String get terrainCacheUnreadable;
+
+  /// No description provided for @terrainCoverageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No usable elevation data for this site and search radius.'**
+  String get terrainCoverageUnavailable;
+
+  /// No description provided for @terrainRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load elevation data. Check your connection or try again later.'**
+  String get terrainRequestFailed;
 
   /// No description provided for @dashboardSiteNoLight.
   ///

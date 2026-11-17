@@ -2064,7 +2064,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboardSiteNoTerrain =>
-      'Kein Geländehorizont zwischengespeichert. Im Standortdetailbereich laden.';
+      'Lade ein Geländeprofil über Standortdaten verwalten.';
+
+  @override
+  String get terrainLoadProfile => 'Geländeprofil laden';
+
+  @override
+  String get terrainCacheEmpty =>
+      'Für diesen Standort ist kein Geländeprofil gespeichert.';
+
+  @override
+  String get terrainCacheUnreadable =>
+      'Das gespeicherte Geländeprofil konnte nicht gelesen werden.';
+
+  @override
+  String get terrainCoverageUnavailable =>
+      'Für diesen Standort und Suchradius sind keine nutzbaren Höhendaten verfügbar.';
+
+  @override
+  String get terrainRequestFailed =>
+      'Höhendaten konnten nicht geladen werden. Prüfe die Verbindung oder versuche es später erneut.';
 
   @override
   String get dashboardSiteNoLight =>

@@ -105,21 +105,36 @@ Future<void> _seed(AppDatabase db, _Images images) async {
   );
 }
 
+Future<Uint8List> _exportSeededBackup(
+  _Images images, {
+  required bool includeImages,
+  String? theme,
+}) async {
+  final source = AppDatabase(NativeDatabase.memory());
+  try {
+    await _seed(source, images);
+    return await AstroBackupService(
+      source,
+      attachments: images,
+    ).export(includeImages: includeImages, theme: theme);
+  } finally {
+    await source.close();
+  }
+}
+
 void main() {
   test(
     'ZIP round trip preserves data, relationships and image binaries',
     () async {
-      final source = AppDatabase(NativeDatabase.memory());
-      final destination = AppDatabase(NativeDatabase.memory());
-      addTearDown(source.close);
-      addTearDown(destination.close);
       final srcImages = _Images();
+      final bytes = await _exportSeededBackup(
+        srcImages,
+        includeImages: true,
+        theme: 'night',
+      );
+      final destination = AppDatabase(NativeDatabase.memory());
+      addTearDown(destination.close);
       final dstImages = _Images();
-      await _seed(source, srcImages);
-      final bytes = await AstroBackupService(
-        source,
-        attachments: srcImages,
-      ).export(includeImages: true, theme: 'night');
       final backup = AstroBackupService(destination, attachments: dstImages);
       final preview = backup.inspect(bytes);
       expect(preview.imageCount, 1);
@@ -167,16 +182,9 @@ void main() {
   test(
     'images can be excluded without importing broken attachment rows',
     () async {
-      final source = AppDatabase(NativeDatabase.memory());
+      final bytes = await _exportSeededBackup(_Images(), includeImages: false);
       final destination = AppDatabase(NativeDatabase.memory());
-      addTearDown(source.close);
       addTearDown(destination.close);
-      final images = _Images();
-      await _seed(source, images);
-      final bytes = await AstroBackupService(
-        source,
-        attachments: images,
-      ).export(includeImages: false);
       final backup = AstroBackupService(destination, attachments: _Images());
       expect(backup.inspect(bytes).imageCount, 0);
       await backup.restore(bytes);
@@ -198,17 +206,10 @@ void main() {
   test(
     'merge rejects duplicate IDs atomically without changing existing rows',
     () async {
-      final source = AppDatabase(NativeDatabase.memory());
+      final bytes = await _exportSeededBackup(_Images(), includeImages: true);
       final destination = AppDatabase(NativeDatabase.memory());
-      addTearDown(source.close);
       addTearDown(destination.close);
-      final images = _Images();
-      await _seed(source, images);
       await _seed(destination, _Images());
-      final bytes = await AstroBackupService(
-        source,
-        attachments: images,
-      ).export(includeImages: true);
       final service = AstroBackupService(destination, attachments: _Images());
       await expectLater(service.restore(bytes), throwsA(isA<Exception>()));
       expect(
@@ -227,21 +228,14 @@ void main() {
   );
 
   test('replace needs explicit confirmation and removes old records', () async {
-    final source = AppDatabase(NativeDatabase.memory());
+    final bytes = await _exportSeededBackup(_Images(), includeImages: true);
     final destination = AppDatabase(NativeDatabase.memory());
-    addTearDown(source.close);
     addTearDown(destination.close);
-    final images = _Images();
     final otherImages = _Images();
-    await _seed(source, images);
     await _seed(destination, otherImages);
     await destination.customStatement(
       "UPDATE imaging_projects SET title = 'Old value'",
     );
-    final bytes = await AstroBackupService(
-      source,
-      attachments: images,
-    ).export(includeImages: true);
     final service = AstroBackupService(destination, attachments: otherImages);
     await expectLater(
       service.restore(bytes, mode: BackupRestoreMode.replace),

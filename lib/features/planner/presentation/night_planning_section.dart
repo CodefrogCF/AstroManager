@@ -12,7 +12,7 @@ import '../../targets/application/celestial_catalog_controller.dart';
 import '../../targets/domain/models/celestial_object.dart';
 import '../../weather/application/weather_providers.dart';
 import '../../terrain/application/terrain_providers.dart';
-import '../../terrain/domain/terrain_horizon.dart';
+import '../../terrain/data/terrain_profile_repository.dart';
 import '../../terrain/presentation/terrain_horizon_chart.dart';
 import '../../weather/domain/providers/weather_provider.dart';
 import '../data/night_plans_repository.dart';
@@ -549,10 +549,12 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                     ],
                   ),
                 ),
-              if (terrainState?.hasError ?? false)
-                const AppText(
-                  'Terrain elevation unavailable. Existing geometric visibility remains active. '
-                  'Try again when connected; previous night plans are not affected.',
+              if (terrainState?.hasError == true &&
+                  terrainState?.isLoading == false)
+                AppText(
+                  terrainState?.error is TerrainCoverageUnavailable
+                      ? 'No usable elevation data for this site and search radius.'
+                      : 'Could not load elevation data. Check your connection or try again later.',
                 ),
               if (terrainProfile != null) ...[
                 const SizedBox(height: 8),
@@ -570,27 +572,17 @@ class _NightPlanningSectionState extends ConsumerState<NightPlanningSection> {
                   const AppText(
                     'Incomplete DEM coverage: visibility is uncertain at missing bearings.',
                   ),
-                TextButton.icon(
-                  key: const ValueKey('night-terrain-refresh'),
-                  onPressed: () async {
-                    await ref
-                        .read(terrainProfileRepositoryProvider)
-                        .remove(
-                          widget.location,
-                          TerrainHorizonOptions(
-                            azimuthStepDegrees: _terrainAzimuthStep,
-                            maximumDistanceMeters: _terrainRangeMeters,
-                            distanceStepMeters: _terrainDistanceStepMeters,
-                          ),
-                        );
-                    if (mounted) {
-                      ref.invalidate(terrainHorizonProvider(terrainRequest));
-                    }
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const AppText('Refresh terrain profile'),
-                ),
               ],
+              TextButton.icon(
+                key: const ValueKey('night-terrain-refresh'),
+                onPressed: terrainState?.isLoading == true
+                    ? null
+                    : () => ref
+                          .read(terrainHorizonProvider(terrainRequest).notifier)
+                          .refreshProfile(),
+                icon: const Icon(Icons.refresh),
+                label: const AppText('Refresh terrain profile'),
+              ),
               const AppText(
                 'Approximate terrain-only horizon: buildings, trees and small obstacles '
                 'are excluded. This is not a guaranteed line-of-sight prediction.',

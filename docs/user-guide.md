@@ -174,10 +174,16 @@ Dashboard layouts are still supported.
 ## Observing Site conditions
 
 The optional **Observing Site** dashboard widget shows cached environmental
-information for the dashboard's selected observing location. It never fetches
-terrain or night-light data automatically. To obtain or update those datasets,
-open **Manage site data** and use the existing location panels, then tap
-**Refresh cached site data** on the dashboard to reread the local caches.
+information for the dashboard's selected observing location. Open **Manage
+site data** and select **Load terrain profile** on the relevant site. Once saved,
+the profile appears on the dashboard and remains available offline. The site
+panel distinguishes missing elevation coverage from request failures. A failed
+refresh leaves the saved terrain profile in place. For night-light data, use
+**Check satellite data** and **Refresh cached site data** on the dashboard.
+
+The public OpenTopoData endpoint blocks cross-origin browser requests. If the
+Web build cannot load elevation data, use a native AstroManager build to load
+the terrain profile. See [OpenTopoData's browser access policy](https://github.com/ajnisbet/opentopodata/issues/53).
 
 The terrain summary shows how many azimuth bearings are covered by the cached
 EU-DEM/OpenTopoData profile. Missing bearings are **unknown**, not clear; terrain

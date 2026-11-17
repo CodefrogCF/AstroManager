@@ -12,8 +12,13 @@ final observingSiteConditionsProvider =
       ref,
       site,
     ) {
+      final terrainRepository = ref.watch(terrainProfileRepositoryProvider);
+      final changes = terrainRepository
+          .changesFor(site)
+          .listen((_) => ref.invalidateSelf());
+      ref.onDispose(changes.cancel);
       return ObservingSiteConditionsReader(
-        terrainRepository: ref.watch(terrainProfileRepositoryProvider),
+        terrainRepository: terrainRepository,
         lightPollutionRepository: ref.watch(lightPollutionRepositoryProvider),
       ).read(site);
     }, retry: (count, error) => null);

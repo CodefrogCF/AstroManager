@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -29,6 +30,14 @@ final class SharedPreferencesTerrainProfileStore
   Future<Set<String>> getKeys() => _prefs.getKeys();
 }
 
+final class TerrainCoverageUnavailable implements Exception {
+  const TerrainCoverageUnavailable();
+
+  @override
+  String toString() =>
+      'No usable elevation data for this site and search radius.';
+}
+
 /// Derived caches are intentionally not part of the user-data backup:
 /// a cached profile is invalidated when the site, resolution, or provider changes.
 final class TerrainProfileRepository {
@@ -48,6 +57,19 @@ final class TerrainProfileRepository {
   final TerrainProfileStore _store;
   final int maximumEntries;
   final Duration maximumAge;
+  final _changes = StreamController<TerrainHorizonProfile>.broadcast();
+  final _requests = <String, Future<TerrainHorizonProfile>>{};
+
+  Stream<TerrainHorizonProfile> changesFor(ObservingLocation site) =>
+      _changes.stream.where((profile) => _matchesSite(profile, site));
+
+  void dispose() => unawaited(_changes.close());
+
+  bool _matchesSite(TerrainHorizonProfile profile, ObservingLocation site) =>
+      profile.sourceId == provider.id &&
+      profile.latitude == site.latitude &&
+      profile.longitude == site.longitude &&
+      profile.observerElevationMeters == site.elevationMeters;
 
   String cacheKey(ObservingLocation site, TerrainHorizonOptions options) {
     options.validate();
@@ -73,10 +95,7 @@ final class TerrainProfileRepository {
         throw const FormatException('Invalid cache.');
       }
       final profile = TerrainHorizonProfile.fromJson(decoded);
-      if (profile.sourceId != provider.id ||
-          profile.latitude != site.latitude ||
-          profile.longitude != site.longitude ||
-          profile.observerElevationMeters != site.elevationMeters ||
+      if (!_matchesSite(profile, site) ||
           profile.options.azimuthStepDegrees != options.azimuthStepDegrees ||
           profile.options.maximumDistanceMeters !=
               options.maximumDistanceMeters ||
@@ -111,10 +130,7 @@ final class TerrainProfileRepository {
           throw const FormatException('Invalid terrain cache.');
         }
         final profile = TerrainHorizonProfile.fromJson(parsed);
-        if (profile.sourceId != provider.id ||
-            profile.latitude != site.latitude ||
-            profile.longitude != site.longitude ||
-            profile.observerElevationMeters != site.elevationMeters) {
+        if (!_matchesSite(profile, site)) {
           continue;
         }
         // Protect against storing a profile under a mismatched resolution key.
@@ -139,23 +155,33 @@ final class TerrainProfileRepository {
     TerrainHorizonOptions options,
   ) async {
     final value = await cachedWithStatus(site, options);
-    if (value == null) return null;
-    if (value.isStale) {
-      await _store.remove(cacheKey(site, options));
-      return null;
-    }
-    return value.profile;
+    return value == null || value.isStale ? null : value.profile;
   }
 
   /// Cache-first. A network error does not erase a valid, already-loaded profile.
   Future<TerrainHorizonProfile> load(
     ObservingLocation site,
-    TerrainHorizonOptions options,
-  ) async {
-    final saved = await cached(site, options);
-    if (saved != null) {
-      return saved;
+    TerrainHorizonOptions options, {
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh) {
+      final saved = await cached(site, options);
+      if (saved != null) return saved;
     }
+    final key = cacheKey(site, options);
+    return _requests.putIfAbsent(
+      key,
+      () => _fetch(site, options, key).whenComplete(() {
+        _requests.remove(key);
+      }),
+    );
+  }
+
+  Future<TerrainHorizonProfile> _fetch(
+    ObservingLocation site,
+    TerrainHorizonOptions options,
+    String key,
+  ) async {
     final profile = await TerrainHorizonCalculator.calculate(
       site: site,
       options: options,
@@ -164,12 +190,10 @@ final class TerrainProfileRepository {
     // An entirely missing dataset is not useful and must not be cached as a
     // definitive unobstructed horizon.
     if (profile.knownBearings == 0) {
-      throw StateError('No elevation data for this site and search radius.');
+      throw const TerrainCoverageUnavailable();
     }
-    await _store.setString(
-      cacheKey(site, options),
-      jsonEncode(profile.toJson()),
-    );
+    await _store.setString(key, jsonEncode(profile.toJson()));
+    if (!_changes.isClosed) _changes.add(profile);
     await _evict();
     return profile;
   }

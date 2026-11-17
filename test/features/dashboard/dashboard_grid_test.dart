@@ -276,10 +276,6 @@ void main() {
   });
 
   test('fractional layouts survive .ambackup export and restore', () async {
-    final source = AppDatabase(NativeDatabase.memory());
-    final target = AppDatabase(NativeDatabase.memory());
-    addTearDown(source.close);
-    addTearDown(target.close);
     final saved = DashboardLayout.defaults.copyWith(
       selectedLocationId: 'restored-site',
       widgets: [
@@ -321,12 +317,20 @@ void main() {
         ],
       },
     );
-    await SettingsDashboardLayoutRepository(AppSettingsRepository(source))
-        .save(saved);
-    final archive = await AstroBackupService(
-      source,
-      attachments: _UnusedAttachments(),
-    ).export();
+    final source = AppDatabase(NativeDatabase.memory());
+    final Uint8List archive;
+    try {
+      await SettingsDashboardLayoutRepository(AppSettingsRepository(source))
+          .save(saved);
+      archive = await AstroBackupService(
+        source,
+        attachments: _UnusedAttachments(),
+      ).export();
+    } finally {
+      await source.close();
+    }
+    final target = AppDatabase(NativeDatabase.memory());
+    addTearDown(target.close);
     await AstroBackupService(
       target,
       attachments: _UnusedAttachments(),

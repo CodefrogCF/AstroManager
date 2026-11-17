@@ -120,6 +120,7 @@ const Map<String, String> appGermanUiStrings = {
   'Continue without account': 'Ohne Konto fortfahren',
   'Continuous astronomical darkness throughout this observing night.':
       'Durchgehend astronomische Dunkelheit während dieser Beobachtungsnacht.',
+  'Could not load elevation data. Check your connection or try again later.': 'Höhendaten konnten nicht geladen werden. Prüfe die Verbindung oder versuche es später erneut.',
   'Could not refresh. Showing the last forecast.':
       'Aktualisierung fehlgeschlagen. Die letzte Prognose wird angezeigt.',
   'Could not save dashboard changes.':
@@ -273,6 +274,7 @@ const Map<String, String> appGermanUiStrings = {
   'Latitude (degrees)': 'Breitengrad (Grad)',
   'Lens or telescope': 'Objektiv oder Teleskop',
   'Light pollution': 'Lichtverschmutzung',
+  'Load terrain profile': 'Geländeprofil laden',
   'Loading celestial catalog...': 'Himmelskatalog wird geladen …',
   'Loading dashboard widget': 'Dashboard-Widget wird geladen',
   'Loading integration…': 'Integrationszeit wird geladen …',
@@ -368,7 +370,6 @@ const Map<String, String> appGermanUiStrings = {
   'No astronomical darkness during this night.':
       'In dieser Nacht tritt keine astronomische Dunkelheit ein.',
   'No cached night-light data. Check the site details to load a sample.': 'Keine Nachtlichtdaten zwischengespeichert. Im Standortdetailbereich abrufen.',
-  'No cached terrain profile. Check the site details to load one.': 'Kein Geländehorizont zwischengespeichert. Im Standortdetailbereich laden.',
   'No candidate targets. Add projects or favorites, or select Catalog.': 'Keine Kandidatenziele. Füge Projekte oder Favoriten hinzu oder wähle den Katalog.',
   'No dashboard widgets. Use Manage widgets to add one.': 'Keine Dashboard-Widgets vorhanden. Füge über „Widgets verwalten“ eines hinzu.',
   'No data available.': 'Keine Daten verfügbar.',
@@ -407,8 +408,11 @@ const Map<String, String> appGermanUiStrings = {
   'No targets assigned. Use Edit to add a catalog target.':
       'Keine Ziele zugeordnet. Über Bearbeiten ein Katalogziel hinzufügen.',
   'No targets scheduled.': 'Keine Ziele eingeplant.',
+  'No terrain profile saved for this site.':
+      'Für diesen Standort ist kein Geländeprofil gespeichert.',
   'No upcoming observation blocks at this location.':
       'Keine bevorstehenden Beobachtungsblöcke an diesem Ort.',
+  'No usable elevation data for this site and search radius.': 'Für diesen Standort und Suchradius sind keine nutzbaren Höhendaten verfügbar.',
   'No valid camera + optic profiles. Add an imaging setup in Equipment.': 'Kein gültiges Kamera-/Optikprofil. Erstelle ein Aufnahme-Setup unter Ausrüstung.',
   'No valid night-light data at this location.':
       'An diesem Ort liegen keine gültigen Nachtlichtdaten vor.',
@@ -671,6 +675,8 @@ const Map<String, String> appGermanUiStrings = {
   'Unable to load widget data.': 'Widget-Daten konnten nicht geladen werden.',
   'Unable to read cached site conditions.':
       'Zwischengespeicherte Standortbedingungen konnten nicht gelesen werden.',
+  'Unable to read the saved terrain profile.':
+      'Das gespeicherte Geländeprofil konnte nicht gelesen werden.',
   'Unable to save language preference.':
       'Spracheinstellung konnte nicht gespeichert werden.',
   'Unable to save night plan': 'Nachtplan konnte nicht gespeichert werden',
@@ -687,6 +693,8 @@ const Map<String, String> appGermanUiStrings = {
   'Upward radiance is not a sky brightness measurement. Nearby lights, terrain, cloud, snow and atmospheric scattering can change actual observing conditions.': 'Aufwärts gerichtete Strahldichte ist keine Messung der Himmelshelligkeit. Lichtquellen, Gelände, Wolken, Schnee und atmosphärische Streuung verändern die tatsächlichen Bedingungen.',
   'Usable integration: ': 'Nutzbare Integrationszeit: ',
   'Use Aladin controls': 'Aladin-Bedienelemente anzeigen',
+  'Use Manage site data to load a terrain profile.':
+      'Lade ein Geländeprofil über Standortdaten verwalten.',
   'Use current location': 'Aktuellen Standort verwenden',
   'Use either ISO or gain; leave the other empty.':
       'Verwende entweder ISO oder Gain; das jeweils andere Feld freilassen.',
