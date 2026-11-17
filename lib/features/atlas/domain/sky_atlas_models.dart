@@ -49,7 +49,7 @@ final class SkyAtlasMarker {
   }
 }
 
-/// Circular annotations in sky coordinates. Camera framing is a later issue.
+/// Circular annotations in sky coordinates.
 final class SkyAtlasCircleOverlay {
   const SkyAtlasCircleOverlay({
     required this.position,
@@ -126,6 +126,7 @@ abstract final class SkyAtlasProtocol {
     SkyAtlasProjectionMode projectionMode = SkyAtlasProjectionMode.detail,
     SkyDomeOverlay? dome,
     bool? showAladinControls,
+    int? viewRevision,
     required SkyAtlasPosition position,
     required double fieldOfViewDegrees,
     required List<SkyAtlasMarker> markers,
@@ -143,6 +144,7 @@ abstract final class SkyAtlasProtocol {
       'type': 'state',
       ...position.toJson(),
       'fov': fieldOfViewDegrees,
+      'viewRevision': ?viewRevision,
       'markers': markers.map((m) => m.toJson()).toList(),
       'overlays': overlays.map((o) => o.toJson()).toList(),
       'cameraFrame': cameraFrame?.toJson(),

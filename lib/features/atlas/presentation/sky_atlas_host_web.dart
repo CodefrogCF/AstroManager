@@ -36,6 +36,9 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
       ..style.width = '100%'
       ..style.height = '100%'
       ..style.border = '0'
+      ..style.pointerEvents = widget.controller.pointerInputEnabled
+          ? ''
+          : 'none'
       ..src = Uri.parse(web.document.baseURI)
           .resolve('assets/assets/atlas/atlas.html')
           .toString();
@@ -72,6 +75,10 @@ class _AtlasPlatformHostState extends State<AtlasPlatformHost> {
   }
 
   void _onChange() {
+    // An iframe otherwise captures pointer events even below a Flutter dialog.
+    _iframe.style.pointerEvents = widget.controller.pointerInputEnabled
+        ? ''
+        : 'none';
     if (widget.controller.status == SkyAtlasStatus.ready ||
         widget.controller.status == SkyAtlasStatus.imageryLoading) {
       _sendCurrentState();

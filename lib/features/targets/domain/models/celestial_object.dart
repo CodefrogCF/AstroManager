@@ -55,6 +55,14 @@ final class CelestialObject {
   final String commonNames;
   final String aliases;
 
+  /// Radius of the circle enclosing the available catalog dimensions.
+  double? get angularRadiusDegrees {
+    final major = majorAxisArcmin ?? 0;
+    final minor = minorAxisArcmin ?? 0;
+    final diameter = major >= minor ? major : minor;
+    return diameter > 0 && diameter <= 10800 ? diameter / 120 : null;
+  }
+
   String get displayTitle {
     if (messierNumber != null) {
       return 'M $messierNumber · $designation';

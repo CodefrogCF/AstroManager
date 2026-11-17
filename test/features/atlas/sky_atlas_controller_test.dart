@@ -58,7 +58,42 @@ void main() {
     );
     expect(controller.revision, 2, reason: 'No view-change echo loops');
     expect(controller.fieldOfViewDegrees, 2.5);
+    expect(jsonDecode(controller.stateJson)['viewRevision'], 2);
   });
+
+  test(
+    'sky taps validate coordinates and tolerance without changing the view',
+    () {
+      final positions = <SkyAtlasPosition>[];
+      final controller = SkyAtlasController(
+        initialPosition: andromeda,
+        onSkyTap: (position, _) => positions.add(position),
+      );
+      addTearDown(controller.dispose);
+      controller.receive(event('skyTap', {'ra': 1, 'dec': 2, 'tolerance': -1}));
+      controller.receive(
+        event('skyTap', {'ra': 360, 'dec': 2, 'tolerance': 1}),
+      );
+      controller.receive(
+        event('skyTap', {'ra': 1, 'dec': 2, 'tolerance': 0.01}),
+      );
+      expect(positions.single.toJson(), {'ra': 1, 'dec': 2});
+      controller.setPointerInputEnabled(false);
+      controller.receive(
+        event('skyTap', {'ra': 2, 'dec': 2, 'tolerance': 0.01}),
+      );
+      expect(positions, hasLength(1));
+      controller.setSelection(
+        outline: const SkyAtlasCircleOverlay(
+          position: andromeda,
+          radiusDegrees: 1,
+        ),
+      );
+      expect(controller.position, same(andromeda));
+      expect(controller.revision, 1);
+      expect(jsonDecode(controller.stateJson)['viewRevision'], 0);
+    },
+  );
 
   test('ready, error, and retry transitions are explicit', () {
     final controller = SkyAtlasController(initialPosition: andromeda);
@@ -132,7 +167,6 @@ void main() {
     final json = jsonDecode(controller.stateJson) as Map<String, dynamic>;
     final markers = json['markers'] as List;
     expect(markers.single['label'], '<script>alert("x")</script>');
-    // HTML-escaping happens in the atlas JavaScript display layer.
   });
   test(
     'imagery failure and retry retain camera framing, location and projection',

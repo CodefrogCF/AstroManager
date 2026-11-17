@@ -104,6 +104,72 @@ abstract class AppLocalizations {
   /// **'AstroManager'**
   String get appName;
 
+  /// No description provided for @atlasShowCatalogDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show catalog details'**
+  String get atlasShowCatalogDetails;
+
+  /// No description provided for @atlasCatalogLookupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to look up atlas objects.'**
+  String get atlasCatalogLookupFailed;
+
+  /// No description provided for @atlasCatalogCommonNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Common names'**
+  String get atlasCatalogCommonNames;
+
+  /// No description provided for @atlasCatalogObjectType.
+  ///
+  /// In en, this message translates to:
+  /// **'Object type'**
+  String get atlasCatalogObjectType;
+
+  /// No description provided for @atlasCatalogConstellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Constellation'**
+  String get atlasCatalogConstellation;
+
+  /// No description provided for @atlasCatalogMagnitude.
+  ///
+  /// In en, this message translates to:
+  /// **'V magnitude'**
+  String get atlasCatalogMagnitude;
+
+  /// No description provided for @atlasCatalogMajorAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Major axis'**
+  String get atlasCatalogMajorAxis;
+
+  /// No description provided for @atlasCatalogMinorAxis.
+  ///
+  /// In en, this message translates to:
+  /// **'Minor axis'**
+  String get atlasCatalogMinorAxis;
+
+  /// No description provided for @atlasCatalogIdentifiers.
+  ///
+  /// In en, this message translates to:
+  /// **'Identifiers'**
+  String get atlasCatalogIdentifiers;
+
+  /// No description provided for @atlasCatalogStarCluster.
+  ///
+  /// In en, this message translates to:
+  /// **'Star cluster'**
+  String get atlasCatalogStarCluster;
+
+  /// No description provided for @atlasCatalogOtherType.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get atlasCatalogOtherType;
+
   /// No description provided for @onboardingTitle.
   ///
   /// In en, this message translates to:

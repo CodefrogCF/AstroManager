@@ -14,6 +14,7 @@
   let domeLayers = [];
   let domeCompass = null;
   let projectionMode = 'detail';
+  let viewRevision = null;
   let ready = false;
   let queued = null;
   let lastReported = '';
@@ -77,31 +78,33 @@
     return Number.isFinite(value) && value >= 0.01 && value <= 180;
   }
 
-  function escapeText(value) {
-    return String(value).replace(/[&<>"']/g, function (c) {
-      return ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'})[c];
-    });
-  }
-
   function setMarkers(next) {
     if (!Array.isArray(next)) return;
-    if (markers) markers.remove();
-    markers = root.A.catalog({name:'AstroManager targets', color:'#ffd84a', sourceSize:14});
+    if (markers) {
+      markers.remove();
+      markers = null;
+    }
     const sources = [];
     for (const item of next.slice(0, 250)) {
       if (!item || !validPosition(item.ra, item.dec)) continue;
       if (typeof item.label !== 'string') continue;
-      sources.push(root.A.marker(item.ra, item.dec, {
-        popupTitle: escapeText(item.label.slice(0, 180)),
-      }));
+      sources.push(root.A.source(item.ra, item.dec));
     }
+    if (!sources.length) return;
+    markers = root.A.catalog({
+      name:'AstroManager targets', color:'#ffd84a', shape:'cross', sourceSize:14,
+    });
     markers.addSources(sources);
     aladin.addCatalog(markers);
   }
 
   function setOverlays(next) {
     if (!Array.isArray(next)) return;
-    if (overlay) aladin.removeOverlay(overlay);
+    if (overlay) {
+      aladin.removeOverlay(overlay);
+      overlay = null;
+    }
+    if (!next.length) return;
     overlay = root.A.graphicOverlay({color:'#3dd5f3', lineWidth:2});
     for (const item of next.slice(0, 100)) {
       if (!item || !validPosition(item.ra, item.dec) ||
@@ -251,6 +254,8 @@
         !validFov(cmd.fov)) return false;
     const mode = cmd.projection || 'detail';
     if (!['detail', 'dome'].includes(mode)) return false;
+    if (cmd.viewRevision !== undefined &&
+        (!Number.isSafeInteger(cmd.viewRevision) || cmd.viewRevision < 0)) return false;
     if (!ready) { queued = cmd; return true; }
     try {
       if (cmd.showAladinControls !== null &&
@@ -262,8 +267,13 @@
         aladin.setProjection(mode === 'dome' ? 'ZEA' : 'TAN');
         projectionMode = mode;
       }
-      aladin.gotoRaDec(cmd.ra, cmd.dec);
-      aladin.setFoV(cmd.fov);
+      // Annotation updates may arrive before Dart receives the last pan/zoom.
+      // Only an explicit view command may move the camera.
+      if (cmd.viewRevision === undefined || cmd.viewRevision !== viewRevision) {
+        aladin.gotoRaDec(cmd.ra, cmd.dec);
+        aladin.setFoV(cmd.fov);
+        viewRevision = cmd.viewRevision;
+      }
       setMarkers(cmd.markers);
       setOverlays(cmd.overlays);
       if (!setDome(mode === 'dome' ? cmd.dome : null)) return false;
@@ -392,6 +402,23 @@
     feedbackTimer = root.setTimeout(reportView, 120);
   }
 
+  function reportSkyTap(point) {
+    if (!point || point.isDragging || !validPosition(point.ra, point.dec) ||
+        !Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
+    // Measure a small screen-space tolerance at the actual tap. Aladin's
+    // scale can vary across the projection, especially in dome mode.
+    const {x, y, ra, dec} = point;
+    const pixels = 10;
+    let tolerance = 0;
+    for (const [dx, dy] of [[pixels, 0], [-pixels, 0], [0, pixels], [0, -pixels]]) {
+      try {
+        const distance = aladin.angularDist(x, y, x + dx, y + dy, 'icrs');
+        if (Number.isFinite(distance)) tolerance = Math.max(tolerance, distance);
+      } catch (_) { /* This sample is outside the projection. */ }
+    }
+    if (tolerance > 0 && tolerance <= 180) report('skyTap', {ra, dec, tolerance});
+  }
+
   function boot() {
     if (fatalMessage) return;
     if (!root.A) {
@@ -410,6 +437,7 @@
           showReticle:true, showFullscreenControl:false,
         });
         setEmbeddedControls(null);
+        aladin.on('click', reportSkyTap);
         aladin.on('positionChanged', scheduleViewReport);
         aladin.on('zoomChanged', scheduleViewReport);
         ready = true;

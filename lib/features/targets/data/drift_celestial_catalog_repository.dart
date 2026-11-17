@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/astronomy/astronomical_coordinates.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/repositories/app_settings_repository.dart';
 import '../../../core/errors/app_failure.dart';
@@ -145,6 +146,51 @@ final class DriftCelestialCatalogRepository
     final row = await statement.getSingleOrNull();
 
     return row == null ? null : _fromRow(row);
+  }
+
+  @override
+  Future<CelestialObject?> findAt(
+    EquatorialPosition position, {
+    required double toleranceDegrees,
+  }) async {
+    position.validate();
+    if (!toleranceDegrees.isFinite ||
+        toleranceDegrees <= 0 ||
+        toleranceDegrees > 180) {
+      throw ArgumentError.value(toleranceDegrees, 'toleranceDegrees');
+    }
+
+    final statement = _database.select(_database.celestialCatalogEntries)
+      ..where((row) {
+        // Spherical separation is at least the declination difference. Use
+        // that to load only possible hits, even across the RA seam or poles.
+        final offset = (row.decDegrees - Variable(position.decDegrees)).abs();
+        final diameter = offset * const Variable<double>(120);
+        return offset.isSmallerOrEqualValue(toleranceDegrees) |
+            row.majorAxisArcmin.isBiggerOrEqual(diameter) |
+            row.minorAxisArcmin.isBiggerOrEqual(diameter);
+      })
+      ..orderBy([(row) => OrderingTerm.asc(row.id)]);
+
+    CelestialObject? nearest;
+    var nearestDistance = double.infinity;
+    for (final row in await statement.get()) {
+      final object = _fromRow(row);
+      final distance = AstronomicalCoordinates.angularSeparationDegrees(
+        position,
+        EquatorialPosition(
+          raDegrees: object.raDegrees,
+          decDegrees: object.decDegrees,
+        ),
+      );
+      if (distance < nearestDistance &&
+          (distance <= toleranceDegrees ||
+              distance <= (object.angularRadiusDegrees ?? 0))) {
+        nearest = object;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
   }
 
   CelestialCatalogEntriesCompanion _toCompanion(CelestialObject object) {

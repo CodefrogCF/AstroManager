@@ -23,6 +23,7 @@ function fixture() {
     removeOverlay(o) {commands.push(['remove-overlay', o]);},
     getRaDec() {return [10.6847, 41.2688];},
     getFov() {return [3];},
+    angularDist(x1, y1, x2, y2) {return Math.hypot(x2 - x1, y2 - y1) / 100;},
     on(name, fn) {handlers[name] = fn;},
   };
   const win = {
@@ -45,7 +46,7 @@ function fixture() {
     A: {
       init: Promise.resolve(), aladin() {return atlas;},
       catalog() {return {addSources(s) {commands.push(['sources', s]);}, remove() {}};},
-      marker(ra, dec, options) {return {ra, dec, title:options.popupTitle};},
+      source(ra, dec, data) {return {ra, dec, data};},
       graphicOverlay() {return {addFootprints(c) {commands.push(['circle', c]);}};},
       circle(ra, dec, radius) {return {ra, dec, radius};},
     },
@@ -104,7 +105,7 @@ test('invalid coordinates and unknown protocol cannot change atlas', async () =>
   assert.equal(win.AstroManagerAtlas.receive(command({version:999})), false);
   assert.equal(commands.length, 0);
 });
-test('marker labels are HTML escaped before entering popup', async () => {
+test('position markers do not create a separate Aladin popup', async () => {
   const {win, commands} = fixture();
   win.AstroManagerAtlas.boot();
   await new Promise(setImmediate);
@@ -112,7 +113,49 @@ test('marker labels are HTML escaped before entering popup', async () => {
     id:'x',ra:11,dec:42,label:'<img onerror="alert(1)">',
   }]}));
   const source = commands.find(item => item[0] === 'sources')[1][0];
-  assert.equal(source.title, '&lt;img onerror=&quot;alert(1)&quot;&gt;');
+  assert.equal(source.ra, 11);
+  assert.equal(source.dec, 42);
+  assert.equal(source.data, undefined);
+});
+
+test('a genuine atlas tap reports ICRS coordinates and the local angular tolerance', async () => {
+  const {win, atlas, handlers, messages} = fixture();
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  const tap = {ra:359.99, dec:45, x:100, y:200, isDragging:false};
+  handlers.click({...tap, isDragging:true});
+  handlers.click({...tap, ra:360});
+  assert.equal(messages.some(m => m.type === 'skyTap'), false);
+  // At the edge of the projection one of the pixel samples may fail.
+  const angularDist = atlas.angularDist;
+  atlas.angularDist = (x1, y1, x2, y2, frame) => {
+    assert.equal(frame, 'icrs');
+    if (x2 > x1) throw new Error('outside projection');
+    return angularDist(x1, y1, x2, y2);
+  };
+  handlers.click(tap);
+  assert.deepEqual(messages.at(-1), {
+    protocol, version:1, type:'skyTap', ra:359.99, dec:45, tolerance:0.1,
+  });
+});
+
+test('replacing a selected circle preserves the live camera until an explicit view command', async () => {
+  const {win, commands} = fixture();
+  win.AstroManagerAtlas.boot();
+  await new Promise(setImmediate);
+  assert.equal(win.AstroManagerAtlas.receive(command({viewRevision:0})), true);
+  assert.equal(win.AstroManagerAtlas.receive(command({
+    viewRevision:0, markers:[], overlays:[{ra:21,dec:22,radius:0.5,color:'#3dd5f3'}],
+  })), true);
+  assert.deepEqual(commands.filter(c => c[0] === 'goto'), [['goto', 10.6847, 41.2688]]);
+  assert.deepEqual(commands.filter(c => c[0] === 'fov'), [['fov', 2.3]]);
+  assert.deepEqual(commands.filter(c => c[0] === 'circle').at(-1)[1], {
+    ra:21, dec:22, radius:0.5,
+  });
+  assert.equal(commands.filter(c => c[0] === 'remove-overlay').length, 1);
+  assert.equal(win.AstroManagerAtlas.receive(command({viewRevision:1, ra:21, dec:22, fov:1})), true);
+  assert.deepEqual(commands.filter(c => c[0] === 'goto').at(-1), ['goto', 21, 22]);
+  assert.deepEqual(commands.filter(c => c[0] === 'fov').at(-1), ['fov', 1]);
 });
 test('critical script failure reports an error packet', () => {
   const {win, messages} = fixture();

@@ -110,6 +110,7 @@ const Map<String, String> appGermanUiStrings = {
   'Codefrog dark': 'Codefrog dunkel',
   'Codefrog light': 'Codefrog hell',
   'Columns': 'Spalten',
+  'Common names': 'Gebräuchliche Namen',
   'Compact actions': 'Kompakte Aktionen',
   'Compare observing sites': 'Beobachtungsorte vergleichen',
   'Compare selected sites': 'Ausgewählte Orte vergleichen',
@@ -117,6 +118,7 @@ const Map<String, String> appGermanUiStrings = {
   'Configure measurement units and time display.':
       'Maßeinheiten und Zeitanzeige einstellen.',
   'Confirm deletion': 'Löschen bestätigen',
+  'Constellation': 'Sternbild',
   'Continue without account': 'Ohne Konto fortfahren',
   'Continuous astronomical darkness throughout this observing night.':
       'Durchgehend astronomische Dunkelheit während dieser Beobachtungsnacht.',
@@ -250,6 +252,7 @@ const Map<String, String> appGermanUiStrings = {
   'IANA time zone': 'IANA-Zeitzone',
   'ICRS/J2000 planning geometry; account separately for field rotation, distortion, framing margins and mount limits.': 'ICRS/J2000-Planungsgeometrie; Bildfelddrehung, Verzerrung, Randabstände und Montierungsgrenzen separat berücksichtigen.',
   'ISO': 'ISO',
+  'Identifiers': 'Katalogbezeichnungen',
   'Imaging goal': 'Aufnahmeziel',
   'Imaging plan': 'Aufnahmeplan',
   'Imaging project': 'Aufnahmeprojekt',
@@ -293,6 +296,7 @@ const Map<String, String> appGermanUiStrings = {
   'Longitude (degrees)': 'Längengrad (Grad)',
   'Lunar conditions · observing night': 'Mondbedingungen · Beobachtungsnacht',
   'M31, NGC 224, Andromeda...': 'M31, NGC 224, Andromeda …',
+  'Major axis': 'Große Achse',
   'Manage alerts in Settings': 'Alarme in Einstellungen verwalten',
   'Manage coordinates, elevation and time zones.':
       'Koordinaten, Höhenlage und Zeitzonen verwalten.',
@@ -317,6 +321,7 @@ const Map<String, String> appGermanUiStrings = {
   'Minimum duration': 'Mindestdauer',
   'Minimum observation duration': 'Mindestbeobachtungsdauer',
   'Minimum session duration (minutes)': 'Minimale Beobachtungsdauer (Minuten)',
+  'Minor axis': 'Kleine Achse',
   'Modeled terrain horizon is not surveyed line of sight. Unknown bearings remain unknown.': 'Der modellierte Geländehorizont ist keine vermessene Sichtlinie. Unbekannte Richtungen bleiben unbekannt.',
   'Modeled zenith sky brightness': 'Modellierte Zenit-Himmelshelligkeit',
   'Monitored targets': 'Überwachte Ziele',
@@ -427,6 +432,7 @@ const Map<String, String> appGermanUiStrings = {
   'Number of projects': 'Anzahl Projekte',
   'Number of sessions': 'Anzahl Sitzungen',
   'Object category': 'Objektkategorie',
+  'Object type': 'Objekttyp',
   'Observation Opportunities & Alerts': 'Beobachtungsgelegenheiten und Alarme',
   'Observation added to Night Planner.':
       'Beobachtung zur Nachtplanung hinzugefügt.',
@@ -459,6 +465,7 @@ const Map<String, String> appGermanUiStrings = {
   'Optics': 'Optik',
   'Optional equipment': 'Optionale Ausrüstung',
   'Optional forecast-based alerts. Checks run when the app starts, returns to the foreground or when you tap Check now. No continuous background monitoring is provided.': 'Optionale Benachrichtigungen anhand von Prognosen. Prüfungen erfolgen beim App-Start, bei Rückkehr in den Vordergrund oder über „Jetzt prüfen“. Keine dauerhafte Hintergrundüberwachung.',
+  'Other': 'Sonstiges',
   'Outdated cached data': 'Veraltete Cache-Daten',
   'Outdated forecasts are not treated as favorable conditions.':
       'Veraltete Prognosen gelten nicht als günstige Bedingungen.',
@@ -578,6 +585,7 @@ const Map<String, String> appGermanUiStrings = {
   'Show Session Logging': 'Sitzungserfassung anzeigen',
   'Show Sky Atlas': 'Himmelsatlas anzeigen',
   'Show Targets': 'Ziele anzeigen',
+  'Show catalog details': 'Katalogdetails anzeigen',
   'Show coordinates': 'Koordinaten anzeigen',
   'Show details': 'Details anzeigen',
   'Show environmental details': 'Umgebungsdetails anzeigen',
@@ -601,6 +609,7 @@ const Map<String, String> appGermanUiStrings = {
   'Stale weather · provisional scores':
       'Veraltetes Wetter · vorläufige Bewertungen',
   'Star': 'Stern',
+  'Star cluster': 'Sternhaufen',
   'Start time': 'Startzeit',
   'Status': 'Status',
   'Sun below −18°; evaluated from local noon through the following local noon. Intervals can span midnight.': 'Sonne unter −18°; berechnet von lokalem Mittag bis zum nächsten Mittag. Intervalle können Mitternacht überschreiten.',
@@ -673,6 +682,8 @@ const Map<String, String> appGermanUiStrings = {
   'Unable to load recent sessions.':
       'Letzte Sitzungen konnten nicht geladen werden.',
   'Unable to load widget data.': 'Widget-Daten konnten nicht geladen werden.',
+  'Unable to look up atlas objects.':
+      'Atlasobjekte konnten nicht nachgeschlagen werden.',
   'Unable to read cached site conditions.':
       'Zwischengespeicherte Standortbedingungen konnten nicht gelesen werden.',
   'Unable to read the saved terrain profile.':
@@ -701,6 +712,7 @@ const Map<String, String> appGermanUiStrings = {
   'Use terrain horizon': 'Geländehorizont verwenden',
   'Use the time zone of the observing site.':
       'Zeitzone des Beobachtungsorts verwenden.',
+  'V magnitude': 'V-Helligkeit',
   'View': 'Ansicht',
   'View in atlas': 'Im Atlas ansehen',
   'View in sky atlas': 'Im Himmelsatlas ansehen',

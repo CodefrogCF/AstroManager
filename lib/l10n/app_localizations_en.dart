@@ -13,6 +13,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'AstroManager';
 
   @override
+  String get atlasShowCatalogDetails => 'Show catalog details';
+
+  @override
+  String get atlasCatalogLookupFailed => 'Unable to look up atlas objects.';
+
+  @override
+  String get atlasCatalogCommonNames => 'Common names';
+
+  @override
+  String get atlasCatalogObjectType => 'Object type';
+
+  @override
+  String get atlasCatalogConstellation => 'Constellation';
+
+  @override
+  String get atlasCatalogMagnitude => 'V magnitude';
+
+  @override
+  String get atlasCatalogMajorAxis => 'Major axis';
+
+  @override
+  String get atlasCatalogMinorAxis => 'Minor axis';
+
+  @override
+  String get atlasCatalogIdentifiers => 'Identifiers';
+
+  @override
+  String get atlasCatalogStarCluster => 'Star cluster';
+
+  @override
+  String get atlasCatalogOtherType => 'Other';
+
+  @override
   String get onboardingTitle => 'Welcome to AstroManager';
 
   @override

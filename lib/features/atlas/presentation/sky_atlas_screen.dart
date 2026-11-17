@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:astromanager/l10n/app_text.dart';
@@ -5,10 +6,12 @@ import 'package:astromanager/l10n/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/astronomy/astronomical_coordinates.dart';
 import '../../equipment/application/equipment_controller.dart';
 import '../../locations/application/observing_locations_controller.dart';
 import '../../locations/domain/models/observing_location.dart';
 import '../../equipment/domain/models/equipment_models.dart';
+import '../../targets/application/celestial_catalog_controller.dart';
 import '../../targets/domain/models/celestial_object.dart';
 import '../application/sky_atlas_controller.dart';
 import '../data/framing_repository.dart';
@@ -64,6 +67,8 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   String? _feedback;
   int _hostGeneration = 0;
   int _restoreGeneration = 0;
+  int _selectionRequest = 0;
+  CelestialObject? _selectedObject;
   late DateTime _observationUtc;
   List<ObservingLocation> _locations = const [];
   List<ObservingLocation>? _lastProviderLocations;
@@ -90,13 +95,16 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
   void initState() {
     super.initState();
     _mosaicPlan = widget.initialMosaic;
+    _selectedObject = widget.target;
     final position = widget.initialMosaic?.center ?? _targetPosition;
     _framingCenter = position;
     _controller = SkyAtlasController(
       initialPosition: position,
       initialFieldOfViewDegrees: 3,
-      initialMarkers: _markersFor(widget.target),
-      initialOverlays: _overlaysFor(widget.target),
+      initialMarkers: [?_positionMarker(widget.target)],
+      initialOverlays: [?_objectOutline(widget.target)],
+      onSkyTap: (position, tolerance) =>
+          unawaited(_selectAt(position, tolerance)),
     )..addListener(_refresh);
     _repository =
         widget.framingRepository ??
@@ -115,35 +123,29 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     _readSaved();
   }
 
-  List<SkyAtlasMarker> _markersFor(CelestialObject? target) {
-    if (target == null) return [];
-    return [
-      SkyAtlasMarker(
-        id: target.id,
-        position: SkyAtlasPosition(
-          raDegrees: target.raDegrees,
-          decDegrees: target.decDegrees,
-        ),
-        label: target.displayTitle,
-      ),
-    ];
+  SkyAtlasMarker? _positionMarker(CelestialObject? target) {
+    if (target == null || target.angularRadiusDegrees != null) return null;
+    return SkyAtlasMarker(
+      id: target.id,
+      position: _objectPosition(target),
+      label: target.displayTitle,
+    );
   }
 
-  List<SkyAtlasCircleOverlay> _overlaysFor(CelestialObject? target) {
-    final arcmin = target?.majorAxisArcmin;
-    if (target == null || arcmin == null || arcmin <= 0 || arcmin > 10800) {
-      return [];
-    }
-    return [
-      SkyAtlasCircleOverlay(
-        position: SkyAtlasPosition(
-          raDegrees: target.raDegrees,
-          decDegrees: target.decDegrees,
-        ),
-        radiusDegrees: arcmin / 120,
-      ),
-    ];
+  SkyAtlasCircleOverlay? _objectOutline(CelestialObject? target) {
+    if (target == null) return null;
+    final radius = target.angularRadiusDegrees;
+    if (radius == null) return null;
+    return SkyAtlasCircleOverlay(
+      position: _objectPosition(target),
+      radiusDegrees: radius,
+    );
   }
+
+  SkyAtlasPosition _objectPosition(CelestialObject object) => SkyAtlasPosition(
+    raDegrees: object.raDegrees,
+    decDegrees: object.decDegrees,
+  );
 
   Future<void> _readSaved() async {
     final generation = ++_restoreGeneration;
@@ -529,14 +531,36 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     }
   }
 
-  void _selectTarget(CelestialObject target) {
-    final position = SkyAtlasPosition(
-      raDegrees: target.raDegrees,
-      decDegrees: target.decDegrees,
+  Future<void> _selectAt(SkyAtlasPosition position, double tolerance) async {
+    final request = ++_selectionRequest;
+    try {
+      final providers = ProviderScope.containerOf(context, listen: false);
+      final catalog = providers.read(celestialCatalogRepositoryProvider);
+      await providers.read(celestialCatalogProvider.future);
+      if (!mounted || request != _selectionRequest) return;
+      final object = await catalog.findAt(
+        EquatorialPosition(
+          raDegrees: position.raDegrees,
+          decDegrees: position.decDegrees,
+        ),
+        toleranceDegrees: tolerance,
+      );
+      if (!mounted || request != _selectionRequest || object == null) return;
+      _setSelectedObject(object);
+    } catch (_) {
+      if (!mounted || request != _selectionRequest) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        const SnackBar(content: AppText('Unable to look up atlas objects.')),
+      );
+    }
+  }
+
+  void _setSelectedObject(CelestialObject? object) {
+    _selectedObject = object;
+    _controller.setSelection(
+      marker: _positionMarker(object),
+      outline: _objectOutline(object),
     );
-    _controller.goto(position);
-    _controller.setMarkers(_markersFor(target));
-    _controller.setOverlays(_overlaysFor(target));
   }
 
   @override
@@ -544,9 +568,13 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.target?.id != oldWidget.target?.id ||
         !identical(widget.initialMosaic, oldWidget.initialMosaic)) {
-      if (widget.target != null) _selectTarget(widget.target!);
+      _selectionRequest++;
+      _setSelectedObject(widget.target);
       if (_controller.projectionMode == SkyAtlasProjectionMode.skyDome) {
         _switchMode(SkyAtlasProjectionMode.detail);
+      }
+      if (widget.target case final target?) {
+        _controller.goto(_objectPosition(target));
       }
       _mosaicPlan = widget.initialMosaic;
       _framingCenter = _mosaicPlan?.center ?? _targetPosition;
@@ -573,6 +601,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
 
   void _retry() {
     setState(() {
+      _selectionRequest++;
       _hostGeneration++;
       _controller.resetLoading();
     });
@@ -786,6 +815,86 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
     );
   }
 
+  Widget _objectLabel(CelestialObject object) => Tooltip(
+    message: appTranslate(context, 'Show catalog details'),
+    child: TextButton(
+      key: const ValueKey('atlas-selected-object'),
+      onPressed: () => unawaited(_showObjectDetails(object)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              object.displayTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Icon(Icons.info_outline, size: 18),
+        ],
+      ),
+    ),
+  );
+
+  Future<void> _showObjectDetails(CelestialObject object) async {
+    if (!_controller.pointerInputEnabled) return;
+    _controller.setPointerInputEnabled(false);
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) {
+            final selected = _selectedObject ?? object;
+            final unknown = appTranslate(context, 'unknown');
+            String size(double? axis) => axis == null ? unknown : '$axis′';
+            final fields = {
+              if (selected.commonNames.isNotEmpty)
+                'Common names': selected.commonNames,
+              'Object type': appTranslate(context, selected.category.label),
+              'Constellation': selected.constellation.isEmpty
+                  ? unknown
+                  : selected.constellation,
+              'RA J2000': selected.rightAscensionText,
+              'Dec J2000': selected.declinationText,
+              'V magnitude':
+                  selected.visualMagnitude?.toStringAsFixed(2) ?? unknown,
+              'Major axis': size(selected.majorAxisArcmin),
+              'Minor axis': size(selected.minorAxisArcmin),
+              if (selected.aliases.isNotEmpty) 'Identifiers': selected.aliases,
+            };
+            return AlertDialog(
+              key: const ValueKey('atlas-object-details'),
+              scrollable: true,
+              title: Text(selected.displayTitle),
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final field in fields.entries)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text(
+                        '${appTranslate(context, field.key)}: ${field.value}',
+                      ),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const AppText('Close'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    } finally {
+      if (mounted) _controller.setPointerInputEnabled(true);
+    }
+  }
+
   Widget _mobileScreen(BuildContext context) {
     // The hostBuilder guard preserves database-free, injectable widget tests.
     return Consumer(
@@ -804,6 +913,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
         }
         final inventory = incomingInventory ?? _inventory;
         final controller = _controller;
+        final selectedObject = _selectedObject;
         final theme = Theme.of(context);
         final isDome =
             controller.projectionMode == SkyAtlasProjectionMode.skyDome;
@@ -818,6 +928,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
             child: Stack(
               children: [
                 Positioned.fill(
+                  top: 54,
                   child: ColoredBox(
                     color: theme.colorScheme.surface,
                     child: Center(
@@ -854,16 +965,12 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: AppText(
-                          widget.target?.displayTitle ?? 'Sky Atlas',
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            shadows: const [
-                              Shadow(blurRadius: 8, color: Colors.black),
-                            ],
-                          ),
-                        ),
+                        child: selectedObject == null
+                            ? AppText(
+                                'Sky Atlas',
+                                style: theme.textTheme.titleMedium,
+                              )
+                            : _objectLabel(selectedObject),
                       ),
                       _atlasOverlayButton(
                         key: const ValueKey('atlas-mobile-info'),
@@ -1121,11 +1228,11 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                   selected: _controller.fieldOfViewDegrees == fov,
                   onSelected: (_) => _controller.setFieldOfView(fov),
                 ),
-              if (widget.target != null)
+              if (_selectedObject case final target?)
                 IconButton(
                   key: const ValueKey('atlas-recenter'),
                   tooltip: appTranslate(context, 'Center target'),
-                  onPressed: () => _selectTarget(widget.target!),
+                  onPressed: () => _controller.goto(_objectPosition(target)),
                   icon: const Icon(Icons.center_focus_strong),
                 ),
             ],
@@ -1278,15 +1385,11 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       return _mobileScreen(context);
     }
     final controller = _controller;
-    final target = widget.target;
+    final target = _selectedObject;
     final theme = Theme.of(context);
     final isDome = controller.projectionMode == SkyAtlasProjectionMode.skyDome;
     return Scaffold(
-      appBar: AppBar(
-        title: AppText(
-          target == null ? 'Sky Atlas' : 'Sky Atlas · ${target.displayTitle}',
-        ),
-      ),
+      appBar: AppBar(title: const AppText('Sky Atlas')),
       body: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -1343,7 +1446,8 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
                   if (target != null)
                     OutlinedButton.icon(
                       key: const ValueKey('atlas-recenter'),
-                      onPressed: () => _selectTarget(target),
+                      onPressed: () =>
+                          _controller.goto(_objectPosition(target)),
                       icon: const Icon(Icons.center_focus_strong),
                       label: const AppText('Center target'),
                     ),
@@ -1361,6 +1465,7 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
             const SizedBox(height: 6),
             if (isDome) _domeControls() else _equipmentArea(),
             const SizedBox(height: 6),
+            if (target != null) _objectLabel(target),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -1399,12 +1504,15 @@ class _SkyAtlasScreenState extends State<SkyAtlasScreen> {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child:
-              widget.hostBuilder?.call(controller) ??
-              SkyAtlasHost(
-                key: ValueKey(_hostGeneration),
-                controller: controller,
-              ),
+          child: IgnorePointer(
+            ignoring: !controller.pointerInputEnabled,
+            child:
+                widget.hostBuilder?.call(controller) ??
+                SkyAtlasHost(
+                  key: ValueKey(_hostGeneration),
+                  controller: controller,
+                ),
+          ),
         ),
         if (controller.status == SkyAtlasStatus.loading ||
             controller.status == SkyAtlasStatus.imageryLoading)

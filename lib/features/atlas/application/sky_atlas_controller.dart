@@ -13,6 +13,7 @@ class SkyAtlasController extends ChangeNotifier {
     double initialFieldOfViewDegrees = 3,
     List<SkyAtlasMarker> initialMarkers = const [],
     List<SkyAtlasCircleOverlay> initialOverlays = const [],
+    this.onSkyTap,
   }) : _position = initialPosition,
        _fieldOfViewDegrees = initialFieldOfViewDegrees,
        _markers = List.unmodifiable(initialMarkers),
@@ -21,12 +22,16 @@ class SkyAtlasController extends ChangeNotifier {
   }
 
   SkyAtlasPosition _position;
+  final void Function(SkyAtlasPosition position, double toleranceDegrees)?
+  onSkyTap;
   double _fieldOfViewDegrees;
   List<SkyAtlasMarker> _markers;
   List<SkyAtlasCircleOverlay> _overlays;
   SkyAtlasStatus _status = SkyAtlasStatus.loading;
   String? _error;
   int _revision = 0;
+  int _viewRevision = 0;
+  bool _pointerInputEnabled = true;
   CameraFramingFootprint? _cameraFrame;
   MosaicFootprint? _mosaic;
   SkyAtlasProjectionMode _projectionMode = SkyAtlasProjectionMode.detail;
@@ -41,6 +46,7 @@ class SkyAtlasController extends ChangeNotifier {
   SkyAtlasStatus get status => _status;
   String? get error => _error;
   int get revision => _revision;
+  bool get pointerInputEnabled => _pointerInputEnabled;
   CameraFramingFootprint? get cameraFrame => _cameraFrame;
   MosaicFootprint? get mosaic => _mosaic;
   SkyAtlasProjectionMode get projectionMode => _projectionMode;
@@ -57,6 +63,7 @@ class SkyAtlasController extends ChangeNotifier {
     projectionMode: _projectionMode,
     dome: _dome,
     showAladinControls: _showAladinControls,
+    viewRevision: _viewRevision,
   );
 
   void _validate() {
@@ -76,8 +83,7 @@ class SkyAtlasController extends ChangeNotifier {
   void goto(SkyAtlasPosition position) {
     position.validate();
     _position = position;
-    _revision++;
-    notifyListeners();
+    _viewChanged();
   }
 
   void setFieldOfView(double degrees) {
@@ -85,8 +91,7 @@ class SkyAtlasController extends ChangeNotifier {
       throw ArgumentError.value(degrees, 'degrees');
     }
     _fieldOfViewDegrees = degrees;
-    _revision++;
-    notifyListeners();
+    _viewChanged();
   }
 
   void setMarkers(List<SkyAtlasMarker> markers) {
@@ -109,9 +114,29 @@ class SkyAtlasController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSelection({SkyAtlasMarker? marker, SkyAtlasCircleOverlay? outline}) {
+    marker?.toJson();
+    outline?.toJson();
+    _markers = marker == null ? const [] : List.unmodifiable([marker]);
+    _overlays = outline == null ? const [] : List.unmodifiable([outline]);
+    _revision++;
+    notifyListeners();
+  }
+
+  void setPointerInputEnabled(bool value) {
+    if (value == _pointerInputEnabled) return;
+    _pointerInputEnabled = value;
+    notifyListeners();
+  }
+
   void setProjectionMode(SkyAtlasProjectionMode mode) {
     if (mode == _projectionMode) return;
     _projectionMode = mode;
+    _viewChanged();
+  }
+
+  void _viewChanged() {
+    _viewRevision++;
     _revision++;
     notifyListeners();
   }
@@ -184,25 +209,47 @@ class SkyAtlasController extends ChangeNotifier {
         );
       case 'error':
         reportError((event['message'] as String?) ?? 'Atlas unavailable.');
-      case 'viewChanged':
-        final ra = event['ra'];
-        final dec = event['dec'];
-        final fov = event['fov'];
-        if (ra is! num || dec is! num || fov is! num) return;
-        try {
-          final next = SkyAtlasPosition(
-            raDegrees: ra.toDouble(),
-            decDegrees: dec.toDouble(),
-          );
-          next.validate();
-          final zoom = fov.toDouble();
-          if (!zoom.isFinite || zoom < 0.01 || zoom > 180) return;
-          _position = next;
-          _fieldOfViewDegrees = zoom;
-          notifyListeners();
-        } on ArgumentError {
-          // Malformed messages from a third-party JS runtime are ignored.
+      case 'skyTap':
+        if (!_pointerInputEnabled) return;
+        final position = _eventPosition(event);
+        final tolerance = event['tolerance'];
+        if (position == null ||
+            tolerance is! num ||
+            !tolerance.isFinite ||
+            tolerance <= 0 ||
+            tolerance > 180) {
+          return;
         }
+        onSkyTap?.call(position, tolerance.toDouble());
+      case 'viewChanged':
+        final position = _eventPosition(event);
+        final fov = event['fov'];
+        if (position == null ||
+            fov is! num ||
+            !fov.isFinite ||
+            fov < 0.01 ||
+            fov > 180) {
+          return;
+        }
+        _position = position;
+        _fieldOfViewDegrees = fov.toDouble();
+        notifyListeners();
+    }
+  }
+
+  SkyAtlasPosition? _eventPosition(Map<String, dynamic> event) {
+    final ra = event['ra'];
+    final dec = event['dec'];
+    if (ra is! num || dec is! num) return null;
+    final position = SkyAtlasPosition(
+      raDegrees: ra.toDouble(),
+      decDegrees: dec.toDouble(),
+    );
+    try {
+      position.validate();
+      return position;
+    } on ArgumentError {
+      return null;
     }
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:astromanager/core/astronomy/astronomical_coordinates.dart';
 import 'package:astromanager/core/database/app_database.dart';
 import 'package:astromanager/core/database/repositories/app_settings_repository.dart';
 
@@ -147,6 +148,47 @@ void main() {
     test('initial database has no catalog objects', () async {
       expect(await repository.count(), 0);
     });
+
+    test(
+      'atlas finds catalog extent hits and point objects across the RA seam',
+      () async {
+        const point = CelestialObject(
+          id: 'point',
+          designation: 'Point',
+          category: CelestialCategory.star,
+          sourceType: '*',
+          raDegrees: 359.99,
+          decDegrees: 0,
+          constellation: '',
+          commonNames: '',
+          aliases: '',
+        );
+        await repository.seedIfNeeded(
+          CelestialCatalogBundle(
+            version: 'atlas',
+            objects: const [point, andromeda],
+          ),
+        );
+        final inside = await repository.findAt(
+          const EquatorialPosition(raDegrees: 10.6848, decDegrees: 42.25),
+          toleranceDegrees: 0.02,
+        );
+        expect(inside?.id, andromeda.id);
+        expect(
+          await repository.findAt(
+            const EquatorialPosition(raDegrees: 10.6848, decDegrees: 42.8),
+            toleranceDegrees: 0.02,
+          ),
+          isNull,
+        );
+        final atSeam = await repository.findAt(
+          const EquatorialPosition(raDegrees: 0.01, decDegrees: 0),
+          toleranceDegrees: 0.025,
+        );
+        expect(atSeam?.id, point.id);
+        expect(atSeam?.angularRadiusDegrees, isNull);
+      },
+    );
 
     test('imports bundled objects', () async {
       await repository.seedIfNeeded(sampleBundle());
