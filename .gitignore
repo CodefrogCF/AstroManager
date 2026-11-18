@@ -13,6 +13,8 @@
 migrate_working_dir/
 /docs/release-qa-v1.0.0.md
 /docs/performance-privacy-reliability.md
+/docs/release-checklist.md
+/docs/releasing.md
 
 # IntelliJ related
 *.iml

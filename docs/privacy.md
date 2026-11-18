@@ -12,7 +12,7 @@ You can also enter coordinates manually.
 | Service | When contacted | Data sent |
 | --- | --- | --- |
 | [Open-Meteo](https://open-meteo.com/en/terms) | When a forecast is needed for the selected site and a current cached forecast does not cover the request. The Dashboard refresh explicitly requests a download. Enabled local observing alerts can request weather when the app starts or resumes. | Site latitude and longitude rounded to five decimal places, UTC dates, forecast variables and model. |
-| [OpenTopoData](https://www.opentopodata.org/#public-api) | When you request a terrain horizon in the site settings. | Coordinates of points sampled around the site and the elevation dataset name. The point pattern can reveal the observing area. |
+| [OpenTopoData](https://www.opentopodata.org/#public-api) | When you request a terrain horizon in the site settings, or run a site comparison with terrain enabled and a matching saved profile is unavailable or stale. | Coordinates of points sampled around the site and the elevation dataset name. The point pattern can reveal the observing area. |
 | [jsDelivr](https://www.jsdelivr.com/terms/privacy-policy) and [ESA HiPS](https://skies.esac.esa.int/DSSColor/properties) | When you open the interactive Sky Atlas. | Viewer files and survey tiles requested for the current sky view. Depending on the viewer action, Aladin can contact its upstream astronomy services. The browser atlas runs in a sandbox without access to app storage and keeps its internal viewer preferences in memory. |
 | [Google Fonts](https://developers.google.com/fonts/faq/privacy) | Flutter Web can download font files during startup or when a glyph requires a fallback font. | The font file URL and ordinary network metadata. |
 

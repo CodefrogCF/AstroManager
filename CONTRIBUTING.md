@@ -34,4 +34,4 @@ Submit focused changes with a concise rationale, tests and documentation updates
 
 ## Licensing
 
-Keep third-party notices and attribution with their applicable assets and algorithms. The source archive used for this documentation update has **no top-level AstroManager software LICENSE**; project-wide contribution/redistribution terms must be established by the repository owner rather than inferred from bundled third-party notices.
+Contributions to the application follow the repository's [Apache License 2.0](LICENSE). Keep the [third-party notices](docs/THIRD_PARTY_NOTICES.md) and relevant attribution with third-party assets and code.

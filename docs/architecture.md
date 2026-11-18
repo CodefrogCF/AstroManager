@@ -1,6 +1,6 @@
 # Architecture and Development
 
-AstroManager is a Flutter/Dart application with feature-first modules and offline-first persistence. This document covers the current v0.6.0 structure; the user-facing workflow is in the [User guide](user-guide.md).
+AstroManager is a Flutter/Dart application with feature-first modules and offline-first persistence. This document describes the v1.0.0 structure. See the [user guide](user-guide.md) for the app workflows.
 
 ## Structure and main dependencies
 

@@ -2,7 +2,9 @@
 
 AstroManager is an offline-first astrophotography planning application built with Flutter. It combines a local celestial-object catalog, observing-site and equipment management, nighttime planning, imaging projects, observation logs, and an interactive sky atlas. Weather forecasts, terrain profiles and observer-reported Bortle classes refine recommendations.
 
-**Current application version:** `0.7.0+7`.
+**Version** `1.0.0` (build `9`) · [Deutsch](docs/user-guide.de.md)
+
+![AstroManager Dashboard showing the observing site and seven-night forecast](docs/screenshots/dashboard.png)
 
 ## What you can do
 
@@ -27,7 +29,7 @@ The Dashboard offers locally saved, configurable widgets and quick actions.
 5. Create an imaging goal in **Projects**; record each observing session, including exposure time and accepted/rejected frame counts. Watch accumulated integration time update.
 6. Under **Settings → Backup & restore**, save an `.ambackup` copy of your data. Enable **Include session images** if you want attachments in that backup.
 
-For screen-by-screen instructions, see the [User guide](docs/user-guide.md).
+For screen-by-screen instructions, see the [English user guide](docs/user-guide.md) or the [German user guide](docs/user-guide.de.md).
 
 ## Language, first-run setup and accessibility
 
@@ -47,33 +49,36 @@ Native Flutter labels respect system text scaling and screen readers. Some dense
 
 See [Data sources and limitations](docs/data-sources.md) for credits, source conditions and scientific limitations.
 
-## Platforms
+## Platforms and installation
 
-The repository contains runners for **Android, iOS, Web, Windows and macOS**. The embedded Aladin sky viewer works on supported WebGL browsers and platform WebViews. On native Windows, use the Web build for the atlas. Native Apple builds require macOS and Xcode, and iOS device distribution requires signing. Mobile opportunity system notifications are available on Android and iOS.
+AstroManager targets Android, iOS, Web, Windows and macOS. The [installation and platform guide](docs/installation.md) lists the requirements, install steps and feature availability. Versioned downloads are listed under [GitHub Releases](https://github.com/CodefrogCF/AstroManager/releases).
 
 ## Build from source
 
-Install the Flutter SDK version specified in [`.fvmrc`](.fvmrc) and the platform's required build tools.
+Install Flutter `3.47.0` as pinned in [`.fvmrc`](.fvmrc), and the required tools for your target platform.
 
 ```bash
 git clone https://github.com/CodefrogCF/AstroManager.git
 cd AstroManager
-flutter pub get
+flutter pub get --enforce-lockfile
 flutter gen-l10n
 flutter run -d chrome
 ```
 
 For other configured platforms, select a connected device with `flutter devices` and use `flutter run -d <device-id>`. Generated Drift files are already included in the repository; regenerate them after schema changes with `dart run build_runner build --delete-conflicting-outputs`.
 
-Developer checks and contribution guidelines are in [CONTRIBUTING.md](CONTRIBUTING.md).
+See the [release build instructions](docs/releasing.md) and [contribution guide](CONTRIBUTING.md) for platform toolchains, verification and signing.
 
 ## Documentation
 
-- [User guide](docs/user-guide.md) — setup, workflows, backup and alerts.
-- [Architecture and development](docs/architecture.md) — storage, algorithms, extension points and testing.
-- [Data sources and limitations](docs/data-sources.md) — catalog, survey, weather, terrain, light pollution and attribution.
+- [English user guide](docs/user-guide.md) and [German user guide](docs/user-guide.de.md)
+- [Installation and supported platforms](docs/installation.md)
+- [Screenshots](docs/screenshots/README.md)
+- [Architecture and development](docs/architecture.md)
+- [Data sources and limitations](docs/data-sources.md)
 - [Privacy and network requests](docs/privacy.md)
-- [Backup format](docs/backup-format.md) — portable `.ambackup` structure and restore guarantees.
+- [Backup format](docs/backup-format.md)
+- [Changelog](CHANGELOG.md), [v1.0.0 release notes](docs/release-notes/v1.0.0.md) and [roadmap](ROADMAP.md)
 
 ## Data
 

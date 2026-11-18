@@ -58,7 +58,7 @@ The current atlas displays **DSS2 Color** via the ESA HiPS mirror:
   AstroManager's Apache-2.0 license; do not redistribute tiles or copies
   without verifying the corresponding permissions.
 
-See [Data sources and limitations](data-sources.md) for the survey credits.
+See the [survey credits](https://github.com/CodefrogCF/AstroManager/blob/main/docs/data-sources.md#survey-and-catalog-credits).
 
 ## 5. Open-Meteo forecasts — CC BY 4.0 data, API usage terms
 

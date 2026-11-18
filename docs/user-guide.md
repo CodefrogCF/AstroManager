@@ -1,6 +1,14 @@
 # AstroManager User Guide
 
-This guide describes the user-facing functionality in AstroManager `0.6.0`. Menu labels follow the current English application interface.
+This guide covers AstroManager v1.0.0. [Deutsch](user-guide.de.md)
+
+## Install and get started
+
+Choose a build from the [installation and platform guide](installation.md).
+The first-run guide on the Dashboard lets you choose a language, add a site
+and configure equipment. You can skip steps and reopen the guide with
+**Settings → Open the setup guide**. Change the saved language in
+**Settings → Application preferences → Language**.
 
 ## 1. Set up your observing locations
 
@@ -18,7 +26,9 @@ Open **Equipment** to create cameras, lenses, telescopes and mounts. Enter the s
 
 In **Targets**, search the offline OpenNGC-based catalog using names or designations and inspect target details. The catalog contains object types, ICRS/J2000 coordinates, aliases and available catalog properties; some objects lack magnitude or dimensions.
 
-Open **Sky Atlas** to explore the DSS2 Color survey. Select an optical profile and use the camera outline to inspect framing. You can center the framing on the atlas view, nudge it, rotate it, save it and restore it for a target. The **Sky dome** option presents a local horizon/sky view using the selected site and time. External Aladin code and sky imagery require an internet connection, even though catalog searches and framing calculations work offline.
+Use **Discover recommended targets** to rank opportunities for a site, night and minimum session length. Scores use visibility, astronomical darkness, weather, Moon conditions, equipment and any saved Bortle class. Fresh forecasts of 100% cloud cover split candidate windows. Weather gaps or stale forecasts yield provisional results.
+
+Open **Sky Atlas** to explore the DSS2 Color survey. Tap a catalog object, then tap its name to open its details. The field-of-view readout follows zoom. Select an optical profile and use the camera outline to inspect framing. You can center the framing on the atlas view, nudge it, rotate it, save it and restore it for a target. **Sky Dome** shows the local sky for the site and time with the saved camera footprint. Catalog searches and framing calculations work offline. The embedded viewer loads its runtime and images online.
 
 ## 4. Plan a night
 
@@ -74,7 +84,7 @@ Technical details: [Backup format](backup-format.md).
 
 ## 9. Preferences, offline use and troubleshooting
 
-In **Settings**, choose Codefrog Light, Codefrog Dark, Astronomy Night or system theme, plus measurement units and time display. The current interface is in English; comprehensive localization is not yet included.
+In **Settings**, choose Codefrog Light, Codefrog Dark, Astronomy Night or system theme, plus measurement units and time display. English and German are available. Catalog identifiers, provider names and some scientific details retain their source wording.
 
 | Symptom | What to check |
 | --- | --- |
@@ -86,12 +96,6 @@ In **Settings**, choose Codefrog Light, Codefrog Dark, Astronomy Night or system
 | Old data is not visible after reinstall | Restore a recent `.ambackup` file; local app/browser storage is not automatically synchronized. |
 
 For physical limitations, source conditions and credits see [Data sources and limitations](data-sources.md).
-
-## First-run guide and language
-
-When the app is first opened, its dashboard offers a short optional setup guide. Choose a language (system default, English or German), add an observing location, and optionally configure your imaging equipment. You may skip any step; no account or registration is needed. Location permissions are only requested if you select **Use current location** in the location editor. An observing site can also be entered entirely manually. Restart the guide from **Settings → Open the setup guide**.
-
-Change the interface language later under **Settings → Application preferences → Language**. The language setting persists offline and is included in application preferences backups. Some scientific identifiers, catalog names, third-party dataset credits and numerical units intentionally remain unchanged in translation.
 
 ## Atlas control visibility on phones
 
@@ -108,10 +112,8 @@ The Dashboard is a local, configurable start page. Choose the observing location
 from the selector at the top; **Default observing location** follows the default
 saved in Settings. The selection is shared by all dashboard widgets.
 
-Open **Manage widgets** to add and remove widget types or hide them without
-deleting their configuration. Each widget's options menu offers configuration,
-size selection (where supported), hiding, removal, and keyboard-friendly
-ordering. These controls are a foundation for a later drag-and-drop editor.
+Open **Manage widgets** to add, hide or remove widget types. In **Edit layout**,
+drag widgets by their grips, use the move arrows or choose **Resize**.
 
 The initial preset contains a seven-night weather panel, tonight's top targets,
 a night summary, and quick actions. Forecasts and recommendations use the existing
@@ -194,7 +196,7 @@ source.
 
 The widget shows the observer-reported Bortle class when you have entered one. **Compare observing sites** opens the site comparison for saved locations.
 
-## Dashboard performance, offline use and accessibility (v0.7)
+## Dashboard performance, offline use and accessibility
 
 The visible project widgets share the same session aggregation provider. When
 multiple instances use the same forecast request, the Riverpod provider shares
@@ -206,6 +208,6 @@ content and use **Manage widgets** to hide less frequently needed panels.
 
 Codefrog Light/Dark and Astronomy Night Mode use separate palettes. The night
 palette now has stronger card boundaries so controls remain distinguishable
-without replacing its red-light-oriented appearance. For detailed release
-checks on phone, tablet, desktop, iOS/Android and offline operation, see
-[`dashboard-v0.7.0-qa.md`](dashboard-v0.7.0-qa.md).
+while retaining the night palette. See [platform support](installation.md)
+for availability and the [privacy guide](privacy.md) for local storage and
+network requests.
